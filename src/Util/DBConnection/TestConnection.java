@@ -1,14 +1,22 @@
-package src.Util.DBConnection;
+package testjdbc;
+
+import database.DBConnection;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 
 public class TestConnection {
+
     public static void main(String[] args) {
+
         try (Connection conn = DBConnection.getConnection()) {
-            System.out.println("Ket noi thanh cong!");
-        } catch (SQLException e) {
-            System.out.println("Loi ket noi: " + e.getMessage());
+
+            System.out.println("Ket noi MySQL thanh cong!");
+
+        } catch (Exception e) {
+
+            System.out.println("Ket noi MySQL that bai!");
+
+            e.printStackTrace();
         }
     }
 }
