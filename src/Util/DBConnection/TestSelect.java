@@ -1,6 +1,4 @@
-package testjdbc;
-
-import database.DBConnection;
+package src.Util.DBConnection;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
