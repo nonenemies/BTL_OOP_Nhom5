@@ -5,10 +5,12 @@ import java.util.Date;
 public class Admin extends Users {
         private String chucVu;
 
-        public Admin(Integer userID, String hoTen, String email,
-                     String passwordHash, String role, String maSo,
-                     String khoa, Date ngayTao, Integer trangThai, String chucVu) {
-                super(userID, hoTen, email, passwordHash, role, maSo, khoa, ngayTao, trangThai);
+        public Admin() {
+                super();
+        }
+
+        public Admin(Integer userID, String chucVu) {
+                super(userID);
                 this.chucVu = chucVu;
         }
 

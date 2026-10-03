@@ -2,20 +2,43 @@ package model;
 
 import java.util.Date;
 
-public abstract class Users {
-    protected Integer userID;
-    protected String hoTen;
-    protected String email;
-    protected String passwordHash;
-    protected String role;
-    protected String maSo;
-    protected String khoa;
-    protected Date ngayTao;
-    protected Integer trangThai;
+public class Users {
 
-    public Users(Integer userID, String hoTen, String email, String passwordHash,
+    private Integer userID;
+    private String hoTen;
+    private String email;
+    private String passwordHash;
+    private String role;
+    private String maSo;
+    private String khoa;
+    private Date ngayTao;
+    private Integer trangThai;
+
+    public Users() {
+    }
+
+    public Users(Integer userID) {
+        this.userID = userID;
+    }
+
+    public Users(String hoTen, String email, String passwordHash,
                  String role, String maSo, String khoa,
+                 Integer trangThai) {
+
+        this.hoTen = hoTen;
+        this.email = email;
+        this.passwordHash = passwordHash;
+        this.role = role;
+        this.maSo = maSo;
+        this.khoa = khoa;
+        this.trangThai = trangThai;
+    }
+
+    public Users(Integer userID, String hoTen, String email,
+                 String passwordHash, String role,
+                 String maSo, String khoa,
                  Date ngayTao, Integer trangThai) {
+
         this.userID = userID;
         this.hoTen = hoTen;
         this.email = email;
@@ -25,6 +48,13 @@ public abstract class Users {
         this.khoa = khoa;
         this.ngayTao = ngayTao;
         this.trangThai = trangThai;
+    }
+
+    public Users(Integer userID, String hoTen, String email, String khoa) {
+        this.userID = userID;
+        this.hoTen = hoTen;
+        this.email = email;
+        this.khoa = khoa;
     }
 
     public Integer getUserID() {
@@ -97,5 +127,18 @@ public abstract class Users {
 
     public void setTrangThai(Integer trangThai) {
         this.trangThai = trangThai;
+    }
+
+    @Override
+    public String toString() {
+        return userID + " "
+                + hoTen + " "
+                + email + " "
+                + passwordHash + " "
+                + role + " "
+                + maSo + " "
+                + khoa + " "
+                + ngayTao + " "
+                + trangThai;
     }
 }

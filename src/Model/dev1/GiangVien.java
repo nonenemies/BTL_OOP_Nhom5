@@ -7,11 +7,12 @@ public class GiangVien extends Users {
     private String chuyenNganh;
     private String hocVi;
 
-    public GiangVien(Integer userID, String hoTen, String email,
-                     String passwordHash, String role, String maSo,
-                     String khoa, Date ngayTao, Integer trangThai,
-                     String maGiangVien, String chuyenNganh, String hocVi) {
-        super(userID, hoTen, email, passwordHash, role, maSo, khoa, ngayTao, trangThai);
+    public GiangVien() {
+        super();
+    }
+
+    public GiangVien(Integer userID, String maGiangVien, String chuyenNganh, String hocVi) {
+        super(userID);
         this.maGiangVien = maGiangVien;
         this.chuyenNganh = chuyenNganh;
         this.hocVi = hocVi;
