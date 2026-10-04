@@ -47,4 +47,21 @@ public class DangKyHocDAO {
             return false;
         }
     }
+
+    // HÀM DÙNG ĐỂ HOÁN ĐỔI LỚP (Cập nhật thẳng vào DB)
+    public boolean capNhatLopChoSinhVien(int maSV, String lopCu, String lopMoi) {
+        String sql = "UPDATE DangKyHoc SET MaLop = ? WHERE MaSV = ? AND MaLop = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, lopMoi); // Set giá trị mới
+            ps.setInt(2, maSV);
+            ps.setString(3, lopCu);  // Tìm đúng cái cũ để đè lên
+
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }
