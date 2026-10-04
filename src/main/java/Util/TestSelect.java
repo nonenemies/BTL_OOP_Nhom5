@@ -1,4 +1,4 @@
-package src.Util.DBConnection;
+package Util;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

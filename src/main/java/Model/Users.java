@@ -1,6 +1,6 @@
-package src.Model.dev1;
+package Model;
 
-import java.util.Date;
+import java.util.*;
 
 public abstract class Users {
     protected Integer userID;
