@@ -4,7 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import Model.DangKyHoc;
-import Util.DBConnection; // Nhớ đảm bảo nhóm bạn đã có file DBConnection nhé
+import Util.DBConnection;
 
 public class DangKyHocDAO {
 
