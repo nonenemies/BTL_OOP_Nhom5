@@ -1,6 +1,6 @@
-package dao;
+package DAO.dev1;
 
-import model.GiangVien;
+import Model.dev1.GiangVien;
 
 public interface GiangVienDAO extends BaseDao<GiangVien>{
 }

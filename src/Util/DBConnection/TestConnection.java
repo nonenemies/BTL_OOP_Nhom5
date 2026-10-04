@@ -1,6 +1,6 @@
-package testjdbc;
+package Util.DBConnection;
 
-import database.DBConnection;
+import Util.DBConnection.DBConnection;
 
 import java.sql.Connection;
 

@@ -1,7 +1,7 @@
-package dao;
+package DAO.dev1;
 
-import database.DBConnection;
-import model.Users;
+import Util.DBConnection.DBConnection;
+import Model.dev1.Users;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

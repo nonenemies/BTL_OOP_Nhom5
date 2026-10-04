@@ -1,6 +1,6 @@
-package dao;
+package DAO.dev1;
 
-import model.SinhVien;
+import Model.dev1.SinhVien;
 
 import java.util.ArrayList;
 

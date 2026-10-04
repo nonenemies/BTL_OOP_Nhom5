@@ -1,7 +1,7 @@
-package dao;
+package DAO.dev1;
 
-import database.DBConnection;
-import model.SinhVien;
+import Util.DBConnection.DBConnection;
+import Model.dev1.SinhVien;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

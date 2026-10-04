@@ -1,4 +1,4 @@
-package src.Util.DBConnection;
+package Util.DBConnection;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -16,5 +16,17 @@ public class DBConnection {
             throw new SQLException("Khong tim thay driver MySQL: " + e.getMessage());
         }
         return DriverManager.getConnection(URL, USER, PASSWORD);
+    }
+
+    public static void closeConnection(Connection connection) {
+        if (connection != null) {
+            try {
+                if (!connection.isClosed()) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
