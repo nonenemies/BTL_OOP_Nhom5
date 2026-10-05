@@ -48,6 +48,19 @@ public class DangKyHocDAO {
         }
     }
 
+    // ĐÓNG THẾ ĐỢI DEV 4 LÀM XONG ĐIỂM SỐ
+    public boolean kiemTraDaQuaMon(int maSV, String maMonHoc) {
+        // Giả lập: Sinh viên 3 học cực giỏi, môn nào cũng qua (trả về true)
+        if (maSV == 3) {
+            return true;
+        }
+        // Giả lập: Sinh viên 4 học kém, tạch môn Nhập môn C (trả về false)
+        if (maSV == 4 && maMonHoc.equals("IT00")) {
+            return false;
+        }
+        return true;
+    }
+
     // HÀM DÙNG ĐỂ HOÁN ĐỔI LỚP (Cập nhật thẳng vào DB)
     public boolean capNhatLopChoSinhVien(int maSV, String lopCu, String lopMoi) {
         String sql = "UPDATE DangKyHoc SET MaLop = ? WHERE MaSV = ? AND MaLop = ?";
@@ -64,4 +77,5 @@ public class DangKyHocDAO {
             return false;
         }
     }
+
 }

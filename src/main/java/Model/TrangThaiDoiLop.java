@@ -1,6 +1,6 @@
 package Model;
-
 public enum TrangThaiDoiLop {
-    DANG_CHO,
-    THANH_CONG
+    CHO_XAC_NHAN,
+    DA_DUYET,
+    TU_CHOI
 }
