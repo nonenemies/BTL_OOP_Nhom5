@@ -100,10 +100,16 @@ public class LopHocDAO {
 
     /** Tăng sĩ số nguyên tử nếu lớp còn hoạt động và chưa đầy. */
     public boolean tangSiSo(String maLop) throws SQLException {
+        try (Connection conn = DBConnection.getConnection()) {
+            return tangSiSo(conn, maLop);
+        }
+    }
+
+    /** Tăng sĩ số trên kết nối do bên gọi quản lý, để ghép vào transaction hiện có. */
+    public boolean tangSiSo(Connection conn, String maLop) throws SQLException {
         String sql = "UPDATE LopHoc SET SiSoHienTai = SiSoHienTai + 1 "
                 + "WHERE MaLop = ? AND TrangThai = 1 AND SiSoHienTai < SiSoToiDa";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, maLop);
             return ps.executeUpdate() == 1;
         }
@@ -111,10 +117,16 @@ public class LopHocDAO {
 
     /** Giảm sĩ số nguyên tử nếu sĩ số hiện tại lớn hơn 0. */
     public boolean giamSiSo(String maLop) throws SQLException {
+        try (Connection conn = DBConnection.getConnection()) {
+            return giamSiSo(conn, maLop);
+        }
+    }
+
+    /** Giảm sĩ số trên kết nối do bên gọi quản lý, để ghép vào transaction hiện có. */
+    public boolean giamSiSo(Connection conn, String maLop) throws SQLException {
         String sql = "UPDATE LopHoc SET SiSoHienTai = SiSoHienTai - 1 "
                 + "WHERE MaLop = ? AND SiSoHienTai > 0";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, maLop);
             return ps.executeUpdate() == 1;
         }
