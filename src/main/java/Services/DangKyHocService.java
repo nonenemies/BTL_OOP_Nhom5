@@ -36,21 +36,21 @@ public class DangKyHocService {
         }
     }
 
-    public static void main(String[] args) {
-        DangKyHocService service = new DangKyHocService();
-
-        // Giả sử Sinh viên Nguyễn Văn Sinh (có UserID = 3 trong SQL)
-        // Bấm đăng ký môn OOP (có MaLop = 'OOP_L01' trong SQL)
-        int idSinhVien = 3;
-        String maLopHoc = "OOP_L01";
-
-        System.out.println("⏳ Đang xử lý đăng ký...");
-        String ketQua = service.xuLyDangKyHoc(idSinhVien, maLopHoc);
-        System.out.println("Kết quả: " + ketQua);
-
-        System.out.println("---------------------------------");
-        System.out.println("⏳ SV Cố tình bấm đăng ký lần 2...");
-        String ketQuaLan2 = service.xuLyDangKyHoc(idSinhVien, maLopHoc);
-        System.out.println("Kết quả: " + ketQuaLan2);
-    }
+//    public static void main(String[] args) {
+//        DangKyHocService service = new DangKyHocService();
+//
+//        // Giả sử Sinh viên Nguyễn Văn Sinh (có UserID = 3 trong SQL)
+//        // Bấm đăng ký môn OOP (có MaLop = 'OOP_L01' trong SQL)
+//        int idSinhVien = 3;
+//        String maLopHoc = "OOP_L01";
+//
+//        System.out.println("⏳ Đang xử lý đăng ký...");
+//        String ketQua = service.xuLyDangKyHoc(idSinhVien, maLopHoc);
+//        System.out.println("Kết quả: " + ketQua);
+//
+//        System.out.println("---------------------------------");
+//        System.out.println("⏳ SV Cố tình bấm đăng ký lần 2...");
+//        String ketQuaLan2 = service.xuLyDangKyHoc(idSinhVien, maLopHoc);
+//        System.out.println("Kết quả: " + ketQuaLan2);
+//    }
 }
