@@ -71,7 +71,7 @@ public class LopHocDAO {
     }
 
     /** Tìm lớp theo mã, gồm cả lớp đã ngừng hoạt động. */
-    public LopHoc layLopTheoMa(String maLop) throws SQLException {
+    public LopHoc layLopTheoMa(Connection conn, String maLop) throws SQLException {
         String sql = "SELECT MaLop, MaMon, MaGV, HocKy, SiSoToiDa, SiSoHienTai, TrangThai "
                 + "FROM LopHoc WHERE MaLop = ?";
         List<LopHoc> ketQua = truyVanDanhSach(sql, maLop);
