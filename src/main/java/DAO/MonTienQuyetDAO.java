@@ -43,7 +43,7 @@ public class MonTienQuyetDAO {
     }
 
     /** Lấy danh sách môn phải học trước một môn. */
-    public List<MonHoc> layDanhSachMonTienQuyet(String maMon) throws SQLException {
+    public static List<MonHoc> layDanhSachMonTienQuyet(String maMon) throws SQLException {
         String sql = "SELECT mh.MaMon, mh.TenMon, mh.SoTinChi, mh.LoaiMon, mh.MoTa, mh.TrangThai "
                 + "FROM MonTienQuyet mtq JOIN MonHoc mh ON mh.MaMon = mtq.MaMonTienQuyet "
                 + "WHERE mtq.MaMon = ? ORDER BY mh.MaMon";

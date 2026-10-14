@@ -1,56 +1,54 @@
 package Services;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import DAO.DangKyHocDAO;
+import DAO.LopHocDAO;
 import Model.DangKyHoc;
+import Util.DBConnection;
 
 public class DangKyHocService {
-
-    // Gọi anh công nhân DAO ra đây để sai vặt
     private DangKyHocDAO dangKyDAO = new DangKyHocDAO();
+    private LopHocDAO lopHocDAO = new LopHocDAO();
 
-    // Hàm này sẽ được gọi khi Sinh viên bấm nút "ĐĂNG KÝ" trên màn hình
-    // Nó sẽ trả về một câu thông báo (String) để hiện lên màn hình cho SV đọc
     public String xuLyDangKyHoc(int maSV, String maLop) {
+        Connection conn = null;
+        try {
+            conn = DBConnection.getConnection();
+            conn.setAutoCommit(false); // Bắt đầu Transaction
 
-        // LUẬT 1: Kiểm tra xem đã đăng ký lớp này chưa?
-        boolean daDangKy = dangKyDAO.kiemTraDaDangKy(maSV, maLop);
-        if (daDangKy) {
-            return "❌ Bạn đã đăng ký lớp này rồi, không thể đăng ký lại!";
-        }
+            if (dangKyDAO.kiemTraDaDangKy(conn, maSV, maLop)) {
+                return "❌ Bạn đã đăng ký lớp " + maLop + " rồi!";
+            }
 
-        // LUẬT 2: Kiểm tra sĩ số lớp (Sẽ làm sau khi Dev 2 code xong LopHocDAO)
-        // Hiện tại cứ cho qua. Sau này bạn sẽ viết thêm:
-        // if (lopHocDAO.kiemTraDaySiSo(maLop)) return "❌ Lớp đã đầy!";
+            // Gọi Dev 2: Vừa kiểm tra vừa Tăng sĩ số
+            if (!lopHocDAO.tangSiSo(conn, maLop)) {
+                conn.rollback();
+                return "❌ Đăng ký thất bại: Lớp đã đầy hoặc đã bị khóa!";
+            }
 
-        // VƯỢT QUA CÁC LUẬT -> Tiến hành đăng ký
-        // Dùng Constructor số 2 mà ta đã tạo lúc nãy
-        DangKyHoc dkMoi = new DangKyHoc(maLop, maSV);
+            DangKyHoc dk = new DangKyHoc(maLop, maSV);
+            if (!dangKyDAO.themDangKyMoi(conn, dk)) {
+                conn.rollback();
+                return "❌ Lỗi hệ thống khi lưu đăng ký!";
+            }
 
-        boolean thanhCong = dangKyDAO.themDangKyMoi(dkMoi);
-
-        if (thanhCong) {
-            // Sau này nhớ gọi LopHocDAO để TĂNG SĨ SỐ HỆN TẠI LÊN 1 nhé
+            conn.commit(); // Thành công 100% mới lưu
             return "✅ Đăng ký thành công lớp " + maLop;
-        } else {
-            return "❌ Có lỗi hệ thống xảy ra, vui lòng thử lại!";
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            if (conn != null) {
+                try { conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+            }
+            return "❌ Lỗi cơ sở dữ liệu!";
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException ex) { ex.printStackTrace(); }
+            }
         }
     }
-
-//    public static void main(String[] args) {
-//        DangKyHocService service = new DangKyHocService();
-//
-//        // Giả sử Sinh viên Nguyễn Văn Sinh (có UserID = 3 trong SQL)
-//        // Bấm đăng ký môn OOP (có MaLop = 'OOP_L01' trong SQL)
-//        int idSinhVien = 3;
-//        String maLopHoc = "OOP_L01";
-//
-//        System.out.println("⏳ Đang xử lý đăng ký...");
-//        String ketQua = service.xuLyDangKyHoc(idSinhVien, maLopHoc);
-//        System.out.println("Kết quả: " + ketQua);
-//
-//        System.out.println("---------------------------------");
-//        System.out.println("⏳ SV Cố tình bấm đăng ký lần 2...");
-//        String ketQuaLan2 = service.xuLyDangKyHoc(idSinhVien, maLopHoc);
-//        System.out.println("Kết quả: " + ketQuaLan2);
-//    }
 }
