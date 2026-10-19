@@ -141,61 +141,85 @@ public class GiangVienDAOImpl implements GiangVienDAO {
     }
 
 
-    // 4. Xóa thông tin giảng viên
+    // Cap nhat giang vien
     @Override
-    public void delete(GiangVien giangVien) {
+    public void update(GiangVien gv) {
+        if (gv == null || gv.getUserID() == null) {
+            throw new IllegalArgumentException("Thieu UserID");
+        }
 
-        try {
-            Connection con = DBConnection.getConnection();
+        String sql =
+                "UPDATE Users u " +
+                        "JOIN GiaoVien g ON u.UserID = g.UserID " +
+                        "SET u.HoTen = ?, u.Email = ?, u.Khoa = ?, " +
+                        "g.MaGV = ?, g.ChuyenNganh = ?, g.HocVi = ? " +
+                        "WHERE u.UserID = ?";
 
-            String sql =
-                    "DELETE FROM GiaoVien " +
-                            "WHERE UserID = ?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
 
-            PreparedStatement ps = con.prepareStatement(sql);
-
-            ps.setInt(1, giangVien.getUserID());
+            ps.setString(1, gv.getHoTen());
+            ps.setString(2, gv.getEmail());
+            ps.setString(3, gv.getKhoa());
+            ps.setString(4, gv.getMaGiangVien());
+            ps.setString(5, gv.getChuyenNganh());
+            ps.setString(6, gv.getHocVi());
+            ps.setInt(7, gv.getUserID());
 
             ps.executeUpdate();
 
-            ps.close();
-            DBConnection.closeConnection(con);
-
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Loi cap nhat giang vien", e);
         }
     }
 
-    // 5. Cập nhật thông tin giảng viên
+    // Xoa ten giang vien
     @Override
-    public void update(GiangVien giangVien) {
+    public void delete(GiangVien gv) {
+        if (gv == null || gv.getUserID() == null) {
+            throw new IllegalArgumentException("Thieu UserID");
+        }
 
-        try {
-            Connection con = DBConnection.getConnection();
+        try (Connection con = DBConnection.getConnection()) {
+            con.setAutoCommit(false);
 
-            String sql =
-                    "UPDATE GiaoVien SET " +
-                            "MaGV = ?, " +
-                            "ChuyenNganh = ?, " +
-                            "HocVi = ? " +
-                            "WHERE UserID = ?";
+            try {
+                String sql1 = "DELETE FROM GiaoVien WHERE UserID = ?";
 
-            PreparedStatement ps = con.prepareStatement(sql);
+                try (PreparedStatement ps = con.prepareStatement(sql1)) {
+                    ps.setInt(1, gv.getUserID());
 
-            ps.setString(1, giangVien.getMaGiangVien());
-            ps.setString(2, giangVien.getChuyenNganh());
-            ps.setString(3, giangVien.getHocVi());
-            ps.setInt(4, giangVien.getUserID());
+                    if (ps.executeUpdate() != 1) {
+                        throw new SQLException("Khong tim thay giang vien");
+                    }
+                }
 
-            ps.executeUpdate();
+                String sql2 = "DELETE FROM Users WHERE UserID = ?";
 
-            ps.close();
-            DBConnection.closeConnection(con);
+                try (PreparedStatement ps = con.prepareStatement(sql2)) {
+                    ps.setInt(1, gv.getUserID());
+
+                    if (ps.executeUpdate() != 1) {
+                        throw new SQLException("Khong tim thay tai khoan");
+                    }
+                }
+
+                con.commit();
+
+            } catch (SQLException e) {
+                try {
+                    con.rollback();
+                } catch (SQLException ex) {
+                    e.addSuppressed(ex);
+                }
+                throw e;
+            }
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Loi xoa giang vien", e);
         }
     }
+
 
     // 6. Tìm giảng viên theo tên
     @Override

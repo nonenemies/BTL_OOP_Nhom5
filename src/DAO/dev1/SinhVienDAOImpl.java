@@ -143,58 +143,100 @@ public class SinhVienDAOImpl implements SinhVienDAO{
     }
 
 
-    @Override
-    public void delete(SinhVien sv) {
-         try{
-             Connection con = DBConnection.getConnection();
-
-             String sql ="DELETE FROM SinhVien " +
-                     "WHERE UserID = ?";
-
-             PreparedStatement ps = con.prepareStatement(sql);
-             ps.setInt(1, sv.getUserID());
-             ps.executeUpdate();
-             ps.close();
-             DBConnection.closeConnection(con);
-         } catch (SQLException e) {
-                e.printStackTrace();
-         }
-
-    }
 
     @Override
     public void update(SinhVien sv) {
-        try{
-            Connection con = DBConnection.getConnection();
+        if (sv == null || sv.getUserID() == null) {
+            throw new IllegalArgumentException("Thieu UserID");
+        }
 
-            String sql = "UPDATE SinhVien SET " +
-                    "maSV = ?, " +
-                    "ngaySinh = ?, " +
-                    "gioiTinh = ?, " +
-                    "lop = ?, " +
-                    "khoaHoc = ?, " +
-                    "heDaoTao = ? " +
-                    "WHERE userID = ? ";
-            PreparedStatement ps = con.prepareStatement(sql);
+        String sql =
+                "UPDATE Users u " +
+                        "JOIN SinhVien s ON u.UserID = s.UserID " +
+                        "SET u.HoTen = ?, u.Email = ?, u.Khoa = ?, " +
+                        "s.MaSV = ?, s.NgaySinh = ?, s.GioiTinh = ?, " +
+                        "s.Lop = ?, s.KhoaHoc = ?, s.HeDaoTao = ? " +
+                        "WHERE u.UserID = ?";
 
-            ps.setString(1, sv.getMaSinhVien());
-            ps.setDate(2, new java.sql.Date(sv.getNgaySinh().getTime()));
-            ps.setString(3, sv.getGioiTinh());
-            ps.setString(4, sv.getLop());
-            ps.setInt(5, sv.getKhoaHoc());
-            ps.setString(6, sv.getHeDaoTao());
-            ps.setInt(7, sv.getUserID());
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, sv.getHoTen());
+            ps.setString(2, sv.getEmail());
+            ps.setString(3, sv.getKhoa());
+            ps.setString(4, sv.getMaSinhVien());
+
+            if (sv.getNgaySinh() != null) {
+                ps.setDate(5, new java.sql.Date(sv.getNgaySinh().getTime()));
+            } else {
+                ps.setNull(5, java.sql.Types.DATE);
+            }
+
+            ps.setString(6, sv.getGioiTinh());
+            ps.setString(7, sv.getLop());
+
+            if (sv.getKhoaHoc() != null) {
+                ps.setInt(8, sv.getKhoaHoc());
+            } else {
+                ps.setNull(8, java.sql.Types.INTEGER);
+            }
+
+            ps.setString(9, sv.getHeDaoTao());
+            ps.setInt(10, sv.getUserID());
+
             ps.executeUpdate();
 
-            ps.close();
-            DBConnection.closeConnection(con);
-
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi cap nhat sinh vien", e);
         }
-        catch (SQLException e){
-            e.printStackTrace();
-        }
-
     }
+
+    @Override
+    public void delete(SinhVien sv) {
+        if (sv == null || sv.getUserID() == null) {
+            throw new IllegalArgumentException("Thieu UserID");
+        }
+
+        try (Connection con = DBConnection.getConnection()) {
+            con.setAutoCommit(false);
+
+            try {
+                String sql1 = "DELETE FROM SinhVien WHERE UserID = ?";
+
+                try (PreparedStatement ps = con.prepareStatement(sql1)) {
+                    ps.setInt(1, sv.getUserID());
+
+                    if (ps.executeUpdate() != 1) {
+                        throw new SQLException("Khong tim thay sinh vien");
+                    }
+                }
+
+                String sql2 = "DELETE FROM Users WHERE UserID = ?";
+
+                try (PreparedStatement ps = con.prepareStatement(sql2)) {
+                    ps.setInt(1, sv.getUserID());
+
+                    if (ps.executeUpdate() != 1) {
+                        throw new SQLException("Khong tim thay tai khoan");
+                    }
+                }
+
+                con.commit();
+
+            } catch (SQLException e) {
+                try {
+                    con.rollback();
+                } catch (SQLException ex) {
+                    e.addSuppressed(ex);
+                }
+                throw e;
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi xoa sinh vien", e);
+        }
+    }
+
 
     @Override
     public SinhVien selectByMaSV(String maSV) {

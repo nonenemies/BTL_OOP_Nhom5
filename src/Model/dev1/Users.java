@@ -134,7 +134,6 @@ public class Users {
         return userID + " "
                 + hoTen + " "
                 + email + " "
-                + passwordHash + " "
                 + role + " "
                 + maSo + " "
                 + khoa + " "
