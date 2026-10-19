@@ -9,6 +9,27 @@ import Util.DBConnection;
 // Truy cập cơ sở dữ liệu để lưu điểm thành phần của sinh viên.
 public class DiemDAO {
 
+    /** Chỉ cập nhật khi mỗi thành phần đang hoạt động có đúng một điểm. */
+    public int capNhatDiemTongKet(Connection conn, String maSV, String maLop) throws SQLException {
+        String sql = "UPDATE DangKyHoc dk JOIN ("
+                + "SELECT dk2.MaDangKy, ROUND(SUM(tp.TrongSo * d.DiemDatDuoc), 2) AS TongDiem "
+                + "FROM DangKyHoc dk2 "
+                + "JOIN LopHoc lh ON lh.MaLop = dk2.MaLop "
+                + "JOIN ThanhPhanDanhGia tp ON tp.MaMon = lh.MaMon AND tp.TrangThai = 1 "
+                + "LEFT JOIN DiemThanhPhan d ON d.MaDangKy = dk2.MaDangKy AND d.MaTP = tp.MaTP "
+                + "WHERE dk2.MaSV = ? AND dk2.MaLop = ? "
+                + "GROUP BY dk2.MaDangKy "
+                + "HAVING COUNT(*) = COUNT(DISTINCT tp.MaTP) "
+                + "AND COUNT(d.DiemDatDuoc) = COUNT(*)"
+                + ") ketQua ON ketQua.MaDangKy = dk.MaDangKy "
+                + "SET dk.DiemTongKet = ketQua.TongDiem";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, maSV);
+            ps.setString(2, maLop);
+            return ps.executeUpdate();
+        }
+    }
+
     /* @param maSV mã sinh viên trong bảng DangKyHoc (tham chiếu Users.UserID)
      * @param maLop mã lớp sinh viên đã đăng ký
      * @param thuTu thứ tự thành phần đánh giá trong ThanhPhanDanhGia
@@ -16,8 +37,7 @@ public class DiemDAO {
      * @return true nếu thêm điểm thành công; false nếu không tìm được kết quả
      *         duy nhất hoặc xảy ra lỗi SQL
      */
-    public boolean nhapDiem(int maSV, String maLop, int thuTu, float diemDatDuoc) {
-        // Chỉ chọn thành phần đánh giá đang hoạt động (TrangThai = 1).
+    public boolean nhapDiem(String maSV, String maLop, int thuTu, float diemDatDuoc) {
         String timThanhPhan = "SELECT dk.MaDangKy, tp.MaTP "
                 + "FROM DangKyHoc dk "
                 + "JOIN LopHoc lh ON dk.MaLop = lh.MaLop "
@@ -32,7 +52,7 @@ public class DiemDAO {
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement timPS = conn.prepareStatement(timThanhPhan)) {
             // Gán tham số vào các dấu ? theo thứ tự trong câu truy vấn tìm kiếm.
-            timPS.setInt(1, maSV);
+            timPS.setString(1, maSV);
             timPS.setString(2, maLop);
             timPS.setInt(3, thuTu);
 
@@ -45,7 +65,6 @@ public class DiemDAO {
                 }
                 maDangKy = rs.getInt("MaDangKy");
                 maTP = rs.getInt("MaTP");
-                // Chi nhap diem khi xac dinh duoc duy nhat mot thanh phan.
                 // Có nhiều kết quả thì không xác định được duy nhất nơi cần nhập điểm.
                 if (rs.next()) {
                     return false;
@@ -61,7 +80,6 @@ public class DiemDAO {
                 return themPS.executeUpdate() > 0;
             }
         } catch (SQLException e) {
-            // In thông tin lỗi để hỗ trợ kiểm tra và báo thao tác thất bại.
             e.printStackTrace();
             return false;
         }
