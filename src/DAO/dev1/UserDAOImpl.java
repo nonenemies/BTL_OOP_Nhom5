@@ -21,7 +21,6 @@ public class UserDAOImpl implements UserDAO {
     public Users checkLogin(String email, String passwordHash) {
 
         Users user = null;
-
         try {
             Connection con = DBConnection.getConnection();
 
@@ -150,25 +149,33 @@ public class UserDAOImpl implements UserDAO {
         return user;
     }
 
+
+
     @Override
     public void insert(Users t) {
+        try (Connection con = DBConnection.getConnection()) {
+            insert(con, t);
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi them Users", e);
+        }
+    }
 
-        try {
-            Connection con = DBConnection.getConnection();
+    // INSERT dùng chung Connection cho Transaction
+    public void insert(Connection con, Users t) throws SQLException {
 
-            String sql =
-                    "INSERT INTO Users " +
-                            "(HoTen, Email, PasswordHash, Role, MaSo, Khoa, TrangThai) " +
-                            "VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql =
+                "INSERT INTO Users " +
+                        "(HoTen, Email, PasswordHash, Role, MaSo, Khoa, TrangThai) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
-            PreparedStatement ps = con.prepareStatement(sql);
+        try (PreparedStatement ps = con.prepareStatement(
+                sql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
 
             ps.setString(1, t.getHoTen());
             ps.setString(2, t.getEmail());
             ps.setString(3, t.getPasswordHash());
             ps.setString(4, t.getRole());
             ps.setString(5, t.getMaSo());
-            ps.setString(6, t.getKhoa());
 
             if (t.getKhoa() == null || t.getKhoa().trim().isEmpty()) {
                 ps.setNull(6, java.sql.Types.VARCHAR);
@@ -182,13 +189,19 @@ public class UserDAOImpl implements UserDAO {
                 ps.setInt(7, 1);
             }
 
-            ps.executeUpdate();
+            int rows = ps.executeUpdate();
 
-            ps.close();
-            DBConnection.closeConnection(con);
+            if (rows != 1) {
+                throw new SQLException("Them Users that bai");
+            }
 
-        } catch (SQLException e) {
-            e.printStackTrace();
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (rs.next()) {
+                    t.setUserID(rs.getInt(1));
+                } else {
+                    throw new SQLException("Khong lay duoc UserID");
+                }
+            }
         }
     }
 

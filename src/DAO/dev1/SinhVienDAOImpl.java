@@ -59,8 +59,8 @@ public class SinhVienDAOImpl implements SinhVienDAO{
         try{
             Connection con = DBConnection.getConnection();
             String sql = "SELECT * " +
-                    "FROM Users u" +
-                    "JOIN SinhVien sv" +
+                    "FROM Users u " +
+                    "JOIN SinhVien sv " +
                     "ON u.userID = sv.userID " +
                     "WHERE sv.userID = ? ";
             PreparedStatement ps = con.prepareStatement(sql);
@@ -92,30 +92,56 @@ public class SinhVienDAOImpl implements SinhVienDAO{
         return sv;
     }
 
+
     @Override
     public void insert(SinhVien sinhVien) {
-            try{
-                Connection con = DBConnection.getConnection();
-                String sql = "INSERT INTO SinhVien " +
-                        "(MaSV, NgaySinh, GioiTinh, Lop, KhoaHoc, HeDaoTao) " +
-                        "VALUES(?, ?, ?, ?, ?, ?) ";
-                PreparedStatement ps = con.prepareStatement(sql);
-
-                ps.setString(1, sinhVien.getMaSinhVien());
-                ps.setDate(2, new java.sql.Date(sinhVien.getNgaySinh().getTime()));
-                ps.setString(3, sinhVien.getGioiTinh());
-                ps.setString(4, sinhVien.getLop());
-                ps.setInt(5, sinhVien.getKhoaHoc());
-                ps.setString(6, sinhVien.getHeDaoTao());
-
-                ps.executeUpdate();
-                ps.close();
-                DBConnection.closeConnection(con);
-            }
-            catch (SQLException e){
-                e.printStackTrace();
-            }
+        try (Connection con = DBConnection.getConnection()) {
+            insert(con, sinhVien);
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi them SinhVien", e);
+        }
     }
+
+    // INSERT dùng chung Connection cho Transaction
+    public void insert(Connection con, SinhVien sinhVien)
+            throws SQLException {
+
+        String sql =
+                "INSERT INTO SinhVien " +
+                        "(UserID, MaSV, NgaySinh, GioiTinh, Lop, KhoaHoc, HeDaoTao) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, sinhVien.getUserID());
+            ps.setString(2, sinhVien.getMaSinhVien());
+
+            if (sinhVien.getNgaySinh() != null) {
+                ps.setDate(3, new java.sql.Date(
+                        sinhVien.getNgaySinh().getTime()));
+            } else {
+                ps.setNull(3, java.sql.Types.DATE);
+            }
+
+            ps.setString(4, sinhVien.getGioiTinh());
+            ps.setString(5, sinhVien.getLop());
+
+            if (sinhVien.getKhoaHoc() != null) {
+                ps.setInt(6, sinhVien.getKhoaHoc());
+            } else {
+                ps.setNull(6, java.sql.Types.INTEGER);
+            }
+
+            ps.setString(7, sinhVien.getHeDaoTao());
+
+            int rows = ps.executeUpdate();
+
+            if (rows != 1) {
+                throw new SQLException("Them SinhVien that bai");
+            }
+        }
+    }
+
 
     @Override
     public void delete(SinhVien sv) {

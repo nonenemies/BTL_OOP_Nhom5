@@ -1,8 +1,8 @@
+
 package Model.dev1;
 
-import java.util.Date;
-
 public class GiangVien extends Users {
+
     private String maGiangVien;
     private String chuyenNganh;
     private String hocVi;
@@ -11,12 +11,28 @@ public class GiangVien extends Users {
         super();
     }
 
-    public GiangVien(Integer userID, String maGiangVien, String chuyenNganh, String hocVi) {
+    // Constructor dùng khi thêm giảng viên
+    public GiangVien(Integer userID, String maGiangVien,
+                     String chuyenNganh, String hocVi) {
         super(userID);
         this.maGiangVien = maGiangVien;
         this.chuyenNganh = chuyenNganh;
         this.hocVi = hocVi;
     }
+
+    // Constructor dùng khi SELECT JOIN Users + GiaoVien
+    public GiangVien(Integer userID, String hoTen,
+                     String email, String khoa,
+                     String maGiangVien,
+                     String chuyenNganh, String hocVi) {
+
+        super(userID, hoTen, email, khoa);
+
+        this.maGiangVien = maGiangVien;
+        this.chuyenNganh = chuyenNganh;
+        this.hocVi = hocVi;
+    }
+
 
     public String getMaGiangVien() {
         return maGiangVien;
@@ -40,5 +56,16 @@ public class GiangVien extends Users {
 
     public void setHocVi(String hocVi) {
         this.hocVi = hocVi;
+    }
+
+    @Override
+    public String toString() {
+        return getUserID() + " " +
+                getHoTen() + " " +
+                getEmail() + " " +
+                getKhoa() + " " +
+                maGiangVien + " " +
+                chuyenNganh + " " +
+                hocVi;
     }
 }
