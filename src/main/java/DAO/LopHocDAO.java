@@ -70,11 +70,18 @@ public class LopHocDAO {
                 + "FROM LopHoc ORDER BY MaLop", null);
     }
 
-    /** Tìm lớp theo mã, gồm cả lớp đã ngừng hoạt động. */
+    /** Tìm lớp theo mã, gồm cả lớp đã ngừng hoạt động (tự mở connection). */
+    public LopHoc layLopTheoMa(String maLop) throws SQLException {
+        try (Connection conn = DBConnection.getConnection()) {
+            return layLopTheoMa(conn, maLop);
+        }
+    }
+
+    /** Tìm lớp theo mã trên connection do bên gọi quản lý, để đọc trong cùng transaction. */
     public LopHoc layLopTheoMa(Connection conn, String maLop) throws SQLException {
         String sql = "SELECT MaLop, MaMon, MaGV, HocKy, SiSoToiDa, SiSoHienTai, TrangThai "
                 + "FROM LopHoc WHERE MaLop = ?";
-        List<LopHoc> ketQua = truyVanDanhSach(sql, maLop);
+        List<LopHoc> ketQua = truyVanDanhSach(conn, sql, maLop);
         return ketQua.isEmpty() ? null : ketQua.get(0);
     }
 
@@ -133,9 +140,15 @@ public class LopHocDAO {
     }
 
     private List<LopHoc> truyVanDanhSach(String sql, String thamSoMaMonHoacLop) throws SQLException {
+        try (Connection conn = DBConnection.getConnection()) {
+            return truyVanDanhSach(conn, sql, thamSoMaMonHoacLop);
+        }
+    }
+
+    private List<LopHoc> truyVanDanhSach(Connection conn, String sql, String thamSoMaMonHoacLop)
+            throws SQLException {
         List<LopHoc> danhSach = new ArrayList<>();
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             if (thamSoMaMonHoacLop != null) {
                 ps.setString(1, thamSoMaMonHoacLop);
             }
@@ -155,7 +168,6 @@ public class LopHocDAO {
         }
         return danhSach;
     }
-
     /** Chạy thử truy vấn danh sách lớp theo yêu cầu kiểm tra console ở tuần 1. */
     public static void main(String[] args) {
         try {
