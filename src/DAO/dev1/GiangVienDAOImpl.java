@@ -27,7 +27,7 @@ public class GiangVienDAOImpl implements GiangVienDAO {
                     "SELECT u.UserID, u.HoTen, u.Email, u.Khoa, " +
                             "gv.MaGV, gv.ChuyenNganh, gv.HocVi " +
                             "FROM Users u " +
-                            "JOIN GiaoVien gv ON u.UserID = gv.UserID";
+                            "JOIN GiangVien gv ON u.UserID = gv.UserID";
 
             PreparedStatement ps = con.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
@@ -72,7 +72,7 @@ public class GiangVienDAOImpl implements GiangVienDAO {
                     "SELECT u.UserID, u.HoTen, u.Email, u.Khoa, " +
                             "gv.MaGV, gv.ChuyenNganh, gv.HocVi " +
                             "FROM Users u " +
-                            "JOIN GiaoVien gv ON u.UserID = gv.UserID " +
+                            "JOIN GiangVien gv ON u.UserID = gv.UserID " +
                             "WHERE gv.UserID = ?";
 
             PreparedStatement ps = con.prepareStatement(sql);
@@ -112,7 +112,7 @@ public class GiangVienDAOImpl implements GiangVienDAO {
         try (Connection con = DBConnection.getConnection()) {
             insert(con, giangVien);
         } catch (SQLException e) {
-            throw new RuntimeException("Loi them GiaoVien", e);
+            throw new RuntimeException("Loi them GiangVien", e);
         }
     }
 
@@ -121,7 +121,7 @@ public class GiangVienDAOImpl implements GiangVienDAO {
             throws SQLException {
 
         String sql =
-                "INSERT INTO GiaoVien " +
+                "INSERT INTO GiangVien " +
                         "(UserID, MaGV, ChuyenNganh, HocVi) " +
                         "VALUES (?, ?, ?, ?)";
 
@@ -135,7 +135,7 @@ public class GiangVienDAOImpl implements GiangVienDAO {
             int rows = ps.executeUpdate();
 
             if (rows != 1) {
-                throw new SQLException("Them GiaoVien that bai");
+                throw new SQLException("Them GiangVien that bai");
             }
         }
     }
@@ -150,7 +150,7 @@ public class GiangVienDAOImpl implements GiangVienDAO {
 
         String sql =
                 "UPDATE Users u " +
-                        "JOIN GiaoVien g ON u.UserID = g.UserID " +
+                        "JOIN GiangVien g ON u.UserID = g.UserID " +
                         "SET u.HoTen = ?, u.Email = ?, u.Khoa = ?, " +
                         "g.MaGV = ?, g.ChuyenNganh = ?, g.HocVi = ? " +
                         "WHERE u.UserID = ?";
@@ -184,7 +184,7 @@ public class GiangVienDAOImpl implements GiangVienDAO {
             con.setAutoCommit(false);
 
             try {
-                String sql1 = "DELETE FROM GiaoVien WHERE UserID = ?";
+                String sql1 = "DELETE FROM GiangVien WHERE UserID = ?";
 
                 try (PreparedStatement ps = con.prepareStatement(sql1)) {
                     ps.setInt(1, gv.getUserID());
@@ -233,7 +233,7 @@ public class GiangVienDAOImpl implements GiangVienDAO {
                     "SELECT u.UserID, u.HoTen, u.Email, u.Khoa, " +
                             "gv.MaGV, gv.ChuyenNganh, gv.HocVi " +
                             "FROM Users u " +
-                            "JOIN GiaoVien gv ON u.UserID = gv.UserID " +
+                            "JOIN GiangVien gv ON u.UserID = gv.UserID " +
                             "WHERE u.HoTen LIKE ?";
 
             PreparedStatement ps = con.prepareStatement(sql);
@@ -281,7 +281,7 @@ public class GiangVienDAOImpl implements GiangVienDAO {
                     "SELECT u.UserID, u.HoTen, u.Email, u.Khoa, " +
                             "gv.MaGV, gv.ChuyenNganh, gv.HocVi " +
                             "FROM Users u " +
-                            "JOIN GiaoVien gv ON u.UserID = gv.UserID " +
+                            "JOIN GiangVien gv ON u.UserID = gv.UserID " +
                             "WHERE u.Khoa = ?";
 
             PreparedStatement ps = con.prepareStatement(sql);
@@ -327,7 +327,7 @@ public class GiangVienDAOImpl implements GiangVienDAO {
 
             String sql =
                     "SELECT COUNT(*) AS TongGV " +
-                            "FROM GiaoVien";
+                            "FROM GiangVien";
 
             PreparedStatement ps = con.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
@@ -356,7 +356,7 @@ public class GiangVienDAOImpl implements GiangVienDAO {
             Connection con = DBConnection.getConnection();
 
             String sql =
-                    "SELECT UserID FROM GiaoVien " +
+                    "SELECT UserID FROM GiangVien " +
                             "WHERE UserID = ?";
 
             PreparedStatement ps = con.prepareStatement(sql);

@@ -1,7 +1,5 @@
 package Model.dev1;
 
-import java.util.Date;
-
 public class Admin extends Users {
         private String chucVu;
 
