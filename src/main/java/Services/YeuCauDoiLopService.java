@@ -18,12 +18,6 @@ public class YeuCauDoiLopService {
     private DangKyHocDAO dangKyDAO = new DangKyHocDAO();
     private LopHocDAO lopHocDAO = new LopHocDAO();
 
-    // ===============================================
-    // HÀM TRỢ THỦ: KIỂM TRA MÔN TIÊN QUYẾT (ĐÃ FIX THEO DEV 2)
-    // ===============================================
-    // ===============================================
-    // HÀM TRỢ THỦ: KIỂM TRA MÔN TIÊN QUYẾT (CHUẨN 100% VỚI DEV 2)
-    // ===============================================
     private String checkTienQuyet(Connection conn, int maSV, String maLopMuonVao) throws SQLException {
 
         // 1. GỌI DEV 2: Đã thêm chữ 'conn' vào tham số đầu tiên
@@ -31,8 +25,8 @@ public class YeuCauDoiLopService {
         if (lopHoc == null) return "Lớp học không tồn tại!";
         String maMonMuonVao = lopHoc.getMaMon();
 
-        // 2. GỌI DEV 2 (HÀM STATIC): Hàm này Dev 2 không cần conn
-        java.util.List<MonHoc> listTienQuyet = MonTienQuyetDAO.layDanhSachMonTienQuyet(maMonMuonVao);
+        // Đọc môn tiên quyết trên cùng kết nối transaction.
+        java.util.List<MonHoc> listTienQuyet = MonTienQuyetDAO.layDanhSachMonTienQuyet(conn, maMonMuonVao);
 
         // 3. Quét từng môn
         for (MonHoc monTQ : listTienQuyet) {
@@ -79,7 +73,7 @@ public class YeuCauDoiLopService {
             conn = DBConnection.getConnection();
             conn.setAutoCommit(false); // Bắt đầu Transaction
 
-            YeuCauDoiLop baiDang = yeuCauDAO.getYeuCauById(conn, maYeuCau);
+            YeuCauDoiLop baiDang = yeuCauDAO.getYeuCauByIdForUpdate(conn, maYeuCau);
             if (baiDang == null || !baiDang.getTrangThai().name().equals("CHO_XAC_NHAN")) {
                 return "❌ Đơn không tồn tại hoặc đã bị chốt!";
             }
@@ -87,6 +81,18 @@ public class YeuCauDoiLopService {
             int maSV_A = baiDang.getMaSV();
             String lopA_DangHoc = baiDang.getLopCu();
             String lopA_MuonSang = baiDang.getLopMoi();
+
+            if (maSV_A == maSV_B) {
+                return "❌ Không thể tự chốt yêu cầu của mình!";
+            }
+            if (!dangKyDAO.kiemTraDaDangKy(conn, maSV_A, lopA_DangHoc)
+                    || dangKyDAO.kiemTraDaDangKy(conn, maSV_A, lopA_MuonSang)) {
+                return "❌ Đăng ký của người đăng yêu cầu đã thay đổi!";
+            }
+            String ketQuaTQ_ChoA = checkTienQuyet(conn, maSV_A, lopA_MuonSang);
+            if (!ketQuaTQ_ChoA.equals("OK")) {
+                return "❌ Người đăng yêu cầu không còn đủ điều kiện. Lý do: " + ketQuaTQ_ChoA;
+            }
 
             if (!dangKyDAO.kiemTraDaDangKy(conn, maSV_B, lopA_MuonSang)) {
                 return "❌ Lỗi: Bạn không học lớp " + lopA_MuonSang + "!";
@@ -122,7 +128,9 @@ public class YeuCauDoiLopService {
         } finally {
             if (conn != null) {
                 try {
-                    conn.setAutoCommit(true);
+                    conn.rollback();
+                } catch (SQLException ex) { ex.printStackTrace(); }
+                try {
                     conn.close();
                 } catch (SQLException ex) { ex.printStackTrace(); }
             }

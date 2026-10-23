@@ -21,7 +21,7 @@ public class YeuCauDoiLopDAO {
     }
 
     public boolean capNhatTrangThaiDuyet(Connection conn, int maYeuCau, int nguoiChotDonId, String trangThai) throws SQLException {
-        String sql = "UPDATE YeuCauDoiLop SET TrangThai = ?, NguoiXuLy = ?, NgayXuLy = NOW() WHERE MaYeuCau = ?";
+        String sql = "UPDATE YeuCauDoiLop SET TrangThai = ?, NguoiXuLy = ?, NgayXuLy = NOW() WHERE MaYeuCau = ? AND TrangThai = 'CHO_XAC_NHAN'";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, trangThai);
             ps.setInt(2, nguoiChotDonId);
@@ -31,7 +31,16 @@ public class YeuCauDoiLopDAO {
     }
 
     public YeuCauDoiLop getYeuCauById(Connection conn, int maYeuCau) throws SQLException {
-        String sql = "SELECT * FROM YeuCauDoiLop WHERE MaYeuCau = ?";
+        return docYeuCau(conn, maYeuCau, false);
+    }
+
+    /** Chỉ gọi trong transaction; khóa yêu cầu đến lúc commit/rollback. */
+    public YeuCauDoiLop getYeuCauByIdForUpdate(Connection conn, int maYeuCau) throws SQLException {
+        return docYeuCau(conn, maYeuCau, true);
+    }
+
+    private YeuCauDoiLop docYeuCau(Connection conn, int maYeuCau, boolean khoa) throws SQLException {
+        String sql = "SELECT * FROM YeuCauDoiLop WHERE MaYeuCau = ?" + (khoa ? " FOR UPDATE" : "");
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, maYeuCau);
             try (ResultSet rs = ps.executeQuery()) {
