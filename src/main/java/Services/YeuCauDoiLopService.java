@@ -18,8 +18,7 @@ public class YeuCauDoiLopService {
     private DangKyHocDAO dangKyDAO = new DangKyHocDAO();
     private LopHocDAO lopHocDAO = new LopHocDAO();
 
-    private String checkTienQuyet(Connection conn, int maSV, String maLopMuonVao) throws SQLException {
-
+    public String checkTienQuyet(Connection conn, int maSV, String maLopMuonVao) throws SQLException {
         // 1. GỌI DEV 2: Đã thêm chữ 'conn' vào tham số đầu tiên
         var lopHoc = lopHocDAO.layLopTheoMa(conn, maLopMuonVao);
         if (lopHoc == null) return "Lớp học không tồn tại!";
@@ -38,6 +37,10 @@ public class YeuCauDoiLopService {
             }
         }
         return "OK";
+    }
+
+    public java.util.List<YeuCauDoiLop> moSanGiaoDich() {
+        return yeuCauDAO.laySanGiaoDich();
     }
 
     public String dangBaiDoiLop(int maSVA, String lopCuA, String lopMoiA, String lyDo) {
@@ -137,6 +140,8 @@ public class YeuCauDoiLopService {
         }
     }
 
+
+    //test tạm
     public static void main(String[] args) {
         DangKyHocService dkService = new DangKyHocService();
         YeuCauDoiLopService ycService = new YeuCauDoiLopService();

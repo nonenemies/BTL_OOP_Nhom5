@@ -69,4 +69,8 @@ public class DangKyHocService {
             }
         }
     }
+
+    public java.util.List<DangKyHoc> xemThoiKhoaBieu(int maSV) {
+        return dangKyDAO.layDanhSachLopCuaSinhVien(maSV);
+    }
 }
