@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import DAO.DangKyHocDAO;
 import DAO.LopHocDAO;
+import DAO.MonTienQuyetDAO;
+import Model.MonHoc;
 import Model.DangKyHoc;
 import Util.DBConnection;
 
@@ -17,11 +19,21 @@ public class DangKyHocService {
             conn = DBConnection.getConnection();
             conn.setAutoCommit(false); // Bắt đầu Transaction
 
+            // Khóa trước khi đọc để lượt đăng ký tiếp theo thấy dữ liệu mới nhất.
+            var lopHoc = lopHocDAO.layLopTheoMaForUpdate(conn, maLop);
+            if (lopHoc == null) {
+                return "❌ Lớp học không tồn tại!";
+            }
             if (dangKyDAO.kiemTraDaDangKy(conn, maSV, maLop)) {
                 return "❌ Bạn đã đăng ký lớp " + maLop + " rồi!";
             }
+            for (MonHoc mon : MonTienQuyetDAO.layDanhSachMonTienQuyet(conn, lopHoc.getMaMon())) {
+                if (!dangKyDAO.kiemTraDaQuaMon(conn, maSV, mon.getMaMon())) {
+                    return "❌ Chưa qua môn tiên quyết: " + mon.getTenMon();
+                }
+            }
 
-            // Gọi Dev 2: Vừa kiểm tra vừa Tăng sĩ số
+            // Kiểm tra sức chứa và tăng sĩ số trong cùng transaction.
             if (!lopHocDAO.tangSiSo(conn, maLop)) {
                 conn.rollback();
                 return "❌ Đăng ký thất bại: Lớp đã đầy hoặc đã bị khóa!";
@@ -41,11 +53,17 @@ public class DangKyHocService {
             if (conn != null) {
                 try { conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
             }
+            if (e.getErrorCode() == 1062) {
+                return "❌ Bạn đã đăng ký lớp " + maLop + " rồi!";
+            }
             return "❌ Lỗi cơ sở dữ liệu!";
         } finally {
             if (conn != null) {
                 try {
-                    conn.setAutoCommit(true);
+                    // Kết thúc cả những nhánh return sớm, không tự commit khi dọn dẹp.
+                    conn.rollback();
+                } catch (SQLException ex) { ex.printStackTrace(); }
+                try {
                     conn.close();
                 } catch (SQLException ex) { ex.printStackTrace(); }
             }

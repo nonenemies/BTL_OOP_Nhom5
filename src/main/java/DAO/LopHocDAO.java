@@ -85,6 +85,14 @@ public class LopHocDAO {
         return ketQua.isEmpty() ? null : ketQua.get(0);
     }
 
+    /** Khóa lớp khi đăng ký để các lượt đăng ký cùng lớp được xử lý tuần tự. */
+    public LopHoc layLopTheoMaForUpdate(Connection conn, String maLop) throws SQLException {
+        String sql = "SELECT MaLop, MaMon, MaGV, HocKy, SiSoToiDa, SiSoHienTai, TrangThai "
+                + "FROM LopHoc WHERE MaLop = ? FOR UPDATE";
+        List<LopHoc> ketQua = truyVanDanhSach(sql, maLop);
+        return ketQua.isEmpty() ? null : ketQua.get(0);
+    }
+
     /** Lấy các lớp đang hoạt động của một môn. */
     public List<LopHoc> layLopTheoMon(String maMon) throws SQLException {
         String sql = "SELECT MaLop, MaMon, MaGV, HocKy, SiSoToiDa, SiSoHienTai, TrangThai "

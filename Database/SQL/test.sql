@@ -24,17 +24,6 @@ CREATE TABLE SinhVien (
     FOREIGN KEY (UserID) REFERENCES Users(UserID)
 );
 
-CREATE TABLE HocVienCaoHoc (
-    UserID INT PRIMARY KEY,
-    MaHVCH VARCHAR(20) UNIQUE,
-    NgaySinh DATE NULL,
-    GioiTinh TINYINT(1) NULL,
-    ChuyenNganh VARCHAR(100) NULL,
-    KhoaHoc INT NULL,
-    BacDaoTao VARCHAR(20) NULL,
-    FOREIGN KEY (UserID) REFERENCES Users(UserID)
-);
-
 CREATE TABLE GiaoVien (
     UserID INT PRIMARY KEY,
     MaGV VARCHAR(20) UNIQUE,
@@ -90,8 +79,9 @@ CREATE TABLE ThanhPhanDanhGia (
 
 CREATE TABLE DangKyHoc (
     MaDangKy INT AUTO_INCREMENT PRIMARY KEY,
-    MaLop VARCHAR(20),
-    MaSV INT,
+    MaLop VARCHAR(20) NOT NULL,
+    MaSV INT NOT NULL,
+    CONSTRAINT uq_dangky_sv_lop UNIQUE (MaSV, MaLop),
     NgayDangKy DATETIME DEFAULT CURRENT_TIMESTAMP,
     DiemTongKet DECIMAL(5,2) NULL,
     TrangThai VARCHAR(20) DEFAULT 'DANG_HOC',
@@ -126,7 +116,7 @@ CREATE TABLE YeuCauDoiLop (
 );
 
 -- Thêm dữ liệu mẫu (Mock Data)
-INSERT INTO Users (HoTen, Email, PasswordHash, Role, MaSo) VALUES 
+INSERT INTO Users (HoTen, Email, PasswordHash, Role, MaSo) VALUES
 ('Quản Trị Viên', 'admin@truong.edu.vn', '123', 'ADMIN', 'AD01'),
 ('Thầy Trần Code', 'code.tran@truong.edu.vn', '123', 'GIAOVIEN', 'GV01'),
 ('Nguyễn Văn Sinh', 'sinh.nguyen@sv.edu.vn', '123', 'SINHVIEN', 'SV001'),
@@ -137,14 +127,14 @@ INSERT INTO GiaoVien (UserID, MaGV, ChuyenNganh, HocVi) VALUES (2, 'GV01', 'Côn
 INSERT INTO SinhVien (UserID, MaSV, Lop, KhoaHoc) VALUES (3, 'SV001', 'CN01', 2021);
 INSERT INTO SinhVien (UserID, MaSV, Lop, KhoaHoc) VALUES (4, 'SV002', 'CN02', 2021);
 
-INSERT INTO MonHoc (MaMon, TenMon, SoTinChi, LoaiMon) VALUES 
+INSERT INTO MonHoc (MaMon, TenMon, SoTinChi, LoaiMon) VALUES
 ('IT01', 'Lập trình OOP', 3, 'BATBUOC'),
 ('IT02', 'Cơ sở dữ liệu', 3, 'BATBUOC');
 
-INSERT INTO ThanhPhanDanhGia (MaMon, TenThanhPhan, TrongSo, ThuTu) VALUES 
+INSERT INTO ThanhPhanDanhGia (MaMon, TenThanhPhan, TrongSo, ThuTu) VALUES
 ('IT01', 'Giữa kỳ', 0.3, 1),
 ('IT01', 'Cuối kỳ', 0.7, 2);
 
-INSERT INTO LopHoc (MaLop, MaMon, MaGV, HocKy, SiSoToiDa, SiSoHienTai) VALUES 
+INSERT INTO LopHoc (MaLop, MaMon, MaGV, HocKy, SiSoToiDa, SiSoHienTai) VALUES
 ('OOP_L01', 'IT01', 2, '2024-1', 40, 0),
 ('DB_L01', 'IT02', 2, '2024-1', 40, 0);

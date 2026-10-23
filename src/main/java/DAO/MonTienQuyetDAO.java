@@ -44,13 +44,19 @@ public class MonTienQuyetDAO {
 
     /** Lấy danh sách môn phải học trước một môn. */
     public static List<MonHoc> layDanhSachMonTienQuyet(String maMon) throws SQLException {
+        try (Connection conn = DBConnection.getConnection()) {
+            return layDanhSachMonTienQuyet(conn, maMon);
+        }
+    }
+
+    /** Dùng cùng kết nối với transaction đăng ký hoặc đổi lớp. */
+    public static List<MonHoc> layDanhSachMonTienQuyet(Connection conn, String maMon) throws SQLException {
         String sql = "SELECT mh.MaMon, mh.TenMon, mh.SoTinChi, mh.LoaiMon, mh.MoTa, mh.TrangThai "
                 + "FROM MonTienQuyet mtq JOIN MonHoc mh ON mh.MaMon = mtq.MaMonTienQuyet "
                 + "WHERE mtq.MaMon = ? ORDER BY mh.MaMon";
         List<MonHoc> danhSach = new ArrayList<>();
 
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, maMon);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
