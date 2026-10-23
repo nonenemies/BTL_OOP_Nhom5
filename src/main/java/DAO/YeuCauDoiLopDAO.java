@@ -58,4 +58,23 @@ public class YeuCauDoiLopDAO {
         }
         return null;
     }
+
+    public java.util.List<YeuCauDoiLop> laySanGiaoDich() {
+        java.util.List<YeuCauDoiLop> list = new java.util.ArrayList<>();
+        String sql = "SELECT * FROM YeuCauDoiLop WHERE TrangThai = 'CHO_XAC_NHAN'";
+        try (Connection conn = Util.DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                YeuCauDoiLop yc = new YeuCauDoiLop();
+                yc.setMaYeuCau(rs.getInt("MaYeuCau"));
+                yc.setMaSV(rs.getInt("MaSV"));
+                yc.setLopCu(rs.getString("LopCu"));
+                yc.setLopMoi(rs.getString("LopMoi"));
+                yc.setLyDo(rs.getString("LyDo"));
+                list.add(yc);
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return list;
+    }
 }

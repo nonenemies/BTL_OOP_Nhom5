@@ -52,4 +52,25 @@ public class DangKyHocDAO {
             return ps.executeUpdate() > 0;
         }
     }
+
+    // Lấy danh sách lớp để in ra Thời khóa biểu cho Sinh viên xem
+    public java.util.List<DangKyHoc> layDanhSachLopCuaSinhVien(int maSV) {
+        java.util.List<DangKyHoc> list = new java.util.ArrayList<>();
+        String sql = "SELECT * FROM DangKyHoc WHERE MaSV = ? AND TrangThai != 'HUY'";
+        try (Connection conn = Util.DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, maSV);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    DangKyHoc dk = new DangKyHoc();
+                    dk.setMaDangKy(rs.getInt("MaDangKy"));
+                    dk.setMaLop(rs.getString("MaLop"));
+                    dk.setDiemTongKet(rs.getFloat("DiemTongKet"));
+                    dk.setTrangThai(Model.TrangThaiDangKy.valueOf(rs.getString("TrangThai")));
+                    list.add(dk);
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return list;
+    }
 }
