@@ -14,7 +14,7 @@ public class DangKyHocService {
     private final DangKyHocDAO dangKyDAO = new DangKyHocDAO();
     private final LopHocDAO lopHocDAO = new LopHocDAO();
 
-    public String xuLyDangKyHoc(String maSV, String maLop) throws SQLException {
+    public String xuLyDangKyHoc(String maSV, String maLop) {
         try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false); // Bắt đầu Transaction
 
@@ -59,11 +59,17 @@ public class DangKyHocService {
                 }
                 throw e;
             }
+        } catch (SQLException e) {
+            throw new ServiceException("Không thể xử lý đăng ký học.", e);
         }
     }
 
-    public List<DangKyHoc> xemThoiKhoaBieu(String maSV) throws SQLException {
-        return dangKyDAO.layDanhSachLopCuaSinhVien(maSV);
+    public List<DangKyHoc> xemThoiKhoaBieu(String maSV) {
+        try {
+            return dangKyDAO.layDanhSachLopCuaSinhVien(maSV);
+        } catch (SQLException e) {
+            throw new ServiceException("Không thể tải thời khóa biểu.", e);
+        }
     }
 
     private String rollbackAndReturn(Connection conn, String result) throws SQLException {

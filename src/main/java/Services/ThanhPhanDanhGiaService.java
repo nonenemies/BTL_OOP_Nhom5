@@ -17,29 +17,38 @@ import java.util.Set;
 public class ThanhPhanDanhGiaService {
     private final ThanhPhanDanhGiaDAO dao = new ThanhPhanDanhGiaDAO();
 
-    public List<ThanhPhanDanhGia> layTheoMon(String maMon) throws SQLException {
+    public List<ThanhPhanDanhGia> layTheoMon(String maMon) {
         try (Connection conn = DBConnection.getConnection()) {
             return dao.layTheoMon(conn, maMon);
+        } catch (SQLException e) {
+            throw new ServiceException("Không thể tải thành phần đánh giá.", e);
         }
     }
 
     /** Nhận toàn bộ danh sách tên/trọng số khi người dùng bấm Lưu. */
     public List<Integer> themThanhPhan(Users nguoiDung, String maMon,
-                                     List<ThanhPhanDanhGia> danhSach) throws SQLException {
-        return luu(nguoiDung, maMon, danhSach, false);
+                                     List<ThanhPhanDanhGia> danhSach) {
+        try {
+            return luu(nguoiDung, maMon, danhSach, false);
+        } catch (SQLException e) {
+            throw new ServiceException("Không thể lưu thành phần đánh giá.", e);
+        }
     }
 
-    public boolean suaThanhPhan(Users nguoiDung, ThanhPhanDanhGia thanhPhan) throws SQLException {
+    public boolean suaThanhPhan(Users nguoiDung, ThanhPhanDanhGia thanhPhan) {
         if (thanhPhan == null) throw new IllegalArgumentException("Thành phần không được null.");
-        luu(nguoiDung, thanhPhan.getMaMon(), List.of(thanhPhan), true);
-        return true;
+        return suaThanhPhan(nguoiDung, thanhPhan.getMaMon(), List.of(thanhPhan));
     }
 
     /** Cho phép điều chỉnh nhiều trọng số cùng lúc mà tổng cuối cùng vẫn bằng 1. */
     public boolean suaThanhPhan(Users nguoiDung, String maMon,
-                               List<ThanhPhanDanhGia> danhSach) throws SQLException {
-        luu(nguoiDung, maMon, danhSach, true);
-        return true;
+                               List<ThanhPhanDanhGia> danhSach) {
+        try {
+            luu(nguoiDung, maMon, danhSach, true);
+            return true;
+        } catch (SQLException e) {
+            throw new ServiceException("Không thể cập nhật thành phần đánh giá.", e);
+        }
     }
 
     private List<Integer> luu(Users nguoiDung, String maMon,
