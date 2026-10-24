@@ -1,5 +1,6 @@
 package DAO;
 
+import java.util.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -54,8 +55,8 @@ public class DangKyHocDAO {
     }
 
     // Lấy danh sách lớp để in ra Thời khóa biểu cho Sinh viên xem
-    public java.util.List<DangKyHoc> layDanhSachLopCuaSinhVien(int maSV) {
-        java.util.List<DangKyHoc> list = new java.util.ArrayList<>();
+    public List<DangKyHoc> layDanhSachLopCuaSinhVien(int maSV) throws SQLException {
+        List<DangKyHoc> list = new ArrayList<>();
         String sql = "SELECT * FROM DangKyHoc WHERE MaSV = ? AND TrangThai != 'HUY'";
         try (Connection conn = Util.DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -70,7 +71,7 @@ public class DangKyHocDAO {
                     list.add(dk);
                 }
             }
-        } catch (Exception e) { e.printStackTrace(); }
+        }
         return list;
     }
 }

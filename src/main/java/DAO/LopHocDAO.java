@@ -89,7 +89,7 @@ public class LopHocDAO {
     public LopHoc layLopTheoMaForUpdate(Connection conn, String maLop) throws SQLException {
         String sql = "SELECT MaLop, MaMon, MaGV, HocKy, SiSoToiDa, SiSoHienTai, TrangThai "
                 + "FROM LopHoc WHERE MaLop = ? FOR UPDATE";
-        List<LopHoc> ketQua = truyVanDanhSach(sql, maLop);
+        List<LopHoc> ketQua = truyVanDanhSach(conn, sql, maLop);
         return ketQua.isEmpty() ? null : ketQua.get(0);
     }
 

@@ -34,10 +34,9 @@ public class DiemDAO {
      * @param maLop mã lớp sinh viên đã đăng ký
      * @param thuTu thứ tự thành phần đánh giá trong ThanhPhanDanhGia
      * @param diemDatDuoc điểm đạt được cần lưu vào DiemThanhPhan
-     * @return true nếu thêm điểm thành công; false nếu không tìm được kết quả
-     *         duy nhất hoặc xảy ra lỗi SQL
+     * @return true nếu thêm điểm thành công; false nếu không tìm được kết quả duy nhất
      */
-    public boolean nhapDiem(String maSV, String maLop, int thuTu, float diemDatDuoc) {
+    public boolean nhapDiem(String maSV, String maLop, int thuTu, float diemDatDuoc) throws SQLException {
         String timThanhPhan = "SELECT dk.MaDangKy, tp.MaTP "
                 + "FROM DangKyHoc dk "
                 + "JOIN LopHoc lh ON dk.MaLop = lh.MaLop "
@@ -45,8 +44,8 @@ public class DiemDAO {
                 + "WHERE dk.MaSV = ? AND dk.MaLop = ? "
                 + "AND tp.ThuTu = ? AND tp.TrangThai = 1";
         // NgayNhap được cơ sở dữ liệu gán theo giá trị mặc định CURRENT_TIMESTAMP.
-        String themDiem = "INSERT INTO DiemThanhPhan (MaDiemTP, MaDangKy, MaTP, DiemDatDuoc) "
-                + "SELECT COALESCE(MAX(MaDiemTP), 0) + 1, ?, ?, ? FROM DiemThanhPhan";
+        String themDiem = "INSERT INTO DiemThanhPhan (MaDangKy, MaTP, DiemDatDuoc) "
+                + "VALUES (?, ?, ?)";
 
         // try-with-resources tự đóng kết nối, câu lệnh và kết quả sau khi sử dụng.
         try (Connection conn = DBConnection.getConnection();
@@ -79,9 +78,6 @@ public class DiemDAO {
                 // Có ít nhất một dòng được thêm nghĩa là lưu điểm thành công.
                 return themPS.executeUpdate() > 0;
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
         }
     }
 }

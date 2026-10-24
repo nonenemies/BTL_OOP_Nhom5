@@ -1,5 +1,6 @@
 package DAO;
 
+import java.util.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -59,8 +60,8 @@ public class YeuCauDoiLopDAO {
         return null;
     }
 
-    public java.util.List<YeuCauDoiLop> laySanGiaoDich() {
-        java.util.List<YeuCauDoiLop> list = new java.util.ArrayList<>();
+    public List<YeuCauDoiLop> laySanGiaoDich() throws SQLException {
+        List<YeuCauDoiLop> list = new ArrayList<>();
         String sql = "SELECT * FROM YeuCauDoiLop WHERE TrangThai = 'CHO_XAC_NHAN'";
         try (Connection conn = Util.DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
@@ -74,7 +75,7 @@ public class YeuCauDoiLopDAO {
                 yc.setLyDo(rs.getString("LyDo"));
                 list.add(yc);
             }
-        } catch (Exception e) { e.printStackTrace(); }
+        }
         return list;
     }
 }
