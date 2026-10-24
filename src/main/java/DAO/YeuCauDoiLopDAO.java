@@ -13,7 +13,7 @@ public class YeuCauDoiLopDAO {
     public boolean themYeuCau(Connection conn, YeuCauDoiLop yc) throws SQLException {
         String sql = "INSERT INTO YeuCauDoiLop (MaSV, LopCu, LopMoi, LyDo) VALUES (?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, yc.getMaSV());
+            ps.setString(1, yc.getMaSV());
             ps.setString(2, yc.getLopCu());
             ps.setString(3, yc.getLopMoi());
             ps.setString(4, yc.getLyDo());
@@ -48,7 +48,7 @@ public class YeuCauDoiLopDAO {
                 if (rs.next()) {
                     YeuCauDoiLop yc = new YeuCauDoiLop();
                     yc.setMaYeuCau(rs.getInt("MaYeuCau"));
-                    yc.setMaSV(rs.getInt("MaSV"));
+                    yc.setMaSV(rs.getString("MaSV"));
                     yc.setLopCu(rs.getString("LopCu"));
                     yc.setLopMoi(rs.getString("LopMoi"));
                     yc.setLyDo(rs.getString("LyDo"));
@@ -69,7 +69,7 @@ public class YeuCauDoiLopDAO {
             while (rs.next()) {
                 YeuCauDoiLop yc = new YeuCauDoiLop();
                 yc.setMaYeuCau(rs.getInt("MaYeuCau"));
-                yc.setMaSV(rs.getInt("MaSV"));
+                yc.setMaSV(rs.getString("MaSV"));
                 yc.setLopCu(rs.getString("LopCu"));
                 yc.setLopMoi(rs.getString("LopMoi"));
                 yc.setLyDo(rs.getString("LyDo"));

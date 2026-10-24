@@ -6,7 +6,7 @@ package Model;
 public class LopHoc {
     private String maLop;
     private String maMon;
-    private Integer maGV;
+    private String maGV;
     private String hocKy;
     private Integer siSoToiDa;
     private Integer siSoHienTai;
@@ -15,7 +15,7 @@ public class LopHoc {
     public LopHoc() {
     }
 
-    public LopHoc(String maLop, String maMon, Integer maGV, String hocKy,
+    public LopHoc(String maLop, String maMon, String maGV, String hocKy,
                   Integer siSoToiDa, Integer siSoHienTai, Integer trangThai) {
         this.maLop = maLop;
         this.maMon = maMon;
@@ -42,11 +42,11 @@ public class LopHoc {
         this.maMon = maMon;
     }
 
-    public Integer getMaGV() {
+    public String getMaGV() {
         return maGV;
     }
 
-    public void setMaGV(Integer maGV) {
+    public void setMaGV(String maGV) {
         this.maGV = maGV;
     }
 

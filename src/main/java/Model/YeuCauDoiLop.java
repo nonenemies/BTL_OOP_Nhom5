@@ -3,7 +3,7 @@ import java.util.Date;
 
 public class YeuCauDoiLop {
     private int maYeuCau;
-    private int maSV;
+    private String maSV;
     private String lopCu;
     private String lopMoi;
     private TrangThaiDoiLop trangThai;
@@ -14,7 +14,7 @@ public class YeuCauDoiLop {
 
     public YeuCauDoiLop() {}
 
-    public YeuCauDoiLop(int maSV, String lopCu, String lopMoi, String lyDo) {
+    public YeuCauDoiLop(String maSV, String lopCu, String lopMoi, String lyDo) {
         this.maSV = maSV;
         this.lopCu = lopCu;
         this.lopMoi = lopMoi;
@@ -23,8 +23,8 @@ public class YeuCauDoiLop {
 
     public int getMaYeuCau() { return maYeuCau; }
     public void setMaYeuCau(int maYeuCau) { this.maYeuCau = maYeuCau; }
-    public int getMaSV() { return maSV; }
-    public void setMaSV(int maSV) { this.maSV = maSV; }
+    public String getMaSV() { return maSV; }
+    public void setMaSV(String maSV) { this.maSV = maSV; }
     public String getLopCu() { return lopCu; }
     public void setLopCu(String lopCu) { this.lopCu = lopCu; }
     public String getLopMoi() { return lopMoi; }
