@@ -7,7 +7,7 @@ public class Admin extends Users {
 
         public Admin(Integer userID, String hoTen, String email,
                      String passwordHash, String role, String maSo,
-                     String khoa, Date ngayTao, Integer trangThai, String chucVu) {
+                     String khoa, Date ngayTao, TrangThaiHoatDong trangThai, String chucVu) {
                 super(userID, hoTen, email, passwordHash, role, maSo, khoa, ngayTao, trangThai);
                 this.chucVu = chucVu;
         }

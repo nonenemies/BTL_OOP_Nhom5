@@ -9,7 +9,7 @@ public class GiangVien extends Users {
 
     public GiangVien(Integer userID, String hoTen, String email,
                      String passwordHash, String role, String maSo,
-                     String khoa, Date ngayTao, Integer trangThai,
+                     String khoa, Date ngayTao, TrangThaiHoatDong trangThai,
                      String maGiangVien, String chuyenNganh, String hocVi) {
         super(userID, hoTen, email, passwordHash, role, maSo, khoa, ngayTao, trangThai);
         this.maGiangVien = maGiangVien;

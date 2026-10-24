@@ -10,13 +10,13 @@ public class LopHoc {
     private String hocKy;
     private Integer siSoToiDa;
     private Integer siSoHienTai;
-    private Integer trangThai;
+    private TrangThaiHoatDong trangThai;
 
     public LopHoc() {
     }
 
     public LopHoc(String maLop, String maMon, String maGV, String hocKy,
-                  Integer siSoToiDa, Integer siSoHienTai, Integer trangThai) {
+                  Integer siSoToiDa, Integer siSoHienTai, TrangThaiHoatDong trangThai) {
         this.maLop = maLop;
         this.maMon = maMon;
         this.maGV = maGV;
@@ -74,11 +74,11 @@ public class LopHoc {
         this.siSoHienTai = siSoHienTai;
     }
 
-    public Integer getTrangThai() {
+    public TrangThaiHoatDong getTrangThai() {
         return trangThai;
     }
 
-    public void setTrangThai(Integer trangThai) {
+    public void setTrangThai(TrangThaiHoatDong trangThai) {
         this.trangThai = trangThai;
     }
 }

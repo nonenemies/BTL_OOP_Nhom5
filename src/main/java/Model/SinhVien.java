@@ -10,9 +10,9 @@ public class SinhVien extends Users {
     private Integer khoaHoc;
     private String heDaoTao;
 
-    public SinhVien(int userID, String hoTen, String email,
+    public SinhVien(Integer userID, String hoTen, String email,
                     String passwordHash, String role, String maSo,
-                    String khoa, Date ngayTao, Integer trangThai,
+                    String khoa, Date ngayTao, TrangThaiHoatDong trangThai,
                     String maSinhVien, Date ngaySinh, Boolean gioiTinh,
                     String lop, Integer khoaHoc, String heDaoTao) {
         super(userID, hoTen, email, passwordHash, role, maSo, khoa, ngayTao, trangThai);

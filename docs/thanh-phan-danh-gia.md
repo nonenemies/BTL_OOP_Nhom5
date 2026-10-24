@@ -33,7 +33,7 @@ Ràng buộc trước khi ghi:
 - Tổng trọng số đúng bằng 1, tính bằng BigDecimal để tránh sai số cộng float.
 - Môn học tồn tại. Nếu đã có thành phần đang hoạt động, dùng chức năng sửa;
   thêm mới không ghi đè cấu hình hiện có.
-- Chỉ người dùng có Role ADMIN và TrangThai 1 trong database được ghi dữ liệu.
+- Chỉ người dùng có Role ADMIN và TrangThai `HOAT_DONG` trong database được ghi dữ liệu.
   Đối tượng Users phải lấy từ phiên đăng nhập đã xác thực.
 
 Service quản lý connection, phân quyền, nghiệp vụ và transaction. DAO chỉ thực

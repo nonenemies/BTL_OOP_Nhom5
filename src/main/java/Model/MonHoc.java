@@ -9,13 +9,13 @@ public class MonHoc {
     private Integer soTinChi;
     private String loaiMon;
     private String moTa;
-    private Integer trangThai;
+    private TrangThaiHoatDong trangThai;
 
     public MonHoc() {
     }
 
     public MonHoc(String maMon, String tenMon, Integer soTinChi,
-                  String loaiMon, String moTa, Integer trangThai) {
+                  String loaiMon, String moTa, TrangThaiHoatDong trangThai) {
         this.maMon = maMon;
         this.tenMon = tenMon;
         this.soTinChi = soTinChi;
@@ -64,11 +64,11 @@ public class MonHoc {
         this.moTa = moTa;
     }
 
-    public Integer getTrangThai() {
+    public TrangThaiHoatDong getTrangThai() {
         return trangThai;
     }
 
-    public void setTrangThai(Integer trangThai) {
+    public void setTrangThai(TrangThaiHoatDong trangThai) {
         this.trangThai = trangThai;
     }
 }

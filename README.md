@@ -57,7 +57,7 @@ Các nghiệp vụ hiện được tổ chức trong `src/main/java/Services`, t
 ### `Database/SQL`
 
 - `test.sql`: tạo database và các bảng mẫu, đồng thời thêm dữ liệu test cho tài khoản, sinh viên, giảng viên, môn học, thành phần đánh giá và lớp học.
-- Script này phục vụ môi trường test; `CREATE TABLE IF NOT EXISTS` không tự sửa cấu trúc của database đã tồn tại. Nếu schema cũ chưa tương thích, cần tạo lại database test hoặc tự viết migration.
+- Script này phục vụ môi trường test; `CREATE TABLE IF NOT EXISTS` không tự sửa cấu trúc của database đã tồn tại. Nếu schema cũ chưa tương thích, cần chạy migration phù hợp hoặc tạo lại database test.
 
 ### `docs/`
 
@@ -131,6 +131,12 @@ Trong schema test hiện tại:
 - `YeuCauDoiLop.NguoiXuLy` vẫn là số và tham chiếu `Users.UserID`, vì đây là ID tài khoản người xử lý, không phải mã sinh viên/giảng viên.
 - Các mã tự tăng như `MaDangKy`, `MaYeuCau`, `MaTP`, `MaDiemTP` vẫn do database quản lý.
 
+## Trạng thái hoạt động
+
+`Users`, `MonHoc` và `LopHoc` sử dụng enum `Model.TrangThaiHoatDong` với hai giá trị `HOAT_DONG` và `NGUNG_HOAT_DONG`. Các cột tương ứng trong MySQL dùng kiểu `ENUM` cùng các giá trị này. `ThanhPhanDanhGia.TrangThai` vẫn là cờ boolean riêng, không thuộc enum trạng thái hoạt động.
+
+Với database test đã tồn tại theo schema số `0/1`, hãy sao lưu rồi chạy `Database/SQL/migrate_trang_thai_hoat_dong.sql` một lần để chuyển dữ liệu và kiểu cột. Database mới có thể được tạo bằng `Database/SQL/test.sql`.
+
 ## Nghiệp vụ chính
 
 ### Đăng ký học
@@ -164,7 +170,7 @@ Xem thêm `docs/thanh-phan-danh-gia.md` để biết cách gọi Service.
 
 1. Cài MySQL và chạy `Database/SQL/test.sql` trong môi trường test.
 2. Kiểm tra URL, tên database, tài khoản và mật khẩu trong `Util/DBConnection.java` để khớp với cấu hình máy đang chạy.
-3. Nếu database đã tạo từ schema cũ, cần migrate hoặc tạo lại database test để các kiểu `MaSV`/`MaGV` và khóa ngoại khớp với schema hiện tại.
+3. Nếu database đã tạo từ schema cũ, hãy sao lưu và chạy migration phù hợp, bao gồm `Database/SQL/migrate_trang_thai_hoat_dong.sql` nếu schema trạng thái vẫn dùng `0/1`; hoặc tạo lại database test để các kiểu `MaSV`/`MaGV` và khóa ngoại khớp với schema hiện tại.
 
 > Lưu ý: tên database trong script test và URL kết nối trong `DBConnection` hiện cần được đối chiếu trước khi chạy. Tên database có thể phân biệt chữ hoa/chữ thường tùy hệ điều hành và cấu hình MySQL.
 
@@ -174,3 +180,4 @@ Cần cài JDK 17 và Maven.
 
 ```bash
 mvn test
+```
