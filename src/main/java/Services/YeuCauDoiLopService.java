@@ -17,8 +17,7 @@ public class YeuCauDoiLopService {
     private final DangKyHocDAO dangKyDAO = new DangKyHocDAO();
     private final LopHocDAO lopHocDAO = new LopHocDAO();
 
-    public String checkTienQuyet(Connection conn, String maSV, String maLopMuonVao) throws SQLException {
-        // 1. GỌI DEV 2: Đã thêm chữ 'conn' vào tham số đầu tiên
+    private String checkTienQuyet(Connection conn, String maSV, String maLopMuonVao) throws SQLException {
         var lopHoc = lopHocDAO.layLopTheoMa(conn, maLopMuonVao);
         if (lopHoc == null) return "Lớp học không tồn tại!";
         String maMonMuonVao = lopHoc.getMaMon();
@@ -38,11 +37,15 @@ public class YeuCauDoiLopService {
         return "OK";
     }
 
-    public java.util.List<YeuCauDoiLop> moSanGiaoDich() throws SQLException {
-        return yeuCauDAO.laySanGiaoDich();
+    public java.util.List<YeuCauDoiLop> moSanGiaoDich() {
+        try {
+            return yeuCauDAO.laySanGiaoDich();
+        } catch (SQLException e) {
+            throw new ServiceException("Không thể tải sàn giao dịch đổi lớp.", e);
+        }
     }
 
-    public String dangBaiDoiLop(String maSVA, String lopCuA, String lopMoiA, String lyDo) throws SQLException {
+    public String dangBaiDoiLop(String maSVA, String lopCuA, String lopMoiA, String lyDo) {
         try (Connection conn = DBConnection.getConnection()) {
 
             if (!dangKyDAO.kiemTraDaDangKy(conn, maSVA, lopCuA)) {
@@ -62,10 +65,12 @@ public class YeuCauDoiLopService {
                 return "✅ Đã đăng lên sàn giao dịch thành công!";
             }
             return "❌ Lỗi lưu dữ liệu!";
+        } catch (SQLException e) {
+            throw new ServiceException("Không thể đăng yêu cầu đổi lớp.", e);
         }
     }
 
-    public String sinhVienBChotDon(int maYeuCau, String maSV_B) throws SQLException {
+    public String sinhVienBChotDon(int maYeuCau, String maSV_B) {
         try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false); // Bắt đầu Transaction
 
@@ -123,6 +128,8 @@ public class YeuCauDoiLopService {
                 }
                 throw e;
             }
+        } catch (SQLException e) {
+            throw new ServiceException("Không thể xử lý yêu cầu đổi lớp.", e);
         }
     }
 
