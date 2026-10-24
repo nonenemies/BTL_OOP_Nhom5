@@ -22,6 +22,8 @@ public class ThanhPhanDanhGiaService {
             return dao.layTheoMon(conn, maMon);
         } catch (SQLException e) {
             throw new ServiceException("Không thể tải thành phần đánh giá.", e);
+        } catch (RuntimeException e) {
+            throw ServiceException.wrap("Không thể tải thành phần đánh giá.", e);
         }
     }
 
@@ -32,11 +34,13 @@ public class ThanhPhanDanhGiaService {
             return luu(nguoiDung, maMon, danhSach, false);
         } catch (SQLException e) {
             throw new ServiceException("Không thể lưu thành phần đánh giá.", e);
+        } catch (RuntimeException e) {
+            throw ServiceException.wrap("Không thể lưu thành phần đánh giá.", e);
         }
     }
 
     public boolean suaThanhPhan(Users nguoiDung, ThanhPhanDanhGia thanhPhan) {
-        if (thanhPhan == null) throw new IllegalArgumentException("Thành phần không được null.");
+        if (thanhPhan == null) throw new ServiceException("Thành phần không được null.");
         return suaThanhPhan(nguoiDung, thanhPhan.getMaMon(), List.of(thanhPhan));
     }
 
@@ -48,6 +52,8 @@ public class ThanhPhanDanhGiaService {
             return true;
         } catch (SQLException e) {
             throw new ServiceException("Không thể cập nhật thành phần đánh giá.", e);
+        } catch (RuntimeException e) {
+            throw ServiceException.wrap("Không thể cập nhật thành phần đánh giá.", e);
         }
     }
 
@@ -55,10 +61,10 @@ public class ThanhPhanDanhGiaService {
                               List<ThanhPhanDanhGia> danhSach, boolean sua) throws SQLException {
         int userID = layUserID(nguoiDung);
         if (maMon == null || maMon.isBlank() || maMon.length() > 20) {
-            throw new IllegalArgumentException("Mã môn học không hợp lệ.");
+            throw new ServiceException("Mã môn học không hợp lệ.");
         }
         if (danhSach == null || danhSach.isEmpty()) {
-            throw new IllegalArgumentException("Cần ít nhất một thành phần đánh giá.");
+            throw new ServiceException("Cần ít nhất một thành phần đánh giá.");
         }
         // Sao chép dữ liệu nhập; khi thêm chỉ cần tên và trọng số.
         List<ThanhPhanDanhGia> duLieu = new ArrayList<>();
@@ -75,10 +81,10 @@ public class ThanhPhanDanhGiaService {
                 ThongTinQuyen quyen = dao.traQuyen(conn, userID);
                 if (quyen == null || !"ADMIN".equals(quyen.role())
                         || quyen.trangThai() != Model.TrangThaiHoatDong.HOAT_DONG) {
-                    throw new SecurityException("Chỉ admin đang hoạt động được phép thêm/sửa thành phần đánh giá.");
+                    throw new ServiceException("Chỉ admin đang hoạt động được phép thêm/sửa thành phần đánh giá.");
                 }
                 if (dao.timMonDeCapNhat(conn, maMon) == null) {
-                    throw new IllegalArgumentException("Môn học không tồn tại.");
+                    throw new ServiceException("Môn học không tồn tại.");
                 }
                 List<ThanhPhanDanhGia> hienTai = dao.layTheoMonDeCapNhat(conn, maMon);
                 List<ThanhPhanDanhGia> sauKhiLuu = new ArrayList<>(hienTai);
@@ -86,19 +92,23 @@ public class ThanhPhanDanhGiaService {
                     Set<Integer> maDaSua = new HashSet<>();
                     for (ThanhPhanDanhGia tp : duLieu) {
                         if (tp.getMaTP() <= 0 || tp.getThuTu() <= 0 || !maDaSua.add(tp.getMaTP())) {
-                            throw new IllegalArgumentException("Mã phải dương, không trùng và thứ tự phải dương.");
+                            throw new ServiceException("Mã phải dương, không trùng và thứ tự phải dương.");
                         }
                         if (!sauKhiLuu.removeIf(cu -> cu.getMaTP() == tp.getMaTP())) {
-                            throw new IllegalArgumentException("Thành phần đánh giá không tồn tại trong môn học này.");
+                            throw new ServiceException("Thành phần đánh giá không tồn tại trong môn học này.");
                         }
                     }
                 } else {
                     if (hienTai.stream().anyMatch(ThanhPhanDanhGia::getTrangThai)) {
-                        throw new IllegalArgumentException("Môn đã có cấu hình đánh giá. Hãy chỉnh sửa cấu hình hiện có.");
+                        throw new ServiceException("Môn đã có cấu hình đánh giá. Hãy chỉnh sửa cấu hình hiện có.");
                     }
                     int thuTu = hienTai.stream().mapToInt(ThanhPhanDanhGia::getThuTu).max().orElse(0);
                     for (ThanhPhanDanhGia tp : duLieu) {
-                        thuTu = Math.incrementExact(thuTu);
+                        try {
+                            thuTu = Math.incrementExact(thuTu);
+                        } catch (ArithmeticException e) {
+                            throw new ServiceException("Không thể tạo thứ tự thành phần tiếp theo.", e);
+                        }
                         tp.setThuTu(thuTu);
                     }
                 }
@@ -126,7 +136,7 @@ public class ThanhPhanDanhGiaService {
         Set<Integer> thuTu = new HashSet<>();
         for (ThanhPhanDanhGia tp : danhSach) {
             if (!thuTu.add(tp.getThuTu())) {
-                throw new IllegalArgumentException("Thứ tự thành phần đã tồn tại trong môn học.");
+                throw new ServiceException("Thứ tự thành phần đã tồn tại trong môn học.");
             }
         }
         kiemTraTong(danhSach);
@@ -138,20 +148,20 @@ public class ThanhPhanDanhGiaService {
             if (tp.getTrangThai()) tong = tong.add(decimal(tp.getTrongSo()));
         }
         if (tong.compareTo(BigDecimal.ONE) != 0) {
-            throw new IllegalArgumentException("Tổng trọng số các thành phần phải đúng bằng 1.");
+            throw new ServiceException("Tổng trọng số các thành phần phải đúng bằng 1.");
         }
     }
 
     private void kiemTraDuLieu(ThanhPhanDanhGia tp) {
         if (tp == null || tp.getTenTP() == null || tp.getTenTP().isBlank()
                 || tp.getTenTP().strip().length() > 200) {
-            throw new IllegalArgumentException("Tên thành phần phải có từ 1 đến 200 ký tự và không được để trống.");
+            throw new ServiceException("Tên thành phần phải có từ 1 đến 200 ký tự và không được để trống.");
         }
         if (!Float.isFinite(tp.getTrongSo()) || tp.getTrongSo() <= 0 || tp.getTrongSo() > 1) {
-            throw new IllegalArgumentException("Trọng số phải thuộc khoảng (0, 1].");
+            throw new ServiceException("Trọng số phải thuộc khoảng (0, 1].");
         }
         if (decimal(tp.getTrongSo()).stripTrailingZeros().scale() > 2) {
-            throw new IllegalArgumentException("Trọng số chỉ được có tối đa 2 chữ số thập phân.");
+            throw new ServiceException("Trọng số chỉ được có tối đa 2 chữ số thập phân.");
         }
     }
 
@@ -161,7 +171,7 @@ public class ThanhPhanDanhGiaService {
 
     private int layUserID(Users nguoiDung) {
         if (nguoiDung == null || nguoiDung.getUserID() == null || nguoiDung.getUserID() <= 0) {
-            throw new SecurityException("Bạn cần đăng nhập bằng tài khoản admin.");
+            throw new ServiceException("Bạn cần đăng nhập bằng tài khoản admin.");
         }
         return nguoiDung.getUserID();
     }

@@ -111,16 +111,4 @@ public class MonHocDAO {
         );
     }
 
-    /** Chạy thử truy vấn danh sách theo yêu cầu kiểm tra console ở tuần 1. */
-    public static void main(String[] args) {
-        try {
-            for (MonHoc monHoc : new MonHocDAO().layDanhSachMon()) {
-                System.out.println(monHoc.getMaMon() + " | " + monHoc.getTenMon()
-                        + " | " + monHoc.getSoTinChi() + " tín chỉ");
-            }
-        } catch (SQLException e) {
-            System.err.println("Không đọc được danh sách môn học: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
 }
