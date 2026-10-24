@@ -42,6 +42,8 @@ public class YeuCauDoiLopService {
             return yeuCauDAO.laySanGiaoDich();
         } catch (SQLException e) {
             throw new ServiceException("Không thể tải sàn giao dịch đổi lớp.", e);
+        } catch (RuntimeException e) {
+            throw ServiceException.wrap("Không thể tải sàn giao dịch đổi lớp.", e);
         }
     }
 
@@ -67,6 +69,8 @@ public class YeuCauDoiLopService {
             return "❌ Lỗi lưu dữ liệu!";
         } catch (SQLException e) {
             throw new ServiceException("Không thể đăng yêu cầu đổi lớp.", e);
+        } catch (RuntimeException e) {
+            throw ServiceException.wrap("Không thể đăng yêu cầu đổi lớp.", e);
         }
     }
 
@@ -120,7 +124,7 @@ public class YeuCauDoiLopService {
                 } else {
                     return rollbackAndReturn(conn, "❌ Lỗi hệ thống trong quá trình hoán đổi!");
                 }
-            } catch (SQLException e) {
+            } catch (SQLException | RuntimeException e) {
                 try {
                     conn.rollback();
                 } catch (SQLException rollbackError) {
@@ -130,6 +134,8 @@ public class YeuCauDoiLopService {
             }
         } catch (SQLException e) {
             throw new ServiceException("Không thể xử lý yêu cầu đổi lớp.", e);
+        } catch (RuntimeException e) {
+            throw ServiceException.wrap("Không thể xử lý yêu cầu đổi lớp.", e);
         }
     }
 
@@ -138,23 +144,4 @@ public class YeuCauDoiLopService {
         return result;
     }
 
-    //test tạm
-    public static void main(String[] args) throws SQLException {
-        DangKyHocService dkService = new DangKyHocService();
-        YeuCauDoiLopService ycService = new YeuCauDoiLopService();
-        System.out.println("BƯỚC 1: " + dkService.xuLyDangKyHoc("SV001", "OOP_L01"));
-        System.out.println("BƯỚC 1: " + dkService.xuLyDangKyHoc("SV002", "DB_L01"));
-        System.out.println("BƯỚC 1: " + dkService.xuLyDangKyHoc("SV003", "DB_L01"));
-
-        System.out.println("BƯỚC 2 (SV001 ĐĂNG BÀI): " + ycService.dangBaiDoiLop("SV001", "OOP_L01", "DB_L01", "Doi lop"));
-
-        int idDonMoi = 0;
-        try (java.sql.Connection c = Util.DBConnection.getConnection();
-             java.sql.ResultSet rs = c.createStatement().executeQuery("SELECT MaYeuCau FROM YeuCauDoiLop ORDER BY MaYeuCau DESC LIMIT 1")) {
-            if (rs.next()) idDonMoi = rs.getInt(1);
-        }
-
-        System.out.println("BƯỚC 3 (SV002): " + ycService.sinhVienBChotDon(idDonMoi, "SV002"));
-        System.out.println("BƯỚC 4 (SV003): " + ycService.sinhVienBChotDon(idDonMoi, "SV003"));
-    }
 }

@@ -58,9 +58,18 @@ public class DangKyHocService {
                     return "❌ Bạn đã đăng ký lớp " + maLop + " rồi!";
                 }
                 throw e;
+            } catch (RuntimeException e) {
+                try {
+                    conn.rollback();
+                } catch (SQLException rollbackError) {
+                    e.addSuppressed(rollbackError);
+                }
+                throw e;
             }
         } catch (SQLException e) {
             throw new ServiceException("Không thể xử lý đăng ký học.", e);
+        } catch (RuntimeException e) {
+            throw ServiceException.wrap("Không thể xử lý đăng ký học.", e);
         }
     }
 
@@ -69,6 +78,8 @@ public class DangKyHocService {
             return dangKyDAO.layDanhSachLopCuaSinhVien(maSV);
         } catch (SQLException e) {
             throw new ServiceException("Không thể tải thời khóa biểu.", e);
+        } catch (RuntimeException e) {
+            throw ServiceException.wrap("Không thể tải thời khóa biểu.", e);
         }
     }
 

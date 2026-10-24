@@ -75,18 +75,4 @@ public class MonTienQuyetDAO {
         return danhSach;
     }
 
-    /** Truy vấn mặc định môn IT01; truyền mã môn khác qua tham số chương trình. */
-    public static void main(String[] args) {
-        String maMon = args.length > 0 ? args[0] : "IT01";
-        try {
-            List<MonHoc> danhSach = new MonTienQuyetDAO().layDanhSachMonTienQuyet(maMon);
-            System.out.println("Môn tiên quyết của " + maMon + ":");
-            for (MonHoc monHoc : danhSach) {
-                System.out.println(monHoc.getMaMon() + " | " + monHoc.getTenMon());
-            }
-        } catch (SQLException e) {
-            System.err.println("Không đọc được môn tiên quyết: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
 }

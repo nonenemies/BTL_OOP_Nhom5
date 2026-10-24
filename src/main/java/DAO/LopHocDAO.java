@@ -182,16 +182,4 @@ public class LopHocDAO {
         }
         return danhSach;
     }
-    /** Chạy thử truy vấn danh sách lớp theo yêu cầu kiểm tra console ở tuần 1. */
-    public static void main(String[] args) {
-        try {
-            for (LopHoc lopHoc : new LopHocDAO().layDanhSachLop()) {
-                System.out.println(lopHoc.getMaLop() + " | " + lopHoc.getMaMon()
-                        + " | " + lopHoc.getSiSoHienTai() + "/" + lopHoc.getSiSoToiDa());
-            }
-        } catch (SQLException e) {
-            System.err.println("Không đọc được danh sách lớp: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
 }

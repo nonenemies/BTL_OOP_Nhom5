@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import Util.DBConnection;
 
 // Truy cập cơ sở dữ liệu để lưu điểm thành phần của sinh viên.
 public class DiemDAO {
@@ -37,7 +36,8 @@ public class DiemDAO {
      * @param diemDatDuoc điểm đạt được cần lưu vào DiemThanhPhan
      * @return true nếu thêm điểm thành công; false nếu không tìm được kết quả duy nhất
      */
-    public boolean nhapDiem(String maSV, String maLop, int thuTu, float diemDatDuoc) throws SQLException {
+    public boolean nhapDiem(Connection conn, String maSV, String maLop,
+                            int thuTu, float diemDatDuoc) throws SQLException {
         String timThanhPhan = "SELECT dk.MaDangKy, tp.MaTP "
                 + "FROM DangKyHoc dk "
                 + "JOIN LopHoc lh ON dk.MaLop = lh.MaLop "
@@ -48,9 +48,7 @@ public class DiemDAO {
         String themDiem = "INSERT INTO DiemThanhPhan (MaDangKy, MaTP, DiemDatDuoc) "
                 + "VALUES (?, ?, ?)";
 
-        // try-with-resources tự đóng kết nối, câu lệnh và kết quả sau khi sử dụng.
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement timPS = conn.prepareStatement(timThanhPhan)) {
+        try (PreparedStatement timPS = conn.prepareStatement(timThanhPhan)) {
             // Gán tham số vào các dấu ? theo thứ tự trong câu truy vấn tìm kiếm.
             timPS.setString(1, maSV);
             timPS.setString(2, maLop);

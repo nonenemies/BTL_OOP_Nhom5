@@ -1,183 +1,84 @@
-# BTL_OOP_Nhom5
-Ứng dụng Java quản lý sinh viên và các nghiệp vụ học vụ, sử dụng MySQL qua JDBC.
-
-## Yêu cầu
-
-- JDK 17
-- Maven
-- MySQL
-
-## Cấu hình database
-
-Chạy script `Database/SQL/test.sql` trong MySQL để tạo dữ liệu kiểm thử. Ứng dụng đọc cấu hình kết nối từ biến môi trường:
-
-| Biến | Bắt buộc | Mặc định / mô tả |
-| --- | --- | --- |
-| `DB_URL` | Không | Mặc định `jdbc:mysql://localhost:3306/test` |
-| `DB_USER` | Có | Tên tài khoản MySQL |
-| `DB_PASSWORD` | Có | Mật khẩu MySQL |
-
-Ví dụ PowerShell, chỉ có hiệu lực trong cửa sổ hiện tại:
-
-```powershell
-$env:DB_URL = "jdbc:mysql://localhost:3306/test"
-$env:DB_USER = "your_mysql_user"
-$env:DB_PASSWORD = "your_mysql_password"
-mvn test
-```
-
-Không ghi mật khẩu thật vào mã nguồn hoặc commit lên Git. File `.env` và `*.local.properties` được bỏ qua bởi `.gitignore`; ứng dụng không tự đọc các file này, nên hãy nạp cấu hình vào biến môi trường của tiến trình trước khi chạy.
-
-## Xử lý lỗi
-
-DAO sử dụng `SQLException` cho lỗi JDBC. Service chuyển lỗi database thành `ServiceException` (unchecked), giữ nguyên nguyên nhân để ghi log kỹ thuật nhưng chỉ cung cấp thông báo tổng quát cho tầng gọi. Tầng giao diện nên bắt `ServiceException` ở ranh giới xử lý sự kiện và hiển thị thông báo thân thiện; không hiển thị stack trace hoặc chi tiết JDBC cho người dùng.
-
-## Build và kiểm tra
-
-```bash
-mvn test
-```
-
-Các nghiệp vụ hiện được tổ chức trong `src/main/java/Services`, truy vấn database trong `src/main/java/DAO`, model trong `src/main/java/Model`, và cấu hình JDBC trong `src/main/java/Util/DBConnection.java`.
 # BTL OOP - Quản lý sinh viên
 
-Ứng dụng Java quản lý dữ liệu học vụ, gồm môn học, lớp học, đăng ký học, điểm, thành phần đánh giá và yêu cầu đổi lớp. Dự án tổ chức theo các lớp Model, DAO, Service và kết nối MySQL qua JDBC.
+Ứng dụng Java quản lý một số nghiệp vụ học vụ: môn học, lớp học, đăng ký học, điểm, thành phần đánh giá và yêu cầu đổi lớp. Mã nguồn hiện tập trung vào Model, DAO và Service; chưa có giao diện người dùng hoàn chỉnh.
 
-> **Phạm vi hiện tại:** repository có phần mô hình dữ liệu, truy vấn, nghiệp vụ và script database test. Chưa thấy phần giao diện người dùng trong mã nguồn hiện tại.
-
-## Công nghệ
+## Công nghệ và yêu cầu
 
 - Java 17
 - Maven
 - MySQL
 - MySQL Connector/J 9.5.0
-- JDBC (`PreparedStatement`)
+- JDBC với `PreparedStatement`
 
-## Cấu trúc thư mục
-### `Database/SQL`
+## Cấu trúc dự án
 
-- `test.sql`: tạo database và các bảng mẫu, đồng thời thêm dữ liệu test cho tài khoản, sinh viên, giảng viên, môn học, thành phần đánh giá và lớp học.
-- Script này phục vụ môi trường test; `CREATE TABLE IF NOT EXISTS` không tự sửa cấu trúc của database đã tồn tại. Nếu schema cũ chưa tương thích, cần chạy migration phù hợp hoặc tạo lại database test.
+```text
+Database/SQL/
+  test.sql
+  migrate_trang_thai_hoat_dong.sql
+docs/
+  thanh-phan-danh-gia.md
+src/main/java/
+  DAO/       Truy vấn và ánh xạ dữ liệu database
+  Model/     Model nghiệp vụ và các enum trạng thái
+  Services/  Nghiệp vụ, validation và điều phối transaction
+  Util/      DBConnection
+src/test/java/Test/
+  *SmokeRunner.java  Các chương trình kiểm tra thủ công, cần database
+```
 
-### `docs/`
+Các DAO chính gồm `DangKyHocDAO`, `DiemDAO`, `LopHocDAO`, `MonHocDAO`, `MonTienQuyetDAO`, `ThanhPhanDanhGiaDAO` và `YeuCauDoiLopDAO`. Các Service chính gồm `DangKyHocService`, `DiemService`, `ThanhPhanDanhGiaService` và `YeuCauDoiLopService`.
 
-- `thanh-phan-danh-gia.md`: hướng dẫn sử dụng nghiệp vụ thêm/sửa thành phần đánh giá, các ràng buộc dữ liệu và ví dụ gọi Service.
+## Cấu hình database
 
-### `src/main/java/DAO/`
+Chạy `Database/SQL/test.sql` trên một MySQL test để tạo schema và dữ liệu mẫu. Kết nối đọc cấu hình từ biến môi trường:
 
-Các lớp DAO thực hiện truy vấn SQL và ánh xạ dữ liệu từ database sang Model:
+| Biến | Bắt buộc | Giá trị mặc định |
+| --- | --- | --- |
+| `DB_URL` | Không | `jdbc:mysql://localhost:3306/Test` |
+| `DB_USER` | Có | Không có |
+| `DB_PASSWORD` | Có | Không có |
 
-- `DangKyHocDAO`: kiểm tra đăng ký, kiểm tra đã qua môn tiên quyết, thêm đăng ký, đổi lớp trong bản ghi đăng ký và lấy thời khóa biểu.
-- `DiemDAO`: tính điểm tổng kết từ các thành phần đánh giá và lưu điểm thành phần.
-- `LopHocDAO`: thêm/sửa/ngừng hoạt động lớp, đọc danh sách lớp và cập nhật sĩ số.
-- `MonHocDAO`: thêm/sửa/ngừng hoạt động môn học và truy vấn môn.
-- `MonTienQuyetDAO`: thêm/xóa quan hệ môn tiên quyết và truy vấn các môn cần học trước.
-- `ThanhPhanDanhGiaDAO`: đọc/thêm/sửa thành phần đánh giá, truy vấn quyền tài khoản và khóa bản ghi liên quan trong transaction.
-- `YeuCauDoiLopDAO`: tạo, đọc và cập nhật trạng thái yêu cầu đổi lớp.
+Ví dụ PowerShell (chỉ áp dụng cho cửa sổ hiện tại):
 
-Các DAO thao tác trong một transaction nhận `Connection` từ bên gọi nên có thể dùng chung kết nối. Những phương thức DAO truy vấn độc lập tự mở và đóng connection.
+```powershell
+$env:DB_URL = "jdbc:mysql://localhost:3306/Test"
+$env:DB_USER = "your_mysql_user"
+$env:DB_PASSWORD = "your_mysql_password"
+mvn test
+```
 
-### `src/main/java/Model/`
+Trong IntelliJ IDEA, cấu hình các biến này trong **Run → Edit Configurations → Environment variables** cho cấu hình chạy. Ứng dụng không có tài khoản/mật khẩu mặc định và không tự đọc `.env` hay `*.local.properties`; không ghi credentials thật vào mã nguồn hoặc commit lên Git.
 
-Các lớp dữ liệu của ứng dụng:
+`test.sql` chỉ dành cho database test. Nếu dùng database cũ có các cột trạng thái hoạt động kiểu `0/1`, hãy sao lưu trước rồi chạy `Database/SQL/migrate_trang_thai_hoat_dong.sql`, hoặc tạo lại database test theo schema hiện tại. Script tạo database tên `Test`; giữ `DB_URL` cùng tên này để tránh khác biệt viết hoa/thường giữa môi trường MySQL.
 
-- `Admin`, `GiangVien`, `SinhVien`, `Users`: thông tin tài khoản và các nhóm người dùng.
-- `MonHoc`, `LopHoc`, `DangKyHoc`: môn học, lớp học và đăng ký học.
-- `ThanhPhanDanhGia`, `DiemThanhPhan`: cấu hình thành phần đánh giá và điểm.
-- `YeuCauDoiLop`: yêu cầu trao đổi lớp.
-- `ThongTinQuyen`: thông tin quyền/trạng thái được dùng khi kiểm tra phân quyền.
-- `TrangThaiDangKy`, `TrangThaiDoiLop`: các trạng thái đăng ký và yêu cầu đổi lớp.
+## Mô hình dữ liệu và trạng thái
 
-Mã nghiệp vụ sinh viên và giảng viên được biểu diễn bằng `String`, ví dụ `SV001`, `GV01`. Các khóa nội bộ như `UserID`, `MaDangKy`, `MaYeuCau`, `MaTP` vẫn là số.
+Các bảng chính: `Users`, `SinhVien`, `GiaoVien`, `Admin`, `MonHoc`, `MonTienQuyet`, `LopHoc`, `ThanhPhanDanhGia`, `DangKyHoc`, `DiemThanhPhan` và `YeuCauDoiLop`.
 
-### `src/main/java/Services/`
-
-Các lớp xử lý nghiệp vụ và điều phối transaction:
-
-- `DangKyHocService`: xử lý đăng ký lớp trong transaction, kiểm tra lớp, đăng ký trùng, môn tiên quyết và sĩ số.
-- `DiemService`: gọi chức năng tính điểm tổng kết.
-- `ThanhPhanDanhGiaService`: kiểm tra quyền admin và dữ liệu đánh giá trước khi ghi; thao tác danh sách thành phần được thực hiện trong một transaction.
-- `YeuCauDoiLopService`: đăng yêu cầu và xử lý việc hai sinh viên đổi lớp.
-
-Một số phương thức Service khai báo `throws SQLException`; phía gọi cần xử lý lỗi database thay vì xem lỗi truy vấn như trường hợp “không có dữ liệu”.
-
-### `src/main/java/Util/`
-
-- `DBConnection`: tạo kết nối JDBC đến MySQL. Thông tin kết nối hiện được khai báo trong mã nguồn; khi dùng ở máy khác cần cấu hình phù hợp và không nên đưa mật khẩu thật lên repository.
-- `TestConnection`, `TestSelect`: chương trình nhỏ để kiểm tra kết nối và truy vấn database.
-
-## Các bảng database
-
-Script test định nghĩa các bảng chính:
-
-| Bảng | Mục đích |
-| --- | --- |
-| `Users` | Tài khoản, vai trò, trạng thái và thông tin đăng nhập |
-| `SinhVien` | Thông tin bổ sung của sinh viên; `MaSV` là mã nghiệp vụ dạng chuỗi |
-| `GiaoVien` | Thông tin bổ sung của giảng viên; `MaGV` là mã nghiệp vụ dạng chuỗi |
-| `Admin` | Thông tin bổ sung của admin |
-| `MonHoc` | Danh mục môn học |
-| `MonTienQuyet` | Quan hệ môn học và môn tiên quyết |
-| `LopHoc` | Lớp mở cho môn học, giảng viên phụ trách và sĩ số |
-| `ThanhPhanDanhGia` | Tên, trọng số, thứ tự và trạng thái thành phần đánh giá |
-| `DangKyHoc` | Sinh viên đăng ký lớp và điểm tổng kết |
-| `DiemThanhPhan` | Điểm của từng thành phần đánh giá |
-| `YeuCauDoiLop` | Yêu cầu trao đổi lớp và thông tin xử lý |
-
-Trong schema test hiện tại:
-
-- `DangKyHoc.MaSV` và `YeuCauDoiLop.MaSV` dùng `VARCHAR(20)`, tham chiếu `SinhVien.MaSV`.
-- `LopHoc.MaGV` dùng `VARCHAR(20)`, tham chiếu `GiaoVien.MaGV`.
-- `YeuCauDoiLop.NguoiXuLy` vẫn là số và tham chiếu `Users.UserID`, vì đây là ID tài khoản người xử lý, không phải mã sinh viên/giảng viên.
-- Các mã tự tăng như `MaDangKy`, `MaYeuCau`, `MaTP`, `MaDiemTP` vẫn do database quản lý.
-
-## Trạng thái hoạt động
-
-`Users`, `MonHoc` và `LopHoc` sử dụng enum `Model.TrangThaiHoatDong` với hai giá trị `HOAT_DONG` và `NGUNG_HOAT_DONG`. Các cột tương ứng trong MySQL dùng kiểu `ENUM` cùng các giá trị này. `ThanhPhanDanhGia.TrangThai` vẫn là cờ boolean riêng, không thuộc enum trạng thái hoạt động.
-
-Với database test đã tồn tại theo schema số `0/1`, hãy sao lưu rồi chạy `Database/SQL/migrate_trang_thai_hoat_dong.sql` một lần để chuyển dữ liệu và kiểu cột. Database mới có thể được tạo bằng `Database/SQL/test.sql`.
+- `MaSV` và `MaGV` là mã nghiệp vụ kiểu chuỗi; khóa ngoại tới sinh viên/giảng viên dùng các mã này. `YeuCauDoiLop.NguoiXuLy` vẫn tham chiếu `Users.UserID`, vì đây là ID tài khoản người xử lý.
+- Các mã tự tăng như `UserID`, `MaDangKy`, `MaYeuCau`, `MaTP` và `MaDiemTP` là ID số do database quản lý.
+- `Users`, `MonHoc` và `LopHoc` sử dụng `Model.TrangThaiHoatDong` (`HOAT_DONG`, `NGUNG_HOAT_DONG`); các cột tương ứng trong MySQL dùng `ENUM`. `ThanhPhanDanhGia.TrangThai` là cờ bật/tắt riêng, không phải enum này.
+- Các trạng thái đăng ký và yêu cầu đổi lớp được biểu diễn bằng enum model tương ứng.
 
 ## Nghiệp vụ chính
 
 ### Đăng ký học
 
-`DangKyHocService` mở transaction để kiểm tra và xử lý đăng ký. Quy trình gồm kiểm tra lớp, kiểm tra sinh viên đã đăng ký lớp chưa, kiểm tra các môn tiên quyết và kiểm tra/tăng sĩ số lớp trước khi ghi đăng ký. Nếu một bước không thành công, transaction được rollback.
+`DangKyHocService` kiểm tra lớp, đăng ký trùng và môn tiên quyết trong transaction. Lớp được khóa trong cùng connection; sĩ số được tăng bằng câu lệnh cập nhật có điều kiện trước khi ghi đăng ký. Lỗi database làm rollback transaction.
+
+### Điểm
+
+`DiemDAO.nhapDiem(Connection, ...)` sử dụng connection do Service truyền vào, không tự mở connection. `DiemService.nhapDiemVaTinhTongKet(...)` nhập điểm thành phần và cập nhật điểm tổng kết trong cùng transaction. Mã điểm thành phần được database tự sinh. Tổng điểm chỉ được cập nhật khi đủ điểm cho các thành phần đang hoạt động.
 
 ### Thành phần đánh giá
 
-`ThanhPhanDanhGiaService`:
-
-- Chỉ cho phép tài khoản có quyền `ADMIN` và đang hoạt động thêm/sửa cấu hình.
-- Khi thêm mới, nhận toàn bộ danh sách thành phần trong một lần gọi.
-- Kiểm tra tên không rỗng, độ dài tối đa 200 ký tự, trọng số thuộc `(0, 1]` và tối đa hai chữ số thập phân.
-- Kiểm tra tổng trọng số các thành phần đang hoạt động bằng `1`.
-- Kiểm tra thứ tự không trùng trong cùng môn.
-- Ghi toàn bộ thay đổi trong một transaction; lỗi sẽ rollback toàn bộ.
-
-Xem thêm `docs/thanh-phan-danh-gia.md` để biết cách gọi Service.
-
-### Tính điểm tổng kết
-
-`DiemDAO.capNhatDiemTongKet(...)` tính tổng có trọng số từ các thành phần đánh giá đang hoạt động. Chỉ cập nhật khi đã có điểm cho tất cả thành phần cần tính. Điểm được làm tròn hai chữ số thập phân; trạng thái đăng ký được cập nhật theo điểm tổng kết.
-
-`DiemDAO.nhapDiem(...)` tìm đăng ký và thành phần đánh giá theo mã sinh viên, mã lớp và thứ tự thành phần, sau đó thêm điểm. Cột `MaDiemTP` được database tự sinh.
+`ThanhPhanDanhGiaService` kiểm tra tài khoản admin đang hoạt động, dữ liệu tên/trọng số/thứ tự và tổng trọng số bằng `1`. Các thay đổi được ghi trong một transaction; lỗi sẽ rollback. Hướng dẫn chi tiết tại `docs/thanh-phan-danh-gia.md`.
 
 ### Đổi lớp
 
-`YeuCauDoiLopService` cho phép đăng yêu cầu đổi lớp sau khi kiểm tra đăng ký hiện tại và điều kiện môn tiên quyết. Khi sinh viên khác chốt yêu cầu, service khóa yêu cầu và xử lý việc đổi hai đăng ký cùng cập nhật trạng thái yêu cầu trong transaction.
+`YeuCauDoiLopService` đăng yêu cầu sau khi kiểm tra đăng ký và môn tiên quyết. Khi một sinh viên chốt yêu cầu, việc hoán đổi hai đăng ký và cập nhật trạng thái yêu cầu được xử lý trong cùng transaction.
 
-## Kết nối database
+## Xử lý lỗi
 
-1. Cài MySQL và chạy `Database/SQL/test.sql` trong môi trường test.
-2. Kiểm tra URL, tên database, tài khoản và mật khẩu trong `Util/DBConnection.java` để khớp với cấu hình máy đang chạy.
-3. Nếu database đã tạo từ schema cũ, hãy sao lưu và chạy migration phù hợp, bao gồm `Database/SQL/migrate_trang_thai_hoat_dong.sql` nếu schema trạng thái vẫn dùng `0/1`; hoặc tạo lại database test để các kiểu `MaSV`/`MaGV` và khóa ngoại khớp với schema hiện tại.
-
-> Lưu ý: tên database trong script test và URL kết nối trong `DBConnection` hiện cần được đối chiếu trước khi chạy. Tên database có thể phân biệt chữ hoa/chữ thường tùy hệ điều hành và cấu hình MySQL.
-
-## Build và chạy
-
-Cần cài JDK 17 và Maven.
-
-```bash
-mvn test
-```
+DAO sử dụng `SQLException` cho lỗi JDBC. Các Service chuyển lỗi ra ngoài dưới dạng `ServiceException`; lỗi kỹ thuật được giữ nguyên nguyên nhân để ghi log, còn UI nên hiển thị thông báo thân thiện thay vì chi tiết JDBC/stack trace. Một số nghiệp vụ trả về `String` hoặc `boolean` cho kết quả nghiệp vụ dự kiến (ví dụ điều kiện đăng ký không đạt); cần giữ cách xử lý kết quả này ở caller.
