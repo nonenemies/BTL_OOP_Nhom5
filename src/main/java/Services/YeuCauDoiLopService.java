@@ -17,7 +17,7 @@ public class YeuCauDoiLopService {
     private final DangKyHocDAO dangKyDAO = new DangKyHocDAO();
     private final LopHocDAO lopHocDAO = new LopHocDAO();
 
-    public String checkTienQuyet(Connection conn, int maSV, String maLopMuonVao) throws SQLException {
+    public String checkTienQuyet(Connection conn, String maSV, String maLopMuonVao) throws SQLException {
         // 1. GỌI DEV 2: Đã thêm chữ 'conn' vào tham số đầu tiên
         var lopHoc = lopHocDAO.layLopTheoMa(conn, maLopMuonVao);
         if (lopHoc == null) return "Lớp học không tồn tại!";
@@ -42,7 +42,7 @@ public class YeuCauDoiLopService {
         return yeuCauDAO.laySanGiaoDich();
     }
 
-    public String dangBaiDoiLop(int maSVA, String lopCuA, String lopMoiA, String lyDo) throws SQLException {
+    public String dangBaiDoiLop(String maSVA, String lopCuA, String lopMoiA, String lyDo) throws SQLException {
         try (Connection conn = DBConnection.getConnection()) {
 
             if (!dangKyDAO.kiemTraDaDangKy(conn, maSVA, lopCuA)) {
@@ -65,7 +65,7 @@ public class YeuCauDoiLopService {
         }
     }
 
-    public String sinhVienBChotDon(int maYeuCau, int maSV_B) throws SQLException {
+    public String sinhVienBChotDon(int maYeuCau, String maSV_B) throws SQLException {
         try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false); // Bắt đầu Transaction
 
@@ -75,11 +75,11 @@ public class YeuCauDoiLopService {
                     return rollbackAndReturn(conn, "❌ Đơn không tồn tại hoặc đã bị chốt!");
                 }
 
-                int maSV_A = baiDang.getMaSV();
+                String maSV_A = baiDang.getMaSV();
                 String lopA_DangHoc = baiDang.getLopCu();
                 String lopA_MuonSang = baiDang.getLopMoi();
 
-                if (maSV_A == maSV_B) {
+                if (Objects.equals(maSV_A, maSV_B)) {
                     return rollbackAndReturn(conn, "❌ Không thể tự chốt yêu cầu của mình!");
                 }
                 if (!dangKyDAO.kiemTraDaDangKy(conn, maSV_A, lopA_DangHoc)
@@ -135,11 +135,11 @@ public class YeuCauDoiLopService {
     public static void main(String[] args) throws SQLException {
         DangKyHocService dkService = new DangKyHocService();
         YeuCauDoiLopService ycService = new YeuCauDoiLopService();
-        System.out.println("BƯỚC 1: " + dkService.xuLyDangKyHoc(3, "OOP_L01"));
-        System.out.println("BƯỚC 1: " + dkService.xuLyDangKyHoc(4, "DB_L01"));
-        System.out.println("BƯỚC 1: " + dkService.xuLyDangKyHoc(5, "DB_L01"));
+        System.out.println("BƯỚC 1: " + dkService.xuLyDangKyHoc("SV001", "OOP_L01"));
+        System.out.println("BƯỚC 1: " + dkService.xuLyDangKyHoc("SV002", "DB_L01"));
+        System.out.println("BƯỚC 1: " + dkService.xuLyDangKyHoc("SV003", "DB_L01"));
 
-        System.out.println("BƯỚC 2 (SV3 ĐĂNG BÀI): " + ycService.dangBaiDoiLop(3, "OOP_L01", "DB_L01", "Doi lop"));
+        System.out.println("BƯỚC 2 (SV001 ĐĂNG BÀI): " + ycService.dangBaiDoiLop("SV001", "OOP_L01", "DB_L01", "Doi lop"));
 
         int idDonMoi = 0;
         try (java.sql.Connection c = Util.DBConnection.getConnection();
@@ -147,7 +147,7 @@ public class YeuCauDoiLopService {
             if (rs.next()) idDonMoi = rs.getInt(1);
         }
 
-        System.out.println("BƯỚC 3 (SV4 KÉM): " + ycService.sinhVienBChotDon(idDonMoi, 4));
-        System.out.println("BƯỚC 4 (SV5 GIỎI): " + ycService.sinhVienBChotDon(idDonMoi, 5));
+        System.out.println("BƯỚC 3 (SV002): " + ycService.sinhVienBChotDon(idDonMoi, "SV002"));
+        System.out.println("BƯỚC 4 (SV003): " + ycService.sinhVienBChotDon(idDonMoi, "SV003"));
     }
 }

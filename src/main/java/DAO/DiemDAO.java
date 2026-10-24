@@ -22,7 +22,8 @@ public class DiemDAO {
                 + "HAVING COUNT(*) = COUNT(DISTINCT tp.MaTP) "
                 + "AND COUNT(d.DiemDatDuoc) = COUNT(*)"
                 + ") ketQua ON ketQua.MaDangKy = dk.MaDangKy "
-                + "SET dk.DiemTongKet = ketQua.TongDiem";
+                + "SET dk.DiemTongKet = ketQua.TongDiem, "
+                + "dk.TrangThai = IF(ketQua.TongDiem >= 4.0, 'DA_HOAN_THANH', 'DANG_HOC')";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, maSV);
             ps.setString(2, maLop);
@@ -30,7 +31,7 @@ public class DiemDAO {
         }
     }
 
-    /* @param maSV mã sinh viên trong bảng DangKyHoc (tham chiếu Users.UserID)
+    /* @param maSV mã sinh viên trong bảng DangKyHoc (tham chiếu SinhVien.MaSV)
      * @param maLop mã lớp sinh viên đã đăng ký
      * @param thuTu thứ tự thành phần đánh giá trong ThanhPhanDanhGia
      * @param diemDatDuoc điểm đạt được cần lưu vào DiemThanhPhan

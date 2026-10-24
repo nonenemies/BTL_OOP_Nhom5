@@ -24,7 +24,7 @@ public class LopHocDAO {
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, lopHoc.getMaLop());
             ps.setString(2, lopHoc.getMaMon());
-            ps.setObject(3, lopHoc.getMaGV());
+            ps.setString(3, lopHoc.getMaGV());
             ps.setString(4, lopHoc.getHocKy());
             ps.setObject(5, lopHoc.getSiSoToiDa());
             return ps.executeUpdate() == 1;
@@ -40,7 +40,7 @@ public class LopHocDAO {
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, lopHoc.getMaMon());
-            ps.setObject(2, lopHoc.getMaGV());
+            ps.setString(2, lopHoc.getMaGV());
             ps.setString(3, lopHoc.getHocKy());
             ps.setObject(4, lopHoc.getSiSoToiDa());
             ps.setString(5, lopHoc.getMaLop());
@@ -165,7 +165,7 @@ public class LopHocDAO {
                     danhSach.add(new LopHoc(
                             rs.getString("MaLop"),
                             rs.getString("MaMon"),
-                            rs.getObject("MaGV", Integer.class),
+                            rs.getString("MaGV"),
                             rs.getString("HocKy"),
                             rs.getObject("SiSoToiDa", Integer.class),
                             rs.getObject("SiSoHienTai", Integer.class),

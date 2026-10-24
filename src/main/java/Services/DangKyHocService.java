@@ -14,7 +14,7 @@ public class DangKyHocService {
     private final DangKyHocDAO dangKyDAO = new DangKyHocDAO();
     private final LopHocDAO lopHocDAO = new LopHocDAO();
 
-    public String xuLyDangKyHoc(int maSV, String maLop) throws SQLException {
+    public String xuLyDangKyHoc(String maSV, String maLop) throws SQLException {
         try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false); // Bắt đầu Transaction
 
@@ -62,7 +62,7 @@ public class DangKyHocService {
         }
     }
 
-    public List<DangKyHoc> xemThoiKhoaBieu(int maSV) throws SQLException {
+    public List<DangKyHoc> xemThoiKhoaBieu(String maSV) throws SQLException {
         return dangKyDAO.layDanhSachLopCuaSinhVien(maSV);
     }
 

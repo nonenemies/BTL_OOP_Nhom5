@@ -58,13 +58,13 @@ CREATE TABLE MonTienQuyet (
 CREATE TABLE LopHoc (
     MaLop VARCHAR(20) PRIMARY KEY,
     MaMon VARCHAR(20),
-    MaGV INT,
+    MaGV VARCHAR(20),
     HocKy VARCHAR(20) NOT NULL,
     SiSoToiDa INT NOT NULL,
     SiSoHienTai INT NOT NULL DEFAULT 0,
     TrangThai TINYINT(1) DEFAULT 1,
     FOREIGN KEY (MaMon) REFERENCES MonHoc(MaMon),
-    FOREIGN KEY (MaGV) REFERENCES Users(UserID)
+    FOREIGN KEY (MaGV) REFERENCES GiaoVien(MaGV)
 );
 
 CREATE TABLE ThanhPhanDanhGia (
@@ -80,13 +80,13 @@ CREATE TABLE ThanhPhanDanhGia (
 CREATE TABLE DangKyHoc (
     MaDangKy INT AUTO_INCREMENT PRIMARY KEY,
     MaLop VARCHAR(20) NOT NULL,
-    MaSV INT NOT NULL,
+    MaSV VARCHAR(20) NOT NULL,
     CONSTRAINT uq_dangky_sv_lop UNIQUE (MaSV, MaLop),
     NgayDangKy DATETIME DEFAULT CURRENT_TIMESTAMP,
     DiemTongKet DECIMAL(5,2) NULL,
     TrangThai VARCHAR(20) DEFAULT 'DANG_HOC',
     FOREIGN KEY (MaLop) REFERENCES LopHoc(MaLop),
-    FOREIGN KEY (MaSV) REFERENCES Users(UserID)
+    FOREIGN KEY (MaSV) REFERENCES SinhVien(MaSV)
 );
 
 CREATE TABLE DiemThanhPhan (
@@ -101,7 +101,7 @@ CREATE TABLE DiemThanhPhan (
 
 CREATE TABLE YeuCauDoiLop (
     MaYeuCau INT AUTO_INCREMENT PRIMARY KEY,
-    MaSV INT,
+    MaSV VARCHAR(20) NOT NULL,
     LopCu VARCHAR(20),
     LopMoi VARCHAR(20),
     TrangThai VARCHAR(20) DEFAULT 'CHO_XAC_NHAN',
@@ -109,7 +109,7 @@ CREATE TABLE YeuCauDoiLop (
     NgayTao DATETIME DEFAULT CURRENT_TIMESTAMP,
     NgayXuLy DATETIME NULL,
     NguoiXuLy INT NULL,
-    FOREIGN KEY (MaSV) REFERENCES Users(UserID),
+    FOREIGN KEY (MaSV) REFERENCES SinhVien(MaSV),
     FOREIGN KEY (LopCu) REFERENCES LopHoc(MaLop),
     FOREIGN KEY (LopMoi) REFERENCES LopHoc(MaLop),
     FOREIGN KEY (NguoiXuLy) REFERENCES Users(UserID)
@@ -120,12 +120,14 @@ INSERT INTO Users (HoTen, Email, PasswordHash, Role, MaSo) VALUES
 ('Quản Trị Viên', 'admin@truong.edu.vn', '123', 'ADMIN', 'AD01'),
 ('Thầy Trần Code', 'code.tran@truong.edu.vn', '123', 'GIAOVIEN', 'GV01'),
 ('Nguyễn Văn Sinh', 'sinh.nguyen@sv.edu.vn', '123', 'SINHVIEN', 'SV001'),
-('Lê Thị Viên', 'vien.le@sv.edu.vn', '123', 'SINHVIEN', 'SV002');
+('Lê Thị Viên', 'vien.le@sv.edu.vn', '123', 'SINHVIEN', 'SV002'),
+('Trần Văn Ba', 'ba.tran@sv.edu.vn', '123', 'SINHVIEN', 'SV003');
 
 INSERT INTO Admin (UserID, ChucVu) VALUES (1, 'Trưởng phòng Đào tạo');
 INSERT INTO GiaoVien (UserID, MaGV, ChuyenNganh, HocVi) VALUES (2, 'GV01', 'Công nghệ phần mềm', 'Thạc sĩ');
 INSERT INTO SinhVien (UserID, MaSV, Lop, KhoaHoc) VALUES (3, 'SV001', 'CN01', 2021);
 INSERT INTO SinhVien (UserID, MaSV, Lop, KhoaHoc) VALUES (4, 'SV002', 'CN02', 2021);
+INSERT INTO SinhVien (UserID, MaSV, Lop, KhoaHoc) VALUES (5, 'SV003', 'CN03', 2021);
 
 INSERT INTO MonHoc (MaMon, TenMon, SoTinChi, LoaiMon) VALUES
 ('IT01', 'Lập trình OOP', 3, 'BATBUOC'),
@@ -136,5 +138,5 @@ INSERT INTO ThanhPhanDanhGia (MaMon, TenThanhPhan, TrongSo, ThuTu) VALUES
 ('IT01', 'Cuối kỳ', 0.7, 2);
 
 INSERT INTO LopHoc (MaLop, MaMon, MaGV, HocKy, SiSoToiDa, SiSoHienTai) VALUES
-('OOP_L01', 'IT01', 2, '2024-1', 40, 0),
-('DB_L01', 'IT02', 2, '2024-1', 40, 0);
+('OOP_L01', 'IT01', 'GV01', '2024-1', 40, 0),
+('DB_L01', 'IT02', 'GV01', '2024-1', 40, 0);
