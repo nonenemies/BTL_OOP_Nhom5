@@ -1,6 +1,7 @@
 package DAO;
 
 import Model.MonHoc;
+import Model.TrangThaiHoatDong;
 import Util.DBConnection;
 
 import java.sql.Connection;
@@ -50,11 +51,13 @@ public class MonHocDAO {
 
     /** Ngừng kích hoạt môn học để giữ lại dữ liệu lịch sử và các khóa ngoại. */
     public boolean xoaMonHoc(String maMon) throws SQLException {
-        String sql = "UPDATE MonHoc SET TrangThai = 0 WHERE MaMon = ? AND TrangThai <> 0";
+        String sql = "UPDATE MonHoc SET TrangThai = ? WHERE MaMon = ? AND TrangThai <> ?";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, maMon);
+            ps.setString(1, TrangThaiHoatDong.NGUNG_HOAT_DONG.name());
+            ps.setString(2, maMon);
+            ps.setString(3, TrangThaiHoatDong.NGUNG_HOAT_DONG.name());
             return ps.executeUpdate() == 1;
         }
     }
@@ -62,7 +65,7 @@ public class MonHocDAO {
     /** Lấy các môn đang hoạt động, dùng cho danh sách chọn môn. */
     public List<MonHoc> layDanhSachMon() throws SQLException {
         return truyVanDanhSach("SELECT MaMon, TenMon, SoTinChi, LoaiMon, MoTa, TrangThai "
-                + "FROM MonHoc WHERE TrangThai = 1 ORDER BY MaMon");
+                + "FROM MonHoc WHERE TrangThai = '" + TrangThaiHoatDong.HOAT_DONG.name() + "' ORDER BY MaMon");
     }
 
     /** Lấy mọi môn, gồm cả môn đã ngừng hoạt động, dùng cho màn hình quản trị. */
@@ -104,7 +107,7 @@ public class MonHocDAO {
                 rs.getObject("SoTinChi", Integer.class),
                 rs.getString("LoaiMon"),
                 rs.getString("MoTa"),
-                rs.getObject("TrangThai", Integer.class)
+                TrangThaiHoatDong.valueOf(rs.getString("TrangThai"))
         );
     }
 

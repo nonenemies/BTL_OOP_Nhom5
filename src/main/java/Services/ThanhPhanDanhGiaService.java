@@ -73,7 +73,8 @@ public class ThanhPhanDanhGiaService {
             conn.setAutoCommit(false);
             try {
                 ThongTinQuyen quyen = dao.traQuyen(conn, userID);
-                if (quyen == null || !"ADMIN".equals(quyen.role()) || quyen.trangThai() != 1) {
+                if (quyen == null || !"ADMIN".equals(quyen.role())
+                        || quyen.trangThai() != Model.TrangThaiHoatDong.HOAT_DONG) {
                     throw new SecurityException("Chỉ admin đang hoạt động được phép thêm/sửa thành phần đánh giá.");
                 }
                 if (dao.timMonDeCapNhat(conn, maMon) == null) {

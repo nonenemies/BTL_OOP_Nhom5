@@ -39,3 +39,9 @@ mvn test
 ```
 
 Các nghiệp vụ hiện được tổ chức trong `src/main/java/Services`, truy vấn database trong `src/main/java/DAO`, model trong `src/main/java/Model`, và cấu hình JDBC trong `src/main/java/Util/DBConnection.java`.
+
+## Trạng thái hoạt động
+
+`Users`, `MonHoc` và `LopHoc` sử dụng enum `Model.TrangThaiHoatDong` với hai giá trị `HOAT_DONG` và `NGUNG_HOAT_DONG`. Các cột tương ứng trong MySQL dùng kiểu `ENUM` cùng các giá trị này. `ThanhPhanDanhGia.TrangThai` vẫn là cờ boolean riêng, không thuộc enum trạng thái hoạt động.
+
+Với database test đã tồn tại theo schema số `0/1`, hãy sao lưu rồi chạy `Database/SQL/migrate_trang_thai_hoat_dong.sql` một lần để chuyển dữ liệu và kiểu cột. Database mới có thể được tạo bằng `Database/SQL/test.sql`.

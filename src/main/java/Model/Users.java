@@ -11,11 +11,11 @@ public abstract class Users {
     protected String maSo;
     protected String khoa;
     protected Date ngayTao;
-    protected Integer trangThai;
+    protected TrangThaiHoatDong trangThai;
 
     public Users(Integer userID, String hoTen, String email, String passwordHash,
                  String role, String maSo, String khoa,
-                 Date ngayTao, Integer trangThai) {
+                 Date ngayTao, TrangThaiHoatDong trangThai) {
         this.userID = userID;
         this.hoTen = hoTen;
         this.email = email;
@@ -91,11 +91,11 @@ public abstract class Users {
         this.ngayTao = ngayTao;
     }
 
-    public Integer getTrangThai() {
+    public TrangThaiHoatDong getTrangThai() {
         return trangThai;
     }
 
-    public void setTrangThai(Integer trangThai) {
+    public void setTrangThai(TrangThaiHoatDong trangThai) {
         this.trangThai = trangThai;
     }
 }

@@ -1,6 +1,7 @@
 package DAO;
 
 import Model.ThanhPhanDanhGia;
+import Model.TrangThaiHoatDong;
 import Model.ThongTinQuyen;
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -18,7 +19,9 @@ public class ThanhPhanDanhGiaDAO {
                 "SELECT Role, TrangThai FROM Users WHERE UserID = ? FOR UPDATE")) {
             ps.setInt(1, userID);
             try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() ? new ThongTinQuyen(rs.getString("Role"), rs.getInt("TrangThai")) : null;
+                return rs.next() ? new ThongTinQuyen(
+                        rs.getString("Role"),
+                        TrangThaiHoatDong.valueOf(rs.getString("TrangThai"))) : null;
             }
         }
     }

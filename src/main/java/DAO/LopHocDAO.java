@@ -1,6 +1,7 @@
 package DAO;
 
 import Model.LopHoc;
+import Model.TrangThaiHoatDong;
 import Util.DBConnection;
 
 import java.sql.Connection;
@@ -50,10 +51,12 @@ public class LopHocDAO {
 
     /** Ngừng kích hoạt lớp để giữ lại dữ liệu đăng ký và điểm đã phát sinh. */
     public boolean xoaLopHoc(String maLop) throws SQLException {
-        String sql = "UPDATE LopHoc SET TrangThai = 0 WHERE MaLop = ? AND TrangThai <> 0";
+        String sql = "UPDATE LopHoc SET TrangThai = ? WHERE MaLop = ? AND TrangThai <> ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, maLop);
+            ps.setString(1, TrangThaiHoatDong.NGUNG_HOAT_DONG.name());
+            ps.setString(2, maLop);
+            ps.setString(3, TrangThaiHoatDong.NGUNG_HOAT_DONG.name());
             return ps.executeUpdate() == 1;
         }
     }
@@ -61,7 +64,7 @@ public class LopHocDAO {
     /** Lấy các lớp đang hoạt động. */
     public List<LopHoc> layDanhSachLop() throws SQLException {
         return truyVanDanhSach("SELECT MaLop, MaMon, MaGV, HocKy, SiSoToiDa, SiSoHienTai, TrangThai "
-                + "FROM LopHoc WHERE TrangThai = 1 ORDER BY MaLop", null);
+                + "FROM LopHoc WHERE TrangThai = '" + TrangThaiHoatDong.HOAT_DONG.name() + "' ORDER BY MaLop", null);
     }
 
     /** Lấy mọi lớp, gồm cả lớp đã ngừng hoạt động, cho màn hình quản trị. */
@@ -96,13 +99,15 @@ public class LopHocDAO {
     /** Lấy các lớp đang hoạt động của một môn. */
     public List<LopHoc> layLopTheoMon(String maMon) throws SQLException {
         String sql = "SELECT MaLop, MaMon, MaGV, HocKy, SiSoToiDa, SiSoHienTai, TrangThai "
-                + "FROM LopHoc WHERE MaMon = ? AND TrangThai = 1 ORDER BY MaLop";
+                + "FROM LopHoc WHERE MaMon = ? AND TrangThai = '" + TrangThaiHoatDong.HOAT_DONG.name()
+                + "' ORDER BY MaLop";
         return truyVanDanhSach(sql, maMon);
     }
 
     /** Trả về true nếu lớp đang hoạt động và còn chỗ. */
     public boolean kiemTraConCho(String maLop) throws SQLException {
-        String sql = "SELECT 1 FROM LopHoc WHERE MaLop = ? AND TrangThai = 1 "
+        String sql = "SELECT 1 FROM LopHoc WHERE MaLop = ? AND TrangThai = '"
+                + TrangThaiHoatDong.HOAT_DONG.name() + "' "
                 + "AND SiSoHienTai < SiSoToiDa";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -123,7 +128,8 @@ public class LopHocDAO {
     /** Tăng sĩ số trên kết nối do bên gọi quản lý, để ghép vào transaction hiện có. */
     public boolean tangSiSo(Connection conn, String maLop) throws SQLException {
         String sql = "UPDATE LopHoc SET SiSoHienTai = SiSoHienTai + 1 "
-                + "WHERE MaLop = ? AND TrangThai = 1 AND SiSoHienTai < SiSoToiDa";
+                + "WHERE MaLop = ? AND TrangThai = '" + TrangThaiHoatDong.HOAT_DONG.name()
+                + "' AND SiSoHienTai < SiSoToiDa";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, maLop);
             return ps.executeUpdate() == 1;
@@ -169,7 +175,7 @@ public class LopHocDAO {
                             rs.getString("HocKy"),
                             rs.getObject("SiSoToiDa", Integer.class),
                             rs.getObject("SiSoHienTai", Integer.class),
-                            rs.getObject("TrangThai", Integer.class)
+                            TrangThaiHoatDong.valueOf(rs.getString("TrangThai"))
                     ));
                 }
             }

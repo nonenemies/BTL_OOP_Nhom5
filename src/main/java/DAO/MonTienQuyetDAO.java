@@ -1,6 +1,7 @@
 package DAO;
 
 import Model.MonHoc;
+import Model.TrangThaiHoatDong;
 import Util.DBConnection;
 
 import java.sql.Connection;
@@ -66,7 +67,7 @@ public class MonTienQuyetDAO {
                             rs.getObject("SoTinChi", Integer.class),
                             rs.getString("LoaiMon"),
                             rs.getString("MoTa"),
-                            rs.getObject("TrangThai", Integer.class)
+                            TrangThaiHoatDong.valueOf(rs.getString("TrangThai"))
                     ));
                 }
             }
