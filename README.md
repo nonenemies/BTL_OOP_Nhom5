@@ -1,6 +1,6 @@
 # BTL OOP - Quản lý sinh viên
 
-Ứng dụng Java quản lý một số nghiệp vụ học vụ: môn học, lớp học, đăng ký học, điểm, thành phần đánh giá và yêu cầu đổi lớp. Mã nguồn hiện tập trung vào Model, DAO và Service; chưa có giao diện người dùng hoàn chỉnh.
+Ứng dụng Java quản lý một số nghiệp vụ học vụ: môn học, lớp học, đăng ký học, điểm, thành phần đánh giá và yêu cầu đổi lớp. Dự án có giao diện JavaFX đang được xây dựng; hiện có màn hình thử nghiệm đăng ký học để kiểm tra kết nối FXML và Controller.
 
 ## Công nghệ và yêu cầu
 
@@ -23,19 +23,58 @@ mvn javafx:run
 ## Cấu trúc dự án
 
 ```text
-Database/SQL/
-  test.sql
-  migrate_trang_thai_hoat_dong.sql
+Database/
+└── SQL/
+    └── test.sql
 docs/
-  thanh-phan-danh-gia.md
-src/main/java/
-  DAO/       Truy vấn và ánh xạ dữ liệu database
-  Model/     Model nghiệp vụ và các enum trạng thái
-  Services/  Nghiệp vụ, validation và điều phối transaction
-  Util/      DBConnection
-src/test/java/Test/
-  *SmokeRunner.java  Các chương trình kiểm tra thủ công, cần database
+└── thanh-phan-danh-gia.md
+src/
+└── main/
+    ├── java/
+    │   ├── Controllers/
+    │   │   └── DangKyController.java
+    │   ├── DAO/
+    │   │   ├── DangKyHocDAO.java
+    │   │   ├── DiemDAO.java
+    │   │   ├── LopHocDAO.java
+    │   │   ├── MonHocDAO.java
+    │   │   ├── MonTienQuyetDAO.java
+    │   │   ├── ThanhPhanDanhGiaDAO.java
+    │   │   └── YeuCauDoiLopDAO.java
+    │   ├── Model/
+    │   │   ├── Admin.java
+    │   │   ├── DangKyHoc.java
+    │   │   ├── DiemThanhPhan.java
+    │   │   ├── GiangVien.java
+    │   │   ├── LopHoc.java
+    │   │   ├── MonHoc.java
+    │   │   ├── SinhVien.java
+    │   │   ├── ThanhPhanDanhGia.java
+    │   │   ├── ThongTinQuyen.java
+    │   │   ├── TrangThaiDangKy.java
+    │   │   ├── TrangThaiDoiLop.java
+    │   │   ├── TrangThaiHoatDong.java
+    │   │   ├── Users.java
+    │   │   └── YeuCauDoiLop.java
+    │   ├── Services/
+    │   │   ├── DangKyHocService.java
+    │   │   ├── DiemService.java
+    │   │   ├── ServiceException.java
+    │   │   ├── ThanhPhanDanhGiaService.java
+    │   │   └── YeuCauDoiLopService.java
+    │   ├── Util/
+    │   │   └── DBConnection.java
+    │   ├── Launcher.java
+    │   └── MainApp.java
+    └── resources/
+        ├── css/       CSS stylesheets (chưa có file)
+        └── views/
+            └── DangKyView.fxml
+pom.xml
+README.md
 ```
+
+`MainApp` khởi tạo JavaFX, `Launcher` là điểm vào để chạy ứng dụng, còn Controller xử lý sự kiện giao diện và gọi Service. Các DAO thực hiện truy vấn; Model chứa dữ liệu và enum; Service xử lý nghiệp vụ và transaction. Thư mục `src/main/resources/css/` hiện được dành sẵn cho stylesheet nhưng chưa có file CSS. `target/` và `.idea/` là dữ liệu sinh ra/cấu hình IDE, không phải mã nguồn nghiệp vụ.
 
 Các DAO chính gồm `DangKyHocDAO`, `DiemDAO`, `LopHocDAO`, `MonHocDAO`, `MonTienQuyetDAO`, `ThanhPhanDanhGiaDAO` và `YeuCauDoiLopDAO`. Các Service chính gồm `DangKyHocService`, `DiemService`, `ThanhPhanDanhGiaService` và `YeuCauDoiLopService`.
 
@@ -60,7 +99,7 @@ mvn test
 
 Trong IntelliJ IDEA, cấu hình các biến này trong **Run → Edit Configurations → Environment variables** cho cấu hình chạy. Ứng dụng không có tài khoản/mật khẩu mặc định và không tự đọc `.env` hay `*.local.properties`; không ghi credentials thật vào mã nguồn hoặc commit lên Git.
 
-`test.sql` chỉ dành cho database test. Nếu dùng database cũ có các cột trạng thái hoạt động kiểu `0/1`, hãy sao lưu trước rồi chạy `Database/SQL/migrate_trang_thai_hoat_dong.sql`, hoặc tạo lại database test theo schema hiện tại. Script tạo database tên `Test`; giữ `DB_URL` cùng tên này để tránh khác biệt viết hoa/thường giữa môi trường MySQL.
+`test.sql` chỉ dành cho database test. Script tạo database tên `Test`; giữ `DB_URL` cùng tên này để tránh khác biệt viết hoa/thường giữa môi trường MySQL. Nếu database cũ dùng schema khác với `test.sql`, hãy sao lưu trước và tạo lại database test theo schema hiện tại hoặc thực hiện migration phù hợp.
 
 ## Mô hình dữ liệu và trạng thái
 
