@@ -5,10 +5,20 @@
 ## Công nghệ và yêu cầu
 
 - Java 17
+- JavaFX 21.0.13
+- AtlantaFX 2.0.1
 - Maven
 - MySQL
 - MySQL Connector/J 9.5.0
 - JDBC với `PreparedStatement`
+
+JavaFX 21.0.13 được chọn để chạy cùng JDK 17; JavaFX 23 yêu cầu tối thiểu JDK 21. AtlantaFX 2.0.1 được build với Java 17 và JavaFX 20, nên dùng cùng JavaFX 21 là lựa chọn tương thích gần với phiên bản nền của thư viện. Cả nhóm nên dùng JDK 17 và giữ các phiên bản dependency theo `pom.xml`.
+
+Chạy ứng dụng JavaFX từ thư mục dự án bằng Maven:
+
+```bash
+mvn javafx:run
+```
 
 ## Cấu trúc dự án
 
