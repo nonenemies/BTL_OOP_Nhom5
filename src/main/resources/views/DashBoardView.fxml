@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane minHeight="650.0" minWidth="1000.0" prefHeight="760.0" prefWidth="1200.0"
+            styleClass="dashboard-page" stylesheets="@../css/app.css"
+            xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="Controllers.DashBoardController">
+    <left>
+        <VBox prefWidth="248.0" spacing="0.0" styleClass="sidebar">
+            <padding>
+                <Insets bottom="24.0" left="20.0" right="20.0" top="28.0" />
+            </padding>
+            <children>
+                <HBox alignment="CENTER_LEFT" spacing="12.0" styleClass="sidebar-brand">
+                    <StackPane prefHeight="40.0" prefWidth="40.0" styleClass="brand-mark">
+                        <Label styleClass="brand-mark-text" text="C" />
+                    </StackPane>
+                    <VBox spacing="2.0">
+                        <Label styleClass="brand-name" text="CREDIT HUB" />
+                        <Label styleClass="brand-caption" text="STUDENT PORTAL" />
+                    </VBox>
+                </HBox>
+
+                <Label styleClass="nav-section-title" text="KHÔNG GIAN HỌC TẬP">
+                    <VBox.margin>
+                        <Insets top="42.0" />
+                    </VBox.margin>
+                </Label>
+                <Button maxWidth="Infinity" styleClass="nav-item nav-item-active" text="Tổng quan">
+                    <VBox.margin><Insets top="12.0" /></VBox.margin>
+                </Button>
+                <Button maxWidth="Infinity" onAction="#onBtnDangKyClick" styleClass="nav-item" text="Đăng ký tín chỉ">
+                    <VBox.margin><Insets top="6.0" /></VBox.margin>
+                </Button>
+                <Button maxWidth="Infinity" onAction="#onBtnDoiLopClick" styleClass="nav-item" text="Yêu cầu đổi lớp">
+                    <VBox.margin><Insets top="6.0" /></VBox.margin>
+                </Button>
+
+                <Region VBox.vgrow="ALWAYS" />
+                <VBox spacing="8.0" styleClass="sidebar-help">
+                    <Label styleClass="help-title" text="Cần hỗ trợ?" />
+                    <Label styleClass="help-description" text="Liên hệ phòng đào tạo nếu bạn cần trợ giúp." wrapText="true" />
+                    <Button maxWidth="Infinity" styleClass="help-button" text="Trung tâm hỗ trợ">
+                        <VBox.margin><Insets top="6.0" /></VBox.margin>
+                    </Button>
+                </VBox>
+                <Button maxWidth="Infinity" onAction="#onBtnDangXuatClick" styleClass="nav-item logout-item" text="Đăng xuất">
+                    <VBox.margin><Insets top="18.0" /></VBox.margin>
+                </Button>
+            </children>
+        </VBox>
+    </left>
+    <center>
+        <VBox spacing="26.0" styleClass="dashboard-content">
+            <padding>
+                <Insets bottom="38.0" left="42.0" right="42.0" top="30.0" />
+            </padding>
+            <children>
+                <HBox alignment="CENTER_LEFT" spacing="12.0" styleClass="dashboard-topbar">
+                    <VBox spacing="4.0">
+                        <Label styleClass="topbar-kicker" text="THỨ HAI, 26 THÁNG 10, 2026" />
+                        <Label styleClass="topbar-title" text="Không gian học tập" />
+                    </VBox>
+                    <Region HBox.hgrow="ALWAYS" />
+                    <VBox alignment="CENTER_RIGHT" spacing="3.0">
+                        <Label fx:id="lblWelcome" styleClass="student-name" text="Xin chào, Sinh viên" />
+                        <Label styleClass="student-id" text="HỌC KỲ 1 · NĂM HỌC 2026–2027" />
+                    </VBox>
+                    <StackPane prefHeight="44.0" prefWidth="44.0" styleClass="avatar">
+                        <Label styleClass="avatar-text" text="SV" />
+                    </StackPane>
+                </HBox>
+
+                <HBox alignment="CENTER_LEFT" spacing="12.0" styleClass="welcome-banner">
+                    <VBox spacing="8.0">
+                        <Label styleClass="banner-eyebrow" text="TỔNG QUAN HỌC TẬP" />
+                        <Label styleClass="banner-title" text="Chào bạn, sẵn sàng cho kỳ học mới?" wrapText="true" />
+                        <Label styleClass="banner-description"
+                               text="Theo dõi tiến độ và hoàn thành kế hoạch học tập của bạn từng bước một."
+                               wrapText="true" />
+                    </VBox>
+                    <Region HBox.hgrow="ALWAYS" />
+                    <StackPane prefHeight="112.0" prefWidth="112.0" styleClass="banner-orbit">
+                        <StackPane prefHeight="74.0" prefWidth="74.0" styleClass="banner-orbit-inner">
+                            <Label styleClass="orbit-label" text="HỌC&#10;TẬP" />
+                        </StackPane>
+                    </StackPane>
+                </HBox>
+
+                <HBox spacing="16.0" styleClass="stats-row">
+                    <VBox HBox.hgrow="ALWAYS" spacing="12.0" styleClass="stat-card">
+                        <HBox alignment="CENTER_LEFT">
+                            <Label styleClass="stat-label" text="TÍN CHỈ ĐÃ TÍCH LŨY" />
+                            <Region HBox.hgrow="ALWAYS" />
+                            <StackPane styleClass="stat-icon stat-icon-blue"><Label styleClass="stat-icon-label" text="TC" /></StackPane>
+                        </HBox>
+                        <HBox alignment="BASELINE_LEFT" spacing="7.0">
+                            <Label styleClass="stat-value" text="72" />
+                            <Label styleClass="stat-unit" text="/ 130 tín chỉ" />
+                        </HBox>
+                        <HBox alignment="CENTER_LEFT" spacing="9.0">
+                            <StackPane HBox.hgrow="ALWAYS" alignment="CENTER_LEFT" styleClass="progress-track">
+                                <Region styleClass="progress-fill" />
+                            </StackPane>
+                            <Label styleClass="progress-caption" text="55%" />
+                        </HBox>
+                    </VBox>
+                    <VBox HBox.hgrow="ALWAYS" spacing="12.0" styleClass="stat-card">
+                        <HBox alignment="CENTER_LEFT">
+                            <Label styleClass="stat-label" text="HỌC PHẦN HỌC KỲ NÀY" />
+                            <Region HBox.hgrow="ALWAYS" />
+                            <StackPane styleClass="stat-icon stat-icon-violet"><Label styleClass="stat-icon-label" text="HP" /></StackPane>
+                        </HBox>
+                        <HBox alignment="BASELINE_LEFT" spacing="7.0">
+                            <Label styleClass="stat-value" text="6" />
+                            <Label styleClass="stat-unit" text="học phần" />
+                        </HBox>
+                        <Label styleClass="stat-footnote" text="Đang theo học trong học kỳ này" />
+                    </VBox>
+                    <VBox HBox.hgrow="ALWAYS" spacing="12.0" styleClass="stat-card">
+                        <HBox alignment="CENTER_LEFT">
+                            <Label styleClass="stat-label" text="ĐIỂM TRUNG BÌNH" />
+                            <Region HBox.hgrow="ALWAYS" />
+                            <StackPane styleClass="stat-icon stat-icon-green"><Label styleClass="stat-icon-label" text="GPA" /></StackPane>
+                        </HBox>
+                        <HBox alignment="BASELINE_LEFT" spacing="7.0">
+                            <Label styleClass="stat-value" text="3.42" />
+                            <Label styleClass="stat-unit" text="/ 4.00" />
+                        </HBox>
+                        <Label styleClass="stat-footnote positive-text" text="↑ 0.18 so với học kỳ trước" />
+                    </VBox>
+                </HBox>
+
+                <HBox alignment="CENTER_LEFT" styleClass="section-heading">
+                    <VBox spacing="4.0">
+                        <Label styleClass="section-title" text="Lịch học sắp tới" />
+                        <Label styleClass="section-subtitle" text="Các lớp học trong tuần của bạn" />
+                    </VBox>
+                    <Region HBox.hgrow="ALWAYS" />
+                    <Button styleClass="text-button" text="Xem lịch học  →" />
+                </HBox>
+
+                <VBox spacing="10.0" styleClass="schedule-list">
+                    <HBox alignment="CENTER_LEFT" spacing="16.0" styleClass="schedule-row">
+                        <VBox alignment="CENTER" prefWidth="70.0" spacing="3.0" styleClass="schedule-date">
+                            <Label styleClass="date-day" text="27" />
+                            <Label styleClass="date-month" text="THÁNG 10" />
+                        </VBox>
+                        <VBox spacing="6.0" styleClass="schedule-details">
+                            <Label styleClass="course-name" text="Cấu trúc dữ liệu và giải thuật" />
+                            <Label styleClass="course-meta" text="CS201  ·  Nhóm 02  ·  Phòng A.302" />
+                        </VBox>
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Label styleClass="course-time" text="07:30 – 09:30" />
+                        <Label styleClass="course-status" text="SẮP DIỄN RA" />
+                    </HBox>
+                    <HBox alignment="CENTER_LEFT" spacing="16.0" styleClass="schedule-row">
+                        <VBox alignment="CENTER" prefWidth="70.0" spacing="3.0" styleClass="schedule-date">
+                            <Label styleClass="date-day" text="28" />
+                            <Label styleClass="date-month" text="THÁNG 10" />
+                        </VBox>
+                        <VBox spacing="6.0" styleClass="schedule-details">
+                            <Label styleClass="course-name" text="Lập trình hướng đối tượng" />
+                            <Label styleClass="course-meta" text="CS202  ·  Nhóm 01  ·  Phòng B.105" />
+                        </VBox>
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Label styleClass="course-time" text="13:00 – 15:00" />
+                        <Label styleClass="course-status status-violet" text="ĐÃ ĐĂNG KÝ" />
+                    </HBox>
+                </VBox>
+            </children>
+        </VBox>
+    </center>
+</BorderPane>

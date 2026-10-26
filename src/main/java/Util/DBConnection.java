@@ -5,7 +5,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DBConnection {
-    private static final String DEFAULT_URL = "jdbc:mysql://localhost:3306/Test";
+    private static final String DEFAULT_URL = "jdbc:mysql://localhost:3306/test";
 
     public static Connection getConnection() throws SQLException {
         String url = System.getenv().getOrDefault("DB_URL", DEFAULT_URL);
