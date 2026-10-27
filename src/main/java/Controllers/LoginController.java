@@ -43,7 +43,7 @@ public class LoginController {
                 FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/views/DashBoardView.fxml"));
                 Scene dashboardScene = new Scene(fxmlLoader.load(), 1200, 760);
                 DashBoardController dashboardController = fxmlLoader.getController();
-                dashboardController.setWelcomeName(user.getHoTen());
+                dashboardController.setLoggedInUser(user);
 
                 Stage currentStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
                 currentStage.setScene(dashboardScene);

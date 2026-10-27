@@ -1,6 +1,7 @@
 package DAO;
 
 import Model.LopHoc;
+import Model.LopHocDangKy;
 import Model.TrangThaiHoatDong;
 import Util.DBConnection;
 
@@ -65,6 +66,40 @@ public class LopHocDAO {
     public List<LopHoc> layDanhSachLop() throws SQLException {
         return truyVanDanhSach("SELECT MaLop, MaMon, MaGV, HocKy, SiSoToiDa, SiSoHienTai, TrangThai "
                 + "FROM LopHoc WHERE TrangThai = '" + TrangThaiHoatDong.HOAT_DONG.name() + "' ORDER BY MaLop", null);
+    }
+
+    /** Danh sách lớp mở cho sinh viên cùng các lớp sinh viên đã đăng ký. */
+    public List<LopHocDangKy> layDanhSachLopDangKy(String maSV) throws SQLException {
+        String sql = "SELECT lh.MaLop, mh.MaMon, mh.TenMon, "
+                + "COALESCE(u.HoTen, lh.MaGV, 'Chưa phân công') AS GiangVien, "
+                + "lh.HocKy, mh.SoTinChi, lh.SiSoHienTai, lh.SiSoToiDa, "
+                + "CASE WHEN dk.MaDangKy IS NULL THEN 0 ELSE 1 END AS DaDangKy "
+                + "FROM LopHoc lh "
+                + "JOIN MonHoc mh ON mh.MaMon = lh.MaMon "
+                + "LEFT JOIN GiaoVien gv ON gv.MaGV = lh.MaGV "
+                + "LEFT JOIN Users u ON u.UserID = gv.UserID "
+                + "LEFT JOIN DangKyHoc dk ON dk.MaLop = lh.MaLop AND dk.MaSV = ? "
+                + "AND dk.TrangThai <> 'HUY' "
+                + "WHERE (lh.TrangThai = 'HOAT_DONG' AND mh.TrangThai = 'HOAT_DONG') "
+                + "OR dk.MaDangKy IS NOT NULL ORDER BY lh.HocKy DESC, mh.MaMon, lh.MaLop";
+
+        List<LopHocDangKy> danhSach = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, maSV);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    danhSach.add(new LopHocDangKy(
+                            rs.getString("MaLop"), rs.getString("MaMon"),
+                            rs.getString("TenMon"), rs.getString("GiangVien"),
+                            rs.getString("HocKy"), rs.getObject("SoTinChi", Integer.class),
+                            rs.getObject("SiSoHienTai", Integer.class),
+                            rs.getObject("SiSoToiDa", Integer.class),
+                            rs.getBoolean("DaDangKy")));
+                }
+            }
+        }
+        return danhSach;
     }
 
     /** Lấy mọi lớp, gồm cả lớp đã ngừng hoạt động, cho màn hình quản trị. */

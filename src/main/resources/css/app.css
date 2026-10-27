@@ -555,3 +555,211 @@
     -fx-background-color: #f1efff;
     -fx-text-fill: #7864c5;
 }
+
+.registration-topbar {
+    -fx-background-color: #ffffff;
+    -fx-border-color: transparent transparent #e9edf4 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.registration-brand {
+    -fx-text-fill: #263754;
+    -fx-font-size: 11px;
+}
+
+.registration-back-button,
+.registration-refresh-button {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 8;
+    -fx-border-color: #e1e6f0;
+    -fx-border-radius: 8;
+    -fx-text-fill: #4a608f;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 9 14;
+    -fx-cursor: hand;
+}
+
+.registration-back-button:hover,
+.registration-refresh-button:hover {
+    -fx-background-color: #f4f6fb;
+}
+
+.registration-scroll,
+.registration-scroll > .viewport {
+    -fx-background-color: #f5f7fb;
+}
+
+.registration-content {
+    -fx-background-color: #f5f7fb;
+}
+
+.registration-eyebrow {
+    -fx-text-fill: #5775d0;
+    -fx-font-size: 9px;
+    -fx-font-weight: bold;
+}
+
+.registration-title {
+    -fx-text-fill: #1d2b45;
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+}
+
+.registration-subtitle {
+    -fx-text-fill: #7d899e;
+    -fx-font-size: 11px;
+}
+
+.registration-filter-card,
+.registration-card {
+    -fx-padding: 15;
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 12;
+    -fx-border-color: #e9edf4;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+}
+
+.registration-search {
+    -fx-pref-height: 38px;
+}
+
+.registration-semester {
+    -fx-pref-height: 38px;
+    -fx-background-color: #f8f9fc;
+    -fx-background-radius: 8;
+    -fx-border-color: #e3e7ef;
+    -fx-border-radius: 8;
+    -fx-font-size: 11px;
+}
+
+.registration-table {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #edf0f5;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-table-cell-border-color: #f0f2f6;
+    -fx-font-size: 10px;
+}
+
+.registration-table .column-header-background {
+    -fx-background-color: #f7f8fb;
+    -fx-background-radius: 8 8 0 0;
+}
+
+.registration-table .column-header,
+.registration-table .filler {
+    -fx-background-color: transparent;
+    -fx-size: 31px;
+    -fx-border-color: transparent transparent #e9edf4 transparent;
+}
+
+.registration-table .column-header .label {
+    -fx-text-fill: #7f8ba0;
+    -fx-font-size: 8px;
+    -fx-font-weight: bold;
+    -fx-alignment: center-left;
+}
+
+.registration-table .table-row-cell {
+    -fx-cell-size: 32px;
+    -fx-background-color: #ffffff;
+}
+
+.registration-table .table-row-cell:filled:hover {
+    -fx-background-color: #f5f7fc;
+}
+
+.registration-table .table-row-cell:filled:selected {
+    -fx-background-color: #eaf0ff;
+    -fx-text-background-color: #304f9f;
+}
+
+.registration-table .table-cell {
+    -fx-text-fill: #46536b;
+    -fx-padding: 5 8;
+}
+
+.registered-table {
+    -fx-pref-height: 125px;
+}
+
+.registration-empty {
+    -fx-padding: 12 4 3 4;
+    -fx-text-fill: #8a95a8;
+    -fx-font-size: 11px;
+}
+
+.registration-detail-card {
+    -fx-padding: 17;
+}
+
+.registration-detail-title {
+    -fx-text-fill: #263651;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.registration-detail-meta {
+    -fx-text-fill: #7f8ba0;
+    -fx-font-size: 10px;
+}
+
+.registration-detail-label {
+    -fx-text-fill: #9aa4b6;
+    -fx-font-size: 8px;
+    -fx-font-weight: bold;
+}
+
+.registration-detail-value {
+    -fx-text-fill: #43516b;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+}
+
+.registration-action-card {
+    -fx-padding: 16;
+    -fx-background-color: #f0f4ff;
+    -fx-background-radius: 12;
+    -fx-border-color: #e1e9ff;
+    -fx-border-radius: 12;
+}
+
+.registration-action-title {
+    -fx-text-fill: #2a3c68;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.registration-action-copy {
+    -fx-text-fill: #72809c;
+    -fx-font-size: 9px;
+    -fx-text-alignment: center;
+}
+
+.registration-confirm {
+    -fx-pref-height: 38px;
+    -fx-font-size: 10px;
+}
+
+.registration-confirm:disabled {
+    -fx-opacity: 0.55;
+}
+
+.registration-message {
+    -fx-padding: 12 15;
+    -fx-background-radius: 9;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.registration-message-success {
+    -fx-background-color: #eaf7ef;
+    -fx-text-fill: #278256;
+}
+
+.registration-message-error {
+    -fx-background-color: #fff0f1;
+    -fx-text-fill: #b54050;
+}

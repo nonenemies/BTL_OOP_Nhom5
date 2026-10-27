@@ -8,6 +8,7 @@ import DAO.LopHocDAO;
 import DAO.MonTienQuyetDAO;
 import Model.MonHoc;
 import Model.DangKyHoc;
+import Model.LopHocDangKy;
 import Util.DBConnection;
 
 public class DangKyHocService {
@@ -80,6 +81,16 @@ public class DangKyHocService {
             throw new ServiceException("Không thể tải thời khóa biểu.", e);
         } catch (RuntimeException e) {
             throw ServiceException.wrap("Không thể tải thời khóa biểu.", e);
+        }
+    }
+
+    public List<LopHocDangKy> xemDanhSachLopDangKy(String maSV) {
+        try {
+            return lopHocDAO.layDanhSachLopDangKy(maSV);
+        } catch (SQLException e) {
+            throw new ServiceException("Không thể tải danh sách lớp đăng ký.", e);
+        } catch (RuntimeException e) {
+            throw ServiceException.wrap("Không thể tải danh sách lớp đăng ký.", e);
         }
     }
 
