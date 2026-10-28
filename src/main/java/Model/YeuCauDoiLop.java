@@ -1,5 +1,6 @@
 package Model;
 import java.util.Date;
+import java.text.SimpleDateFormat;
 
 public class YeuCauDoiLop {
     private int maYeuCau;
@@ -11,6 +12,9 @@ public class YeuCauDoiLop {
     private Date ngayTao;
     private Date ngayXuLy;
     private int nguoiXuLy; // Dùng lưu ID của người Chốt đơn
+    private String tenSinhVien;
+    private String tenLopCu;
+    private String tenLopMoi;
 
     public YeuCauDoiLop() {}
 
@@ -39,4 +43,24 @@ public class YeuCauDoiLop {
     public void setNgayXuLy(Date ngayXuLy) { this.ngayXuLy = ngayXuLy; }
     public int getNguoiXuLy() { return nguoiXuLy; }
     public void setNguoiXuLy(int nguoiXuLy) { this.nguoiXuLy = nguoiXuLy; }
+    public String getTenSinhVien() { return tenSinhVien; }
+    public void setTenSinhVien(String tenSinhVien) { this.tenSinhVien = tenSinhVien; }
+    public String getSinhVienHienThi() { return tenSinhVien + " · " + maSV; }
+    public String getTenLopCu() { return tenLopCu; }
+    public void setTenLopCu(String tenLopCu) { this.tenLopCu = tenLopCu; }
+    public String getTenLopMoi() { return tenLopMoi; }
+    public void setTenLopMoi(String tenLopMoi) { this.tenLopMoi = tenLopMoi; }
+    public String getTrangThaiHienThi() {
+        if (trangThai == null) return "Không rõ";
+        switch (trangThai) {
+            case CHO_XAC_NHAN: return "Đang chờ";
+            case DA_DUYET: return "Đã trao đổi";
+            case TU_CHOI: return "Bị từ chối";
+            case HUY: return "Đã hủy";
+            default: return trangThai.name();
+        }
+    }
+    public String getNgayTaoHienThi() {
+        return ngayTao == null ? "—" : new SimpleDateFormat("dd/MM/yyyy HH:mm").format(ngayTao);
+    }
 }

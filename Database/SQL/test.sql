@@ -67,6 +67,15 @@ CREATE TABLE LopHoc (
     FOREIGN KEY (MaGV) REFERENCES GiaoVien(MaGV)
 );
 
+CREATE TABLE LichHoc (
+    MaLich INT AUTO_INCREMENT PRIMARY KEY,
+    MaLop VARCHAR(20) NOT NULL,
+    Thu INT NOT NULL,
+    GioBatDau TIME NOT NULL,
+    GioKetThuc TIME NOT NULL,
+    FOREIGN KEY (MaLop) REFERENCES LopHoc(MaLop)
+);
+
 CREATE TABLE ThanhPhanDanhGia (
     MaTP INT AUTO_INCREMENT PRIMARY KEY,
     MaMon VARCHAR(20),
@@ -140,3 +149,7 @@ INSERT INTO ThanhPhanDanhGia (MaMon, TenThanhPhan, TrongSo, ThuTu) VALUES
 INSERT INTO LopHoc (MaLop, MaMon, MaGV, HocKy, SiSoToiDa, SiSoHienTai) VALUES
 ('OOP_L01', 'IT01', 'GV01', '2024-1', 40, 0),
 ('DB_L01', 'IT02', 'GV01', '2024-1', 40, 0);
+
+INSERT INTO LichHoc (MaLop, Thu, GioBatDau, GioKetThuc) VALUES
+('OOP_L01', 2, '08:00:00', '10:00:00'),
+('DB_L01', 3, '08:00:00', '10:00:00');

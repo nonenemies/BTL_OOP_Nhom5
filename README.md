@@ -84,14 +84,14 @@ Chạy `Database/SQL/test.sql` trên một MySQL test để tạo schema và d�
 
 | Biến | Bắt buộc | Giá trị mặc định |
 | --- | --- | --- |
-| `DB_URL` | Không | `jdbc:mysql://localhost:3306/Test` |
+| `DB_URL` | Không | `jdbc:mysql://localhost:3306/QuanLyTinChi` |
 | `DB_USER` | Có | Không có |
 | `DB_PASSWORD` | Có | Không có |
 
 Ví dụ PowerShell (chỉ áp dụng cho cửa sổ hiện tại):
 
 ```powershell
-$env:DB_URL = "jdbc:mysql://localhost:3306/Test"
+$env:DB_URL = "jdbc:mysql://localhost:3306/QuanLyTinChi"
 $env:DB_USER = "your_mysql_user"
 $env:DB_PASSWORD = "your_mysql_password"
 mvn test
@@ -99,14 +99,15 @@ mvn test
 
 Trong IntelliJ IDEA, cấu hình các biến này trong **Run → Edit Configurations → Environment variables** cho cấu hình chạy. Ứng dụng không có tài khoản/mật khẩu mặc định và không tự đọc `.env` hay `*.local.properties`; không ghi credentials thật vào mã nguồn hoặc commit lên Git.
 
-`test.sql` chỉ dành cho database test. Script tạo database tên `Test`; giữ `DB_URL` cùng tên này để tránh khác biệt viết hoa/thường giữa môi trường MySQL. Nếu database cũ dùng schema khác với `test.sql`, hãy sao lưu trước và tạo lại database test theo schema hiện tại hoặc thực hiện migration phù hợp.
+`test.sql` chỉ dành cho database test. Script tạo database tên `QuanLyTinChi`; giữ `DB_URL` cùng tên này để kết nối đúng schema. Nếu database cũ dùng schema khác với `test.sql`, hãy sao lưu trước và tạo lại database test theo schema hiện tại hoặc thực hiện migration phù hợp.
 
 ## Mô hình dữ liệu và trạng thái
 
-Các bảng chính: `Users`, `SinhVien`, `GiaoVien`, `Admin`, `MonHoc`, `MonTienQuyet`, `LopHoc`, `ThanhPhanDanhGia`, `DangKyHoc`, `DiemThanhPhan` và `YeuCauDoiLop`.
+Các bảng chính: `Users`, `SinhVien`, `GiaoVien`, `Admin`, `MonHoc`, `MonTienQuyet`, `LopHoc`, `LichHoc`, `ThanhPhanDanhGia`, `DangKyHoc`, `DiemThanhPhan` và `YeuCauDoiLop`.
 
 - `MaSV` và `MaGV` là mã nghiệp vụ kiểu chuỗi; khóa ngoại tới sinh viên/giảng viên dùng các mã này. `YeuCauDoiLop.NguoiXuLy` vẫn tham chiếu `Users.UserID`, vì đây là ID tài khoản người xử lý.
 - Các mã tự tăng như `UserID`, `MaDangKy`, `MaYeuCau`, `MaTP` và `MaDiemTP` là ID số do database quản lý.
+- `LichHoc` lưu lịch lặp theo tuần của lớp bằng thứ, giờ bắt đầu và giờ kết thúc.
 - `Users`, `MonHoc` và `LopHoc` sử dụng `Model.TrangThaiHoatDong` (`HOAT_DONG`, `NGUNG_HOAT_DONG`); các cột tương ứng trong MySQL dùng `ENUM`. `ThanhPhanDanhGia.TrangThai` là cờ bật/tắt riêng, không phải enum này.
 - Các trạng thái đăng ký và yêu cầu đổi lớp được biểu diễn bằng enum model tương ứng.
 
@@ -114,7 +115,9 @@ Các bảng chính: `Users`, `SinhVien`, `GiaoVien`, `Admin`, `MonHoc`, `MonTien
 
 ### Đăng ký học
 
-`DangKyHocService` kiểm tra lớp, đăng ký trùng và môn tiên quyết trong transaction. Lớp được khóa trong cùng connection; sĩ số được tăng bằng câu lệnh cập nhật có điều kiện trước khi ghi đăng ký. Lỗi database làm rollback transaction.
+`DangKyHocService` kiểm tra lớp, đăng ký trùng, môn tiên quyết và lịch trùng trong transaction. Lịch được đối chiếu theo thứ và khoảng giờ trong cùng học kỳ; hai buổi giao nhau khi giờ bắt đầu của buổi này nhỏ hơn giờ kết thúc buổi kia và ngược lại. Dòng sinh viên được khóa để các yêu cầu đăng ký đồng thời của cùng một sinh viên không vượt qua kiểm tra lịch. Sĩ số được cập nhật cùng thao tác đăng ký/hủy trong transaction. Sinh viên có thể hủy lớp đang học; lớp đã hoàn thành không thể hủy. Lớp đã hủy có thể đăng ký lại nếu còn chỗ và vẫn đạt điều kiện. Lỗi database làm rollback transaction.
+
+Màn hình `TimetableView.fxml` luôn hiển thị 17 hàng ca và các cột từ thứ 2 đến chủ nhật, kể cả khi chưa có lớp đăng ký. Ca 1 bắt đầu lúc 07:00, mỗi ca dài một giờ; ca 6 (12:00–13:00) được dành cho nghỉ trưa. Các lớp được đặt vào đúng khung giờ dựa trên lịch thực tế và kéo dài qua các hàng ca tương ứng. Cột cuối hiển thị khoảng giờ cố định của từng ca. Bảng cuộn dọc để xem hết các ca.
 
 ### Điểm
 
@@ -126,7 +129,7 @@ Các bảng chính: `Users`, `SinhVien`, `GiaoVien`, `Admin`, `MonHoc`, `MonTien
 
 ### Đổi lớp
 
-`YeuCauDoiLopService` đăng yêu cầu sau khi kiểm tra đăng ký và môn tiên quyết. Khi một sinh viên chốt yêu cầu, việc hoán đổi hai đăng ký và cập nhật trạng thái yêu cầu được xử lý trong cùng transaction.
+`YeuCauDoiLopService` đăng yêu cầu sau khi kiểm tra đăng ký và môn tiên quyết. Khi một sinh viên chốt yêu cầu, hệ thống kiểm tra lịch của cả hai sinh viên (bỏ qua lớp mỗi người đang rời khỏi), rồi mới hoán đổi hai đăng ký và cập nhật trạng thái yêu cầu trong cùng transaction.
 
 ## Xử lý lỗi
 

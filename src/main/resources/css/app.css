@@ -682,7 +682,25 @@
 }
 
 .registered-table {
-    -fx-pref-height: 125px;
+    -fx-pref-height: 170px;
+}
+
+.registration-cancel-button {
+    -fx-background-color: #fff0f1;
+    -fx-text-fill: #b54050;
+    -fx-background-radius: 8;
+    -fx-padding: 9 14;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+.registration-cancel-button:hover {
+    -fx-background-color: #ffe0e3;
+}
+
+.registration-cancel-button:disabled {
+    -fx-opacity: 0.5;
 }
 
 .registration-empty {
@@ -760,6 +778,197 @@
 }
 
 .registration-message-error {
+    -fx-background-color: #fff0f1;
+    -fx-text-fill: #b54050;
+}
+
+.timetable-content {
+    -fx-background-color: #f5f7fb;
+}
+
+.timetable-fixed-header,
+.timetable-day-header {
+    -fx-min-height: 46px;
+    -fx-max-width: Infinity;
+    -fx-alignment: center;
+    -fx-text-alignment: center;
+    -fx-padding: 10 4;
+    -fx-background-color: #eef2fa;
+    -fx-text-fill: #566580;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-border-color: #e2e8f2;
+    -fx-border-width: 1 1 1 1;
+}
+
+.timetable-day-header {
+    -fx-text-fill: #344b83;
+}
+
+.timetable-scroll {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-border-color: transparent;
+}
+
+.timetable-grid {
+    -fx-padding: 0 0 1 0;
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e2e8f2;
+    -fx-border-width: 0 0 0 1;
+}
+
+.timetable-session,
+.timetable-time,
+.timetable-cell {
+    -fx-min-height: 76px;
+    -fx-max-width: Infinity;
+    -fx-border-color: #e9edf4;
+    -fx-border-width: 0 1 1 0;
+}
+
+.timetable-session {
+    -fx-pref-width: 78px;
+    -fx-alignment: center;
+    -fx-text-fill: #4969c7;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-background-color: #f8f9fd;
+}
+
+.timetable-time {
+    -fx-pref-width: 112px;
+    -fx-alignment: center;
+    -fx-text-fill: #56647d;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-background-color: #fbfcfe;
+}
+
+.timetable-cell {
+    -fx-padding: 7;
+}
+
+.timetable-lunch {
+    -fx-alignment: center;
+    -fx-max-width: Infinity;
+    -fx-text-alignment: center;
+    -fx-text-fill: #8a6b3f;
+    -fx-font-size: 9px;
+    -fx-font-weight: bold;
+    -fx-background-color: #fff7e8;
+    -fx-background-radius: 7;
+    -fx-border-color: #f2e4c9;
+    -fx-border-radius: 7;
+    -fx-padding: 8 3;
+}
+
+.timetable-lesson {
+    -fx-padding: 8;
+    -fx-background-color: #edf2ff;
+    -fx-background-radius: 8;
+    -fx-border-color: #dce5ff;
+    -fx-border-radius: 8;
+}
+
+.timetable-lesson-name {
+    -fx-text-fill: #304f9f;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+}
+
+.timetable-lesson-code,
+.timetable-lesson-time,
+.timetable-lesson-semester {
+    -fx-text-fill: #68789a;
+    -fx-font-size: 8px;
+}
+
+.timetable-status-info,
+.timetable-status-error {
+    -fx-padding: 11 14;
+    -fx-background-radius: 8;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+}
+
+.timetable-status-info {
+    -fx-background-color: #eef3ff;
+    -fx-text-fill: #4965a8;
+}
+
+.timetable-status-error {
+    -fx-background-color: #fff0f1;
+    -fx-text-fill: #b54050;
+}
+
+.exchange-content {
+    -fx-background-color: #f5f7fb;
+}
+
+.exchange-combo {
+    -fx-pref-height: 38px;
+    -fx-background-color: #f8f9fc;
+    -fx-background-radius: 8;
+    -fx-border-color: #e3e7ef;
+    -fx-border-radius: 8;
+    -fx-font-size: 11px;
+}
+
+.exchange-arrow {
+    -fx-padding: 17 2 0 2;
+    -fx-text-fill: #5574d3;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.exchange-reason {
+    -fx-padding: 10 12;
+    -fx-background-insets: 0;
+}
+
+.exchange-action {
+    -fx-pref-height: 36px;
+    -fx-padding: 8 15;
+    -fx-font-size: 10px;
+}
+
+.exchange-tabs {
+    -fx-background-color: transparent;
+}
+
+.exchange-tabs > .tab-content-area {
+    -fx-background-color: transparent;
+}
+
+.exchange-tabs > .tab-header-area .tab {
+    -fx-background-color: #edf1f8;
+    -fx-background-radius: 8 8 0 0;
+}
+
+.exchange-tabs > .tab-header-area .tab:selected {
+    -fx-background-color: #ffffff;
+}
+
+.exchange-tabs > .tab-header-area .tab .tab-label {
+    -fx-text-fill: #52617a;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+}
+
+.exchange-message {
+    -fx-padding: 8 12;
+    -fx-background-radius: 8;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+}
+
+.exchange-message-success {
+    -fx-background-color: #eaf7ef;
+    -fx-text-fill: #278256;
+}
+
+.exchange-message-error {
     -fx-background-color: #fff0f1;
     -fx-text-fill: #b54050;
 }

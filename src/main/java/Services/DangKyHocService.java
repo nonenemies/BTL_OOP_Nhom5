@@ -9,6 +9,8 @@ import DAO.MonTienQuyetDAO;
 import Model.MonHoc;
 import Model.DangKyHoc;
 import Model.LopHocDangKy;
+import Model.LopHocThoiKhoaBieu;
+import Model.TrangThaiDangKy;
 import Util.DBConnection;
 
 public class DangKyHocService {
@@ -16,10 +18,16 @@ public class DangKyHocService {
     private final LopHocDAO lopHocDAO = new LopHocDAO();
 
     public String xuLyDangKyHoc(String maSV, String maLop) {
+        if (maSV == null || maSV.isBlank() || maLop == null || maLop.isBlank()) {
+            return "❌ Mã sinh viên hoặc mã lớp không hợp lệ!";
+        }
         try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false); // Bắt đầu Transaction
 
             try {
+                if (!dangKyDAO.khoaSinhVienChoDangKy(conn, maSV)) {
+                    return rollbackAndReturn(conn, "❌ Không tìm thấy sinh viên!");
+                }
                 // Khóa trước khi đọc để lượt đăng ký tiếp theo thấy dữ liệu mới nhất.
                 var lopHoc = lopHocDAO.layLopTheoMaForUpdate(conn, maLop);
                 if (lopHoc == null) {
@@ -27,6 +35,13 @@ public class DangKyHocService {
                 }
                 if (dangKyDAO.kiemTraDaDangKy(conn, maSV, maLop)) {
                     return rollbackAndReturn(conn, "❌ Bạn đã đăng ký lớp " + maLop + " rồi!");
+                }
+                if (!dangKyDAO.coLichHoc(conn, maLop)) {
+                    return rollbackAndReturn(conn, "❌ Lớp học chưa được xếp lịch.");
+                }
+                String lopTrungLich = dangKyDAO.timLopBiTrungLich(conn, maSV, maLop, null);
+                if (lopTrungLich != null) {
+                    return rollbackAndReturn(conn, "❌ Không thể đăng ký: " + lopTrungLich);
                 }
                 for (MonHoc mon : MonTienQuyetDAO.layDanhSachMonTienQuyet(conn, lopHoc.getMaMon())) {
                     if (!dangKyDAO.kiemTraDaQuaMon(conn, maSV, mon.getMaMon())) {
@@ -74,9 +89,68 @@ public class DangKyHocService {
         }
     }
 
+    public String huyDangKyHoc(String maSV, String maLop) {
+        if (maSV == null || maSV.isBlank() || maLop == null || maLop.isBlank()) {
+            return "❌ Mã sinh viên hoặc mã lớp không hợp lệ!";
+        }
+        try (Connection conn = DBConnection.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                if (!dangKyDAO.khoaSinhVienChoDangKy(conn, maSV)) {
+                    return rollbackAndReturn(conn, "❌ Không tìm thấy sinh viên!");
+                }
+                if (lopHocDAO.layLopTheoMaForUpdate(conn, maLop) == null) {
+                    return rollbackAndReturn(conn, "❌ Không tìm thấy lớp học!");
+                }
+
+                TrangThaiDangKy trangThai = dangKyDAO.layTrangThaiDangKyForUpdate(conn, maSV, maLop);
+                if (trangThai == null || trangThai == TrangThaiDangKy.HUY) {
+                    return rollbackAndReturn(conn, "❌ Lớp này không còn trong danh sách đăng ký.");
+                }
+                if (trangThai == TrangThaiDangKy.DA_HOAN_THANH) {
+                    return rollbackAndReturn(conn, "❌ Không thể hủy lớp đã hoàn thành.");
+                }
+                if (!dangKyDAO.huyDangKy(conn, maSV, maLop)) {
+                    return rollbackAndReturn(conn, "❌ Đăng ký đã thay đổi, vui lòng tải lại danh sách.");
+                }
+                if (!lopHocDAO.giamSiSo(conn, maLop)) {
+                    return rollbackAndReturn(conn,
+                            "❌ Không thể cập nhật sĩ số lớp; thao tác hủy đã được hoàn tác.");
+                }
+
+                conn.commit();
+                return "✅ Đã hủy đăng ký lớp " + maLop + ".";
+            } catch (SQLException | RuntimeException e) {
+                try {
+                    conn.rollback();
+                } catch (SQLException rollbackError) {
+                    e.addSuppressed(rollbackError);
+                }
+                throw e;
+            }
+        } catch (SQLException e) {
+            throw new ServiceException("Không thể hủy đăng ký lớp.", e);
+        } catch (RuntimeException e) {
+            throw ServiceException.wrap("Không thể hủy đăng ký lớp.", e);
+        }
+    }
+
     public List<DangKyHoc> xemThoiKhoaBieu(String maSV) {
         try {
             return dangKyDAO.layDanhSachLopCuaSinhVien(maSV);
+        } catch (SQLException e) {
+            throw new ServiceException("Không thể tải thời khóa biểu.", e);
+        } catch (RuntimeException e) {
+            throw ServiceException.wrap("Không thể tải thời khóa biểu.", e);
+        }
+    }
+
+    public List<LopHocThoiKhoaBieu> xemLichHocTheoTuan(String maSV) {
+        if (maSV == null || maSV.isBlank()) {
+            throw new IllegalArgumentException("Mã sinh viên không hợp lệ.");
+        }
+        try {
+            return dangKyDAO.layLichHocTheoTuan(maSV);
         } catch (SQLException e) {
             throw new ServiceException("Không thể tải thời khóa biểu.", e);
         } catch (RuntimeException e) {
