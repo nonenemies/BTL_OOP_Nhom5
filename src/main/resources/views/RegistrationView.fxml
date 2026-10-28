@@ -63,6 +63,7 @@
                                     <TableColumn fx:id="colCourseCode" prefWidth="88.0" text="MÃ MÔN" />
                                     <TableColumn fx:id="colCourseName" prefWidth="205.0" text="HỌC PHẦN" />
                                     <TableColumn fx:id="colSemester" prefWidth="82.0" text="HỌC KỲ" />
+                                    <TableColumn fx:id="colSchedule" prefWidth="165.0" text="LỊCH HỌC" />
                                     <TableColumn fx:id="colCredits" prefWidth="65.0" text="TÍN CHỈ" />
                                     <TableColumn fx:id="colInstructor" prefWidth="140.0" text="GIẢNG VIÊN" />
                                     <TableColumn fx:id="colCapacity" prefWidth="90.0" text="SĨ SỐ" />
@@ -84,12 +85,13 @@
                                     <VBox spacing="4.0"><Label styleClass="registration-detail-label" text="HỌC KỲ" /><Label fx:id="lblSemester" styleClass="registration-detail-value" text="—" /></VBox>
                                     <VBox spacing="4.0"><Label styleClass="registration-detail-label" text="TÍN CHỈ" /><Label fx:id="lblCredits" styleClass="registration-detail-value" text="—" /></VBox>
                                 </HBox>
+                                <VBox spacing="4.0"><Label styleClass="registration-detail-label" text="LỊCH HỌC" /><Label fx:id="lblSchedule" styleClass="registration-detail-value" text="—" wrapText="true" /></VBox>
                                 <Label fx:id="lblCapacity" styleClass="registration-detail-meta" text="—" />
                             </VBox>
                             <VBox alignment="CENTER" prefWidth="220.0" spacing="10.0" styleClass="registration-action-card">
                                 <Label styleClass="registration-action-title" text="Sẵn sàng đăng ký?" wrapText="true" />
                                 <Label styleClass="registration-action-copy"
-                                       text="Xác nhận để hệ thống kiểm tra tiên quyết và chỗ trống."
+                                       text="Xác nhận để hệ thống kiểm tra môn tiên quyết, lịch học không trùng và chỗ trống."
                                        wrapText="true" />
                                 <Button fx:id="btnConfirm" disable="true" maxWidth="Infinity"
                                         onAction="#onConfirmRegistration" styleClass="login-button registration-confirm"
@@ -104,15 +106,22 @@
                                     <Label styleClass="section-subtitle" text="Các học phần hiện đang được ghi nhận trong thời khóa biểu." />
                                 </VBox>
                             </HBox>
-                            <TableView fx:id="tblRegistered" prefHeight="125.0" styleClass="registration-table registered-table">
+                            <TableView fx:id="tblRegistered" prefHeight="170.0" styleClass="registration-table registered-table">
                                 <columns>
                                     <TableColumn fx:id="colRegisteredClass" prefWidth="150.0" text="MÃ LỚP" />
                                     <TableColumn fx:id="colRegisteredCourse" prefWidth="390.0" text="HỌC PHẦN" />
                                     <TableColumn fx:id="colRegisteredSemester" prefWidth="150.0" text="HỌC KỲ" />
+                                    <TableColumn fx:id="colRegisteredSchedule" prefWidth="220.0" text="LỊCH HỌC" />
                                     <TableColumn fx:id="colRegisteredCredits" prefWidth="120.0" text="TÍN CHỈ" />
                                     <TableColumn fx:id="colRegisteredStatus" prefWidth="170.0" text="TRẠNG THÁI" />
                                 </columns>
                             </TableView>
+                            <HBox alignment="CENTER_RIGHT">
+                                <Button fx:id="btnCancelRegistration" disable="true"
+                                        onAction="#onCancelRegistration"
+                                        styleClass="registration-cancel-button"
+                                        text="Hủy lớp đã đăng ký" />
+                            </HBox>
                         </VBox>
                         <Label fx:id="lblStatus" managed="false" visible="false" styleClass="registration-message"
                                text="Thông báo trạng thái" wrapText="true" />

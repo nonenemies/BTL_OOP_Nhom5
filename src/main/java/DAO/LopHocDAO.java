@@ -73,12 +73,21 @@ public class LopHocDAO {
     public List<LopHocDangKy> layDanhSachLopDangKy(String maSV) throws SQLException {
         String sql = "SELECT lh.MaLop, mh.MaMon, mh.TenMon, "
                 + "COALESCE(u.HoTen, lh.MaGV, 'Chưa phân công') AS GiangVien, "
-                + "lh.HocKy, mh.SoTinChi, lh.SiSoHienTai, lh.SiSoToiDa, "
-                + "CASE WHEN dk.MaDangKy IS NULL THEN 0 ELSE 1 END AS DaDangKy "
+                + "lh.HocKy, COALESCE(lich.LichHoc, 'Chưa xếp lịch') AS LichHoc, "
+                + "CASE WHEN lich.LichHoc IS NULL THEN 0 ELSE 1 END AS CoLichHoc, "
+                + "mh.SoTinChi, lh.SiSoHienTai, lh.SiSoToiDa, "
+                + "CASE WHEN dk.MaDangKy IS NULL THEN 0 ELSE 1 END AS DaDangKy, "
+                + "dk.TrangThai AS TrangThaiDangKy "
                 + "FROM LopHoc lh "
                 + "JOIN MonHoc mh ON mh.MaMon = lh.MaMon "
                 + "LEFT JOIN GiaoVien gv ON gv.MaGV = lh.MaGV "
                 + "LEFT JOIN Users u ON u.UserID = gv.UserID "
+                + "LEFT JOIN ("
+                + "SELECT MaLop, GROUP_CONCAT(CONCAT('Thứ ', Thu, ' ', "
+                + "TIME_FORMAT(GioBatDau, '%H:%i'), '-', TIME_FORMAT(GioKetThuc, '%H:%i')) "
+                + "ORDER BY Thu, GioBatDau SEPARATOR ' | ') AS LichHoc "
+                + "FROM LichHoc GROUP BY MaLop"
+                + ") lich ON lich.MaLop = lh.MaLop "
                 + "LEFT JOIN DangKyHoc dk ON dk.MaLop = lh.MaLop AND dk.MaSV = ? "
                 + "AND dk.TrangThai <> 'HUY' "
                 + "WHERE (lh.TrangThai = 'HOAT_DONG' AND mh.TrangThai = 'HOAT_DONG') "
@@ -93,10 +102,14 @@ public class LopHocDAO {
                     danhSach.add(new LopHocDangKy(
                             rs.getString("MaLop"), rs.getString("MaMon"),
                             rs.getString("TenMon"), rs.getString("GiangVien"),
-                            rs.getString("HocKy"), rs.getObject("SoTinChi", Integer.class),
+                            rs.getString("HocKy"), rs.getString("LichHoc"),
+                            rs.getBoolean("CoLichHoc"),
+                            rs.getObject("SoTinChi", Integer.class),
                             rs.getObject("SiSoHienTai", Integer.class),
                             rs.getObject("SiSoToiDa", Integer.class),
-                            rs.getBoolean("DaDangKy")));
+                            rs.getBoolean("DaDangKy"),
+                            rs.getString("TrangThaiDangKy") == null ? null
+                                    : Model.TrangThaiDangKy.valueOf(rs.getString("TrangThaiDangKy"))));
                 }
             }
         }
