@@ -30,11 +30,8 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Locale;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class ExchangeController {
-    private static final Logger LOGGER = Logger.getLogger(ExchangeController.class.getName());
     private final YeuCauDoiLopService exchangeService = new YeuCauDoiLopService();
     private final LopHocDAO classDAO = new LopHocDAO();
     private final ObservableList<YeuCauDoiLop> marketplace = FXCollections.observableArrayList();
@@ -127,19 +124,16 @@ public class ExchangeController {
         if (confirmation.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) return;
 
         try {
-            String result = exchangeService.dangBaiDoiLop(
+            boolean success = exchangeService.dangBaiDoiLop(
                     student.getMaSo(), from.getMaLop(), to.getMaLop(), reason);
-            boolean success = result != null && result.startsWith("✅");
-            setStatus(result == null ? "Không nhận được kết quả đăng bài." : result, !success);
+            setStatus(success ? "Đã đăng yêu cầu đổi lớp." : "Không thể đăng yêu cầu đổi lớp.", !success);
             if (success) {
                 txtReason.clear();
                 loadData();
             }
         } catch (ServiceException e) {
-            LOGGER.log(Level.SEVERE, "Không thể đăng yêu cầu đổi lớp cho sinh viên " + student.getMaSo(), e);
             setStatus("Không thể đăng bài do lỗi hệ thống. Vui lòng thử lại sau.", true);
         } catch (RuntimeException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi không mong đợi khi đăng yêu cầu đổi lớp.", e);
             setStatus("Đã xảy ra lỗi khi đăng bài. Vui lòng thử lại sau.", true);
         }
     }
@@ -165,15 +159,12 @@ public class ExchangeController {
         if (confirmation.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) return;
 
         try {
-            String result = exchangeService.sinhVienBChotDon(selected.getMaYeuCau(), student.getMaSo());
-            boolean success = result != null && result.startsWith("🎉");
-            setStatus(result == null ? "Không nhận được kết quả giao dịch." : result, !success);
+            boolean success = exchangeService.sinhVienBChotDon(selected.getMaYeuCau(), student.getMaSo());
+            setStatus(success ? "Đổi lớp thành công." : "Không thể hoàn tất yêu cầu đổi lớp.", !success);
             loadData();
         } catch (ServiceException e) {
-            LOGGER.log(Level.SEVERE, "Không thể chốt yêu cầu #" + selected.getMaYeuCau(), e);
             setStatus("Không thể xử lý giao dịch do lỗi hệ thống. Vui lòng thử lại sau.", true);
         } catch (RuntimeException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi không mong đợi khi chốt giao dịch đổi lớp.", e);
             setStatus("Đã xảy ra lỗi khi xử lý giao dịch. Vui lòng thử lại sau.", true);
         }
     }
@@ -191,15 +182,12 @@ public class ExchangeController {
         confirmation.setContentText("Bài sẽ không còn xuất hiện trên sàn. Không thể hủy sau khi đã được xử lý.");
         if (confirmation.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) return;
         try {
-            String result = exchangeService.huyYeuCau(selected.getMaYeuCau(), student.getMaSo());
-            boolean success = result != null && result.startsWith("✅");
-            setStatus(result == null ? "Không nhận được kết quả hủy bài." : result, !success);
+            boolean success = exchangeService.huyYeuCau(selected.getMaYeuCau(), student.getMaSo());
+            setStatus(success ? "Đã hủy bài đăng đổi lớp." : "Không thể hủy bài đăng đổi lớp.", !success);
             loadData();
         } catch (ServiceException e) {
-            LOGGER.log(Level.SEVERE, "Không thể hủy yêu cầu #" + selected.getMaYeuCau(), e);
             setStatus("Không thể hủy bài do lỗi hệ thống. Vui lòng thử lại sau.", true);
         } catch (RuntimeException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi không mong đợi khi hủy yêu cầu đổi lớp.", e);
             setStatus("Đã xảy ra lỗi khi hủy bài. Vui lòng thử lại sau.", true);
         }
     }
@@ -220,7 +208,6 @@ public class ExchangeController {
             stage.setTitle("Phần mềm Quản lý Tín chỉ - " + student.getHoTen());
             stage.centerOnScreen();
         } catch (IOException | RuntimeException e) {
-            LOGGER.log(Level.SEVERE, "Không thể quay lại dashboard.", e);
             showError("Không thể mở dashboard. Vui lòng thử lại.");
         }
     }
@@ -241,7 +228,6 @@ public class ExchangeController {
             applySearch();
             updateEmptyLabels();
         } catch (SQLException | ServiceException e) {
-            LOGGER.log(Level.SEVERE, "Không thể tải dữ liệu sàn đổi lớp cho " + student.getMaSo(), e);
             cmbCurrentClass.getItems().clear();
             cmbWantedClass.getItems().clear();
             marketplace.clear();
@@ -250,7 +236,6 @@ public class ExchangeController {
             updateEmptyLabels();
             setStatus("Không thể tải dữ liệu đổi lớp. Kiểm tra kết nối cơ sở dữ liệu rồi thử tải lại.", true);
         } catch (RuntimeException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi không mong đợi khi tải sàn giao dịch đổi lớp.", e);
             setStatus("Đã xảy ra lỗi khi tải dữ liệu. Vui lòng thử tải lại.", true);
         }
     }

@@ -17,50 +17,49 @@ public class DangKyHocService {
     private final DangKyHocDAO dangKyDAO = new DangKyHocDAO();
     private final LopHocDAO lopHocDAO = new LopHocDAO();
 
-    public String xuLyDangKyHoc(String maSV, String maLop) {
+    public boolean xuLyDangKyHoc(String maSV, String maLop) {
         if (maSV == null || maSV.isBlank() || maLop == null || maLop.isBlank()) {
-            return "❌ Mã sinh viên hoặc mã lớp không hợp lệ!";
+            return false;
         }
         try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false); // Bắt đầu Transaction
 
             try {
                 if (!dangKyDAO.khoaSinhVienChoDangKy(conn, maSV)) {
-                    return rollbackAndReturn(conn, "❌ Không tìm thấy sinh viên!");
+                    return rollbackAndReturn(conn, false);
                 }
                 // Khóa trước khi đọc để lượt đăng ký tiếp theo thấy dữ liệu mới nhất.
                 var lopHoc = lopHocDAO.layLopTheoMaForUpdate(conn, maLop);
                 if (lopHoc == null) {
-                    return rollbackAndReturn(conn, "❌ Lớp học không tồn tại!");
+                    return rollbackAndReturn(conn, false);
                 }
                 if (dangKyDAO.kiemTraDaDangKy(conn, maSV, maLop)) {
-                    return rollbackAndReturn(conn, "❌ Bạn đã đăng ký lớp " + maLop + " rồi!");
+                    return rollbackAndReturn(conn, false);
                 }
                 if (!dangKyDAO.coLichHoc(conn, maLop)) {
-                    return rollbackAndReturn(conn, "❌ Lớp học chưa được xếp lịch.");
+                    return rollbackAndReturn(conn, false);
                 }
-                String lopTrungLich = dangKyDAO.timLopBiTrungLich(conn, maSV, maLop, null);
-                if (lopTrungLich != null) {
-                    return rollbackAndReturn(conn, "❌ Không thể đăng ký: " + lopTrungLich);
+                if (dangKyDAO.coLopBiTrungLich(conn, maSV, maLop, null)) {
+                    return rollbackAndReturn(conn, false);
                 }
                 for (MonHoc mon : MonTienQuyetDAO.layDanhSachMonTienQuyet(conn, lopHoc.getMaMon())) {
                     if (!dangKyDAO.kiemTraDaQuaMon(conn, maSV, mon.getMaMon())) {
-                        return rollbackAndReturn(conn, "❌ Chưa qua môn tiên quyết: " + mon.getTenMon());
+                        return rollbackAndReturn(conn, false);
                     }
                 }
 
                 // Kiểm tra sức chứa và tăng sĩ số trong cùng transaction.
                 if (!lopHocDAO.tangSiSo(conn, maLop)) {
-                    return rollbackAndReturn(conn, "❌ Đăng ký thất bại: Lớp đã đầy hoặc đã bị khóa!");
+                    return rollbackAndReturn(conn, false);
                 }
 
                 DangKyHoc dk = new DangKyHoc(maLop, maSV);
                 if (!dangKyDAO.themDangKyMoi(conn, dk)) {
-                    return rollbackAndReturn(conn, "❌ Lỗi hệ thống khi lưu đăng ký!");
+                    return rollbackAndReturn(conn, false);
                 }
 
                 conn.commit(); // Thành công 100% mới lưu
-                return "✅ Đăng ký thành công lớp " + maLop;
+                return true;
 
             } catch (SQLException e) {
                 boolean rollbackFailed = false;
@@ -71,7 +70,7 @@ public class DangKyHocService {
                     rollbackFailed = true;
                 }
                 if (!rollbackFailed && e.getErrorCode() == 1062) {
-                    return "❌ Bạn đã đăng ký lớp " + maLop + " rồi!";
+                    return false;
                 }
                 throw e;
             } catch (RuntimeException e) {
@@ -89,37 +88,36 @@ public class DangKyHocService {
         }
     }
 
-    public String huyDangKyHoc(String maSV, String maLop) {
+    public boolean huyDangKyHoc(String maSV, String maLop) {
         if (maSV == null || maSV.isBlank() || maLop == null || maLop.isBlank()) {
-            return "❌ Mã sinh viên hoặc mã lớp không hợp lệ!";
+            return false;
         }
         try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false);
             try {
                 if (!dangKyDAO.khoaSinhVienChoDangKy(conn, maSV)) {
-                    return rollbackAndReturn(conn, "❌ Không tìm thấy sinh viên!");
+                    return rollbackAndReturn(conn, false);
                 }
                 if (lopHocDAO.layLopTheoMaForUpdate(conn, maLop) == null) {
-                    return rollbackAndReturn(conn, "❌ Không tìm thấy lớp học!");
+                    return rollbackAndReturn(conn, false);
                 }
 
                 TrangThaiDangKy trangThai = dangKyDAO.layTrangThaiDangKyForUpdate(conn, maSV, maLop);
                 if (trangThai == null || trangThai == TrangThaiDangKy.HUY) {
-                    return rollbackAndReturn(conn, "❌ Lớp này không còn trong danh sách đăng ký.");
+                    return rollbackAndReturn(conn, false);
                 }
                 if (trangThai == TrangThaiDangKy.DA_HOAN_THANH) {
-                    return rollbackAndReturn(conn, "❌ Không thể hủy lớp đã hoàn thành.");
+                    return rollbackAndReturn(conn, false);
                 }
                 if (!dangKyDAO.huyDangKy(conn, maSV, maLop)) {
-                    return rollbackAndReturn(conn, "❌ Đăng ký đã thay đổi, vui lòng tải lại danh sách.");
+                    return rollbackAndReturn(conn, false);
                 }
                 if (!lopHocDAO.giamSiSo(conn, maLop)) {
-                    return rollbackAndReturn(conn,
-                            "❌ Không thể cập nhật sĩ số lớp; thao tác hủy đã được hoàn tác.");
+                    return rollbackAndReturn(conn, false);
                 }
 
                 conn.commit();
-                return "✅ Đã hủy đăng ký lớp " + maLop + ".";
+                return true;
             } catch (SQLException | RuntimeException e) {
                 try {
                     conn.rollback();
@@ -168,7 +166,7 @@ public class DangKyHocService {
         }
     }
 
-    private String rollbackAndReturn(Connection conn, String result) throws SQLException {
+    private boolean rollbackAndReturn(Connection conn, boolean result) throws SQLException {
         conn.rollback();
         return result;
     }

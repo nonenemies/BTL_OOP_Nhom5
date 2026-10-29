@@ -69,6 +69,13 @@ public class LopHocDAO {
                 + "FROM LopHoc WHERE TrangThai = '" + TrangThaiHoatDong.HOAT_DONG.name() + "' ORDER BY MaLop", null);
     }
 
+    /** Lấy các lớp được phân công cho một giảng viên, gồm cả lớp đã kết thúc. */
+    public List<LopHoc> layDanhSachLopCuaGiangVien(String maGV) throws SQLException {
+        String sql = "SELECT MaLop, MaMon, MaGV, HocKy, SiSoToiDa, SiSoHienTai, TrangThai "
+                + "FROM LopHoc WHERE MaGV = ? ORDER BY HocKy DESC, MaLop";
+        return truyVanDanhSach(sql, maGV);
+    }
+
     /** Danh sách lớp mở cho sinh viên cùng các lớp sinh viên đã đăng ký. */
     public List<LopHocDangKy> layDanhSachLopDangKy(String maSV) throws SQLException {
         String sql = "SELECT lh.MaLop, mh.MaMon, mh.TenMon, "

@@ -17,9 +17,9 @@ public class YeuCauDoiLopService {
     private final DangKyHocDAO dangKyDAO = new DangKyHocDAO();
     private final LopHocDAO lopHocDAO = new LopHocDAO();
 
-    private String checkTienQuyet(Connection conn, String maSV, String maLopMuonVao) throws SQLException {
+    private boolean checkTienQuyet(Connection conn, String maSV, String maLopMuonVao) throws SQLException {
         var lopHoc = lopHocDAO.layLopTheoMa(conn, maLopMuonVao);
-        if (lopHoc == null) return "Lớp học không tồn tại!";
+        if (lopHoc == null) return false;
         String maMonMuonVao = lopHoc.getMaMon();
 
         // Đọc môn tiên quyết trên cùng kết nối transaction.
@@ -31,10 +31,10 @@ public class YeuCauDoiLopService {
 
             // 4. GỌI HÀM CỦA BẠN: Có conn
             if (!dangKyDAO.kiemTraDaQuaMon(conn, maSV, maTienQuyet)) {
-                return "Chưa qua môn tiên quyết: " + monTQ.getTenMon();
+                return false;
             }
         }
-        return "OK";
+        return true;
     }
 
     public java.util.List<YeuCauDoiLop> moSanGiaoDich() {
@@ -58,15 +58,12 @@ public class YeuCauDoiLopService {
         }
     }
 
-    public String huyYeuCau(int maYeuCau, String maSV) {
+    public boolean huyYeuCau(int maYeuCau, String maSV) {
         if (maSV == null || maSV.isBlank() || maYeuCau <= 0) {
-            return "❌ Thông tin yêu cầu đổi lớp không hợp lệ!";
+            return false;
         }
         try {
-            if (yeuCauDAO.huyYeuCauCuaSinhVien(maSV, maYeuCau)) {
-                return "✅ Đã hủy bài đăng đổi lớp.";
-            }
-            return "❌ Không thể hủy: bài đăng không tồn tại, không thuộc về bạn hoặc đã được xử lý.";
+            return yeuCauDAO.huyYeuCauCuaSinhVien(maSV, maYeuCau);
         } catch (SQLException e) {
             throw new ServiceException("Không thể hủy yêu cầu đổi lớp.", e);
         } catch (RuntimeException e) {
@@ -74,37 +71,36 @@ public class YeuCauDoiLopService {
         }
     }
 
-    public String dangBaiDoiLop(String maSVA, String lopCuA, String lopMoiA, String lyDo) {
+    public boolean dangBaiDoiLop(String maSVA, String lopCuA, String lopMoiA, String lyDo) {
         if (maSVA == null || maSVA.isBlank() || lopCuA == null || lopCuA.isBlank()
                 || lopMoiA == null || lopMoiA.isBlank() || lopCuA.equals(lopMoiA)) {
-            return "❌ Vui lòng chọn hai lớp hợp lệ để trao đổi!";
+            return false;
         }
         if (lyDo != null && lyDo.length() > 200) {
-            return "❌ Lý do không được vượt quá 200 ký tự!";
+            return false;
         }
         try (Connection conn = DBConnection.getConnection()) {
 
             if (!dangKyDAO.kiemTraDaDangKy(conn, maSVA, lopCuA)) {
-                return "❌ Bạn không học lớp " + lopCuA + "!";
+                return false;
             }
             var lopMuonVao = lopHocDAO.layLopTheoMa(conn, lopMoiA);
             if (lopMuonVao == null || lopMuonVao.getTrangThai() != Model.TrangThaiHoatDong.HOAT_DONG) {
-                return "❌ Lớp muốn chuyển đến không còn mở!";
+                return false;
             }
             if (dangKyDAO.kiemTraDaDangKy(conn, maSVA, lopMoiA)) {
-                return "❌ Bạn đã có trong lớp " + lopMoiA + " rồi!";
+                return false;
             }
 
-            String ketQuaTQ = checkTienQuyet(conn, maSVA, lopMoiA);
-            if (!ketQuaTQ.equals("OK")) {
-                return "❌ Bạn không đủ điều kiện sang lớp " + lopMoiA + ". Lý do: " + ketQuaTQ;
+            if (!checkTienQuyet(conn, maSVA, lopMoiA)) {
+                return false;
             }
 
             YeuCauDoiLop yc = new YeuCauDoiLop(maSVA, lopCuA, lopMoiA, lyDo);
             if (yeuCauDAO.themYeuCau(conn, yc)) {
-                return "✅ Đã đăng lên sàn giao dịch thành công!";
+                return true;
             }
-            return "❌ Lỗi lưu dữ liệu!";
+            return false;
         } catch (SQLException e) {
             throw new ServiceException("Không thể đăng yêu cầu đổi lớp.", e);
         } catch (RuntimeException e) {
@@ -112,9 +108,9 @@ public class YeuCauDoiLopService {
         }
     }
 
-    public String sinhVienBChotDon(int maYeuCau, String maSV_B) {
+    public boolean sinhVienBChotDon(int maYeuCau, String maSV_B) {
         if (maYeuCau <= 0 || maSV_B == null || maSV_B.isBlank()) {
-            return "❌ Thông tin sinh viên hoặc yêu cầu đổi lớp không hợp lệ!";
+            return false;
         }
         try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false); // Bắt đầu Transaction
@@ -122,7 +118,7 @@ public class YeuCauDoiLopService {
             try {
                 YeuCauDoiLop baiDang = yeuCauDAO.getYeuCauByIdForUpdate(conn, maYeuCau);
                 if (baiDang == null || !baiDang.getTrangThai().name().equals("CHO_XAC_NHAN")) {
-                    return rollbackAndReturn(conn, "❌ Đơn không tồn tại hoặc đã bị chốt!");
+                    return rollbackAndReturn(conn, false);
                 }
 
                 String maSV_A = baiDang.getMaSV();
@@ -130,51 +126,44 @@ public class YeuCauDoiLopService {
                 String lopA_MuonSang = baiDang.getLopMoi();
 
                 if (Objects.equals(maSV_A, maSV_B)) {
-                    return rollbackAndReturn(conn, "❌ Không thể tự chốt yêu cầu của mình!");
+                    return rollbackAndReturn(conn, false);
                 }
                 for (String maSV : java.util.stream.Stream.of(maSV_A, maSV_B).sorted().toList()) {
                     if (!dangKyDAO.khoaSinhVienChoDangKy(conn, maSV)) {
-                        return rollbackAndReturn(conn, "❌ Không tìm thấy sinh viên tham gia đổi lớp!");
+                        return rollbackAndReturn(conn, false);
                     }
                 }
                 if (!dangKyDAO.kiemTraDaDangKy(conn, maSV_A, lopA_DangHoc)
                         || dangKyDAO.kiemTraDaDangKy(conn, maSV_A, lopA_MuonSang)) {
-                    return rollbackAndReturn(conn, "❌ Đăng ký của người đăng yêu cầu đã thay đổi!");
+                    return rollbackAndReturn(conn, false);
                 }
                 if (!dangKyDAO.coLichHoc(conn, lopA_MuonSang)) {
-                    return rollbackAndReturn(conn, "❌ Lớp muốn chuyển đến chưa được xếp lịch!");
+                    return rollbackAndReturn(conn, false);
                 }
-                String lopTrungLichA = dangKyDAO.timLopBiTrungLich(
-                        conn, maSV_A, lopA_MuonSang, lopA_DangHoc);
-                if (lopTrungLichA != null) {
-                    return rollbackAndReturn(conn,
-                            "❌ Người đăng yêu cầu bị trùng lịch sau khi đổi: " + lopTrungLichA);
+                if (dangKyDAO.coLopBiTrungLich(
+                        conn, maSV_A, lopA_MuonSang, lopA_DangHoc)) {
+                    return rollbackAndReturn(conn, false);
                 }
-                String ketQuaTQ_ChoA = checkTienQuyet(conn, maSV_A, lopA_MuonSang);
-                if (!ketQuaTQ_ChoA.equals("OK")) {
-                    return rollbackAndReturn(conn,
-                            "❌ Người đăng yêu cầu không còn đủ điều kiện. Lý do: " + ketQuaTQ_ChoA);
+                if (!checkTienQuyet(conn, maSV_A, lopA_MuonSang)) {
+                    return rollbackAndReturn(conn, false);
                 }
 
                 if (!dangKyDAO.kiemTraDaDangKy(conn, maSV_B, lopA_MuonSang)) {
-                    return rollbackAndReturn(conn, "❌ Lỗi: Bạn không học lớp " + lopA_MuonSang + "!");
+                    return rollbackAndReturn(conn, false);
                 }
                 if (dangKyDAO.kiemTraDaDangKy(conn, maSV_B, lopA_DangHoc)) {
-                    return rollbackAndReturn(conn, "❌ Lỗi: Bạn đã học lớp " + lopA_DangHoc + " rồi!");
+                    return rollbackAndReturn(conn, false);
                 }
 
                 if (!dangKyDAO.coLichHoc(conn, lopA_DangHoc)) {
-                    return rollbackAndReturn(conn, "❌ Lớp muốn chuyển đến chưa được xếp lịch!");
+                    return rollbackAndReturn(conn, false);
                 }
-                String lopTrungLichB = dangKyDAO.timLopBiTrungLich(
-                        conn, maSV_B, lopA_DangHoc, lopA_MuonSang);
-                if (lopTrungLichB != null) {
-                    return rollbackAndReturn(conn,
-                            "❌ Sinh viên chốt đơn bị trùng lịch sau khi đổi: " + lopTrungLichB);
+                if (dangKyDAO.coLopBiTrungLich(
+                        conn, maSV_B, lopA_DangHoc, lopA_MuonSang)) {
+                    return rollbackAndReturn(conn, false);
                 }
-                String ketQuaTQ_ChoB = checkTienQuyet(conn, maSV_B, lopA_DangHoc);
-                if (!ketQuaTQ_ChoB.equals("OK")) {
-                    return rollbackAndReturn(conn, "❌ Không đủ điều kiện chốt đơn. Lý do: " + ketQuaTQ_ChoB);
+                if (!checkTienQuyet(conn, maSV_B, lopA_DangHoc)) {
+                    return rollbackAndReturn(conn, false);
                 }
 
                 // GIAO DỊCH HOÁN ĐỔI LỚP
@@ -184,9 +173,9 @@ public class YeuCauDoiLopService {
 
                 if (doiA && doiB && chotDon) {
                     conn.commit();
-                    return "🎉 KHỚP LỆNH THÀNH CÔNG! Bạn đã sang lớp " + lopA_DangHoc;
+                    return true;
                 } else {
-                    return rollbackAndReturn(conn, "❌ Lỗi hệ thống trong quá trình hoán đổi!");
+                    return rollbackAndReturn(conn, false);
                 }
             } catch (SQLException | RuntimeException e) {
                 try {
@@ -203,7 +192,7 @@ public class YeuCauDoiLopService {
         }
     }
 
-    private String rollbackAndReturn(Connection conn, String result) throws SQLException {
+    private boolean rollbackAndReturn(Connection conn, boolean result) throws SQLException {
         conn.rollback();
         return result;
     }
