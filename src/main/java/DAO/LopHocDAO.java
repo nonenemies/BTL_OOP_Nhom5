@@ -37,7 +37,7 @@ public class LopHocDAO {
     public boolean suaLopHoc(LopHoc lopHoc) throws SQLException {
         Objects.requireNonNull(lopHoc, "lopHoc không được null");
         String sql = "UPDATE LopHoc SET MaMon = ?, MaGV = ?, HocKy = ?, SiSoToiDa = ? "
-                + "WHERE MaLop = ? AND SiSoToiDa >= SiSoHienTai";
+                + "WHERE MaLop = ? AND SiSoHienTai <= ?";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -46,6 +46,7 @@ public class LopHocDAO {
             ps.setString(3, lopHoc.getHocKy());
             ps.setObject(4, lopHoc.getSiSoToiDa());
             ps.setString(5, lopHoc.getMaLop());
+            ps.setObject(6, lopHoc.getSiSoToiDa());
             return ps.executeUpdate() == 1;
         }
     }

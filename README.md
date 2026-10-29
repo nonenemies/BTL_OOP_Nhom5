@@ -12,13 +12,9 @@
 - MySQL Connector/J 9.5.0
 - JDBC với `PreparedStatement`
 
-JavaFX 21.0.13 được chọn để chạy cùng JDK 17; JavaFX 23 yêu cầu tối thiểu JDK 21. AtlantaFX 2.0.1 được build với Java 17 và JavaFX 20, nên dùng cùng JavaFX 21 là lựa chọn tương thích gần với phiên bản nền của thư viện. Cả nhóm nên dùng JDK 17 và giữ các phiên bản dependency theo `pom.xml`.
+JavaFX 21.0.13 được chọn để chạy cùng JDK 17. AtlantaFX 2.0.1 được build với Java 17 và JavaFX 20, nên dùng cùng JavaFX 21 là lựa chọn tương thích gần với phiên bản nền của thư viện. Cả nhóm nên dùng JDK 17 và giữ các phiên bản dependency theo `pom.xml`.
 
-Chạy ứng dụng JavaFX từ thư mục dự án bằng Maven:
-
-```bash
-mvn javafx:run
-```
+Yêu cầu tải thêm SceneBuilder để sau này dùng
 
 ## Cấu trúc dự án
 
@@ -144,4 +140,4 @@ Giảng viên đăng nhập được chuyển đến `GiangVienView.fxml`. Màn 
 
 ## Xử lý lỗi
 
-DAO sử dụng `SQLException` cho lỗi JDBC. Các Service chuyển lỗi kỹ thuật ra ngoài dưới dạng `ServiceException` và giữ nguyên nguyên nhân; Service/DAO không in thông báo hoặc ghi log. UI chịu trách nhiệm hiển thị thông báo thân thiện. Kết quả nghiệp vụ dự kiến được trả về dưới dạng boolean để UI tự quyết định nội dung thông báo.
+DAO sử dụng `SQLException` cho lỗi JDBC. Các Service chuyển lỗi ra ngoài dưới dạng `ServiceException`; lỗi kỹ thuật được giữ nguyên nguyên nhân để ghi log, còn UI nên hiển thị thông báo thân thiện thay vì chi tiết JDBC/stack trace. Một số nghiệp vụ trả về `String` hoặc `boolean` cho kết quả nghiệp vụ dự kiến (ví dụ điều kiện đăng ký không đạt); cần giữ cách xử lý kết quả này ở caller.
