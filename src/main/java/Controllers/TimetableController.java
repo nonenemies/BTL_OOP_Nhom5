@@ -22,11 +22,8 @@ import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class TimetableController {
-    private static final Logger LOGGER = Logger.getLogger(TimetableController.class.getName());
     private static final String[] DAY_NAMES = {
             "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ nhật"
     };
@@ -89,7 +86,6 @@ public class TimetableController {
             stage.setTitle("Phần mềm Quản lý Tín chỉ - " + student.getHoTen());
             stage.centerOnScreen();
         } catch (IOException | RuntimeException e) {
-            LOGGER.log(Level.SEVERE, "Không thể quay lại dashboard từ thời khóa biểu.", e);
             showStatus("Không thể mở dashboard. Vui lòng thử lại.", true);
         }
     }
@@ -109,8 +105,6 @@ public class TimetableController {
 
             for (LopHocThoiKhoaBieu lesson : lessons) {
                 if (lesson.getThu() < 2 || lesson.getThu() > 8) {
-                    LOGGER.warning("Bỏ qua lịch có thứ không hợp lệ cho lớp " + lesson.getMaLop()
-                            + ": " + lesson.getThu());
                     continue;
                 }
                 addLessonToSchedule(lesson);
@@ -118,7 +112,6 @@ public class TimetableController {
             showStatus("Thời khóa biểu gồm " + lessons.size()
                     + " buổi học. Mỗi môn nằm theo đúng khung giờ thực tế.", false);
         } catch (ServiceException e) {
-            LOGGER.log(Level.SEVERE, "Không thể tải thời khóa biểu cho sinh viên " + student.getMaSo(), e);
             showStatus("Không thể tải thời khóa biểu. Hãy kiểm tra kết nối cơ sở dữ liệu rồi thử lại.", true);
         }
     }
@@ -130,7 +123,6 @@ public class TimetableController {
             start = LocalTime.parse(lesson.getGioBatDau());
             end = LocalTime.parse(lesson.getGioKetThuc());
         } catch (DateTimeParseException e) {
-            LOGGER.log(Level.WARNING, "Bỏ qua giờ học không hợp lệ của lớp " + lesson.getMaLop(), e);
             return;
         }
         int startOfDay = start.getHour() * 60 + start.getMinute();
@@ -149,8 +141,6 @@ public class TimetableController {
 
         int duration = relativeEnd - relativeStart;
         if (relativeStart >= SCHEDULE_MINUTES || relativeEnd > SCHEDULE_MINUTES || duration <= 0) {
-            LOGGER.warning("Bỏ qua lịch nằm ngoài 20 ca (07:00–03:00) cho lớp " + lesson.getMaLop()
-                    + ": " + lesson.getGioBatDau() + "-" + lesson.getGioKetThuc());
             return;
         }
 

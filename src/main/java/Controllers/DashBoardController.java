@@ -13,11 +13,8 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class DashBoardController {
-    private static final Logger LOGGER = Logger.getLogger(DashBoardController.class.getName());
     @FXML private Label lblWelcome;
     private Users loggedInUser;
 
@@ -47,7 +44,6 @@ public class DashBoardController {
             stage.setTitle("Đăng ký tín chỉ - " + loggedInUser.getHoTen());
             stage.centerOnScreen();
         } catch (IOException | RuntimeException e) {
-            LOGGER.log(Level.SEVERE, "Không thể mở màn hình đăng ký tín chỉ.", e);
             showNavigationError("Không thể mở màn hình đăng ký tín chỉ. Vui lòng thử lại.");
         }
     }
@@ -69,7 +65,6 @@ public class DashBoardController {
             stage.setTitle("Thời khóa biểu - " + loggedInUser.getHoTen());
             stage.centerOnScreen();
         } catch (IOException | RuntimeException e) {
-            LOGGER.log(Level.SEVERE, "Không thể mở thời khóa biểu.", e);
             showNavigationError("Không thể mở thời khóa biểu. Vui lòng thử lại.");
         }
     }
@@ -91,7 +86,6 @@ public class DashBoardController {
             stage.setTitle("Sàn giao dịch đổi lớp - " + loggedInUser.getHoTen());
             stage.centerOnScreen();
         } catch (IOException | RuntimeException e) {
-            LOGGER.log(Level.SEVERE, "Không thể mở sàn giao dịch đổi lớp.", e);
             showNavigationError("Không thể mở sàn giao dịch đổi lớp. Vui lòng thử lại.");
         }
     }
@@ -117,7 +111,6 @@ public class DashBoardController {
             stage.centerOnScreen();
             loggedInUser = null;
         } catch (IOException | RuntimeException e) {
-            LOGGER.log(Level.SEVERE, "Không thể quay về màn hình đăng nhập khi đăng xuất.", e);
             showNavigationError("Không thể đăng xuất lúc này. Vui lòng thử lại.");
         }
     }

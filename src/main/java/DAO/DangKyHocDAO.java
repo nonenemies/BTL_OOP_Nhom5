@@ -33,15 +33,13 @@ public class DangKyHocDAO {
     }
 
     /**
-     * Trả về lớp đang đăng ký có lịch trùng với lớp mới trong cùng học kỳ, hoặc null nếu không trùng.
+     * Kiểm tra lịch lớp mới có trùng với một lớp đã đăng ký trong cùng học kỳ không.
      * maLopBoQua dùng khi đổi lớp để bỏ lớp mà sinh viên đang rời khỏi thời khóa biểu so sánh.
      */
-    public String timLopBiTrungLich(Connection conn, String maSV, String maLopMoi,
+    public boolean coLopBiTrungLich(Connection conn, String maSV, String maLopMoi,
                                     String maLopBoQua) throws SQLException {
         String boQuaSql = maLopBoQua == null ? "" : "AND lh.MaLop <> ? ";
-        String sql = "SELECT lh.MaLop, lich.Thu, "
-                + "TIME_FORMAT(lich.GioBatDau, '%H:%i') AS GioBatDau, "
-                + "TIME_FORMAT(lich.GioKetThuc, '%H:%i') AS GioKetThuc "
+        String sql = "SELECT 1 "
                 + "FROM DangKyHoc dk "
                 + "JOIN LopHoc lh ON lh.MaLop = dk.MaLop "
                 + "JOIN LichHoc lich ON lich.MaLop = lh.MaLop "
@@ -62,12 +60,7 @@ public class DangKyHocDAO {
                 ps.setString(3, maLopBoQua);
             }
             try (ResultSet rs = ps.executeQuery()) {
-                if (!rs.next()) {
-                    return null;
-                }
-                return "Lịch học bị trùng với lớp " + rs.getString("MaLop")
-                        + " (Thứ " + rs.getInt("Thu") + ", "
-                        + rs.getString("GioBatDau") + "-" + rs.getString("GioKetThuc") + ").";
+                return rs.next();
             }
         }
     }

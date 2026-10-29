@@ -26,11 +26,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class RegistrationController {
-    private static final Logger LOGGER = Logger.getLogger(RegistrationController.class.getName());
     private final DangKyHocService registrationService = new DangKyHocService();
     private final ObservableList<LopHocDangKy> classes = FXCollections.observableArrayList();
     private final FilteredList<LopHocDangKy> filteredClasses = new FilteredList<>(classes, item -> true);
@@ -127,25 +124,19 @@ public class RegistrationController {
         if (response.isEmpty() || response.get() != javafx.scene.control.ButtonType.OK) return;
 
         try {
-            String result = registrationService.xuLyDangKyHoc(student.getMaSo(), selected.getMaLop());
-            boolean success = result != null && result.startsWith("✅");
-            setStatus(result == null ? "Không nhận được kết quả đăng ký." : result, !success);
+            boolean success = registrationService.xuLyDangKyHoc(student.getMaSo(), selected.getMaLop());
+            setStatus(success ? "Đăng ký lớp thành công." : "Không thể đăng ký lớp này.", !success);
             if (!success) {
                 Alert alert = new Alert(Alert.AlertType.WARNING);
                 alert.setTitle("Đăng ký không thành công");
                 alert.setHeaderText("Không thể đăng ký lớp " + selected.getMaLop());
-                alert.setContentText(result == null
-                        ? "Không nhận được kết quả đăng ký."
-                        : result.replaceFirst("^❌\\s*", ""));
+                alert.setContentText("Lớp có thể đã đầy, trùng lịch hoặc chưa đáp ứng điều kiện đăng ký.");
                 alert.showAndWait();
             }
             loadClasses();
         } catch (ServiceException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi đăng ký lớp " + selected.getMaLop()
-                    + " cho sinh viên " + student.getMaSo(), e);
             setStatus("Không thể xử lý đăng ký do lỗi hệ thống. Vui lòng thử lại sau.", true);
         } catch (RuntimeException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi không mong đợi khi đăng ký tín chỉ.", e);
             setStatus("Đã xảy ra lỗi khi đăng ký. Vui lòng thử lại sau.", true);
         }
     }
@@ -169,24 +160,20 @@ public class RegistrationController {
         }
 
         try {
-            String result = registrationService.huyDangKyHoc(student.getMaSo(), selected.getMaLop());
-            boolean success = result != null && result.startsWith("✅");
-            setStatus(result == null ? "Không nhận được kết quả hủy đăng ký." : result, !success);
+            boolean success = registrationService.huyDangKyHoc(student.getMaSo(), selected.getMaLop());
+            setStatus(success ? "Đã hủy đăng ký lớp." : "Không thể hủy đăng ký lớp.", !success);
 
             Alert alert = new Alert(success ? Alert.AlertType.INFORMATION : Alert.AlertType.WARNING);
             alert.setTitle(success ? "Đã hủy đăng ký" : "Không thể hủy đăng ký");
             alert.setHeaderText(selected.getTenMon() + " · " + selected.getMaLop());
-            alert.setContentText(result == null ? "Không nhận được kết quả hủy đăng ký."
-                    : result.replaceFirst("^[✅❌]\\s*", ""));
+            alert.setContentText(success ? "Lớp đã được xóa khỏi thời khóa biểu."
+                    : "Lớp không còn đăng ký hoặc đã hoàn thành.");
             alert.showAndWait();
             loadClasses();
         } catch (ServiceException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi hủy lớp " + selected.getMaLop()
-                    + " cho sinh viên " + student.getMaSo(), e);
             setStatus("Không thể hủy đăng ký do lỗi hệ thống. Vui lòng thử lại sau.", true);
             showError("Không thể hủy đăng ký do lỗi hệ thống. Vui lòng thử lại sau.");
         } catch (RuntimeException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi không mong đợi khi hủy đăng ký.", e);
             setStatus("Đã xảy ra lỗi khi hủy đăng ký. Vui lòng thử lại sau.", true);
             showError("Đã xảy ra lỗi khi hủy đăng ký. Vui lòng thử lại sau.");
         }
@@ -208,7 +195,6 @@ public class RegistrationController {
             stage.setTitle("Phần mềm Quản lý Tín chỉ - " + student.getHoTen());
             stage.centerOnScreen();
         } catch (IOException | RuntimeException e) {
-            LOGGER.log(Level.SEVERE, "Không thể quay lại dashboard.", e);
             showError("Không thể mở dashboard. Vui lòng thử lại.");
         }
     }
@@ -233,7 +219,6 @@ public class RegistrationController {
             showSelection(tblClasses.getSelectionModel().getSelectedItem());
             if (items.isEmpty()) setStatus("Danh sách lớp đã tải nhưng hiện chưa có lớp mở.", false);
         } catch (ServiceException e) {
-            LOGGER.log(Level.SEVERE, "Không thể tải lớp đăng ký cho sinh viên " + student.getMaSo(), e);
             classes.clear();
             tblRegistered.setItems(FXCollections.observableArrayList());
             btnCancelRegistration.setDisable(true);
@@ -241,7 +226,6 @@ public class RegistrationController {
             showSelection(null);
             setStatus("Lỗi tải dữ liệu lớp học. Vui lòng thử lại.", true);
         } catch (RuntimeException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi không mong đợi khi tải danh sách lớp.", e);
             classes.clear();
             tblRegistered.setItems(FXCollections.observableArrayList());
             btnCancelRegistration.setDisable(true);

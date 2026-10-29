@@ -1,6 +1,6 @@
 # BTL OOP - Quản lý sinh viên
 
-Ứng dụng Java quản lý một số nghiệp vụ học vụ: môn học, lớp học, đăng ký học, điểm, thành phần đánh giá và yêu cầu đổi lớp. Dự án có giao diện JavaFX đang được xây dựng; hiện có màn hình thử nghiệm đăng ký học để kiểm tra kết nối FXML và Controller.
+Ứng dụng JavaFX quản lý các nghiệp vụ học vụ gồm đăng nhập, đăng ký/hủy lớp, đổi lớp, thời khóa biểu và quản lý điểm theo vai trò sinh viên/giảng viên.
 
 ## Công nghệ và yêu cầu
 
@@ -32,20 +32,28 @@ src/
 └── main/
     ├── java/
     │   ├── Controllers/
-    │   │   └── DangKyController.java
+    │   │   ├── GiangVienController.java
+    │   │   └── LoginController.java
     │   ├── DAO/
+    │   │   ├── AdminDAO.java
     │   │   ├── DangKyHocDAO.java
     │   │   ├── DiemDAO.java
+    │   │   ├── GiangVienDAO.java
+    │   │   ├── LichHocDAO.java
     │   │   ├── LopHocDAO.java
     │   │   ├── MonHocDAO.java
     │   │   ├── MonTienQuyetDAO.java
+    │   │   ├── SinhVienDAO.java
     │   │   ├── ThanhPhanDanhGiaDAO.java
+    │   │   ├── UsersDAO.java
     │   │   └── YeuCauDoiLopDAO.java
     │   ├── Model/
     │   │   ├── Admin.java
+    │   │   ├── BangDiemSinhVien.java
     │   │   ├── DangKyHoc.java
     │   │   ├── DiemThanhPhan.java
     │   │   ├── GiangVien.java
+    │   │   ├── LichHoc.java
     │   │   ├── LopHoc.java
     │   │   ├── MonHoc.java
     │   │   ├── SinhVien.java
@@ -67,9 +75,12 @@ src/
     │   ├── Launcher.java
     │   └── MainApp.java
     └── resources/
-        ├── css/       CSS stylesheets (chưa có file)
+        ├── css/
+        │   └── app.css
         └── views/
-            └── DangKyView.fxml
+            ├── DashBoardView.fxml
+            ├── GiangVienView.fxml
+            └── LoginView.fxml
 pom.xml
 README.md
 ```
@@ -121,7 +132,7 @@ Màn hình `TimetableView.fxml` luôn hiển thị 17 hàng ca và các cột t�
 
 ### Điểm
 
-`DiemDAO.nhapDiem(Connection, ...)` sử dụng connection do Service truyền vào, không tự mở connection. `DiemService.nhapDiemVaTinhTongKet(...)` nhập điểm thành phần và cập nhật điểm tổng kết trong cùng transaction. Mã điểm thành phần được database tự sinh. Tổng điểm chỉ được cập nhật khi đủ điểm cho các thành phần đang hoạt động.
+Giảng viên đăng nhập được chuyển đến `GiangVienView.fxml`. Màn hình chỉ liệt kê các lớp được phân công, tải danh sách sinh viên đã đăng ký và bảng điểm theo các thành phần đánh giá đang hoạt động. Chức năng lưu điểm hỗ trợ cả nhập mới và cập nhật; Service kiểm tra quyền phụ trách lớp, lưu điểm và tính lại điểm tổng kết trong cùng transaction. Điểm tổng kết chỉ được cập nhật khi đã đủ điểm cho các thành phần đang hoạt động.
 
 ### Thành phần đánh giá
 
@@ -133,4 +144,4 @@ Màn hình `TimetableView.fxml` luôn hiển thị 17 hàng ca và các cột t�
 
 ## Xử lý lỗi
 
-DAO sử dụng `SQLException` cho lỗi JDBC. Các Service chuyển lỗi ra ngoài dưới dạng `ServiceException`; lỗi kỹ thuật được giữ nguyên nguyên nhân để ghi log, còn UI nên hiển thị thông báo thân thiện thay vì chi tiết JDBC/stack trace. Một số nghiệp vụ trả về `String` hoặc `boolean` cho kết quả nghiệp vụ dự kiến (ví dụ điều kiện đăng ký không đạt); cần giữ cách xử lý kết quả này ở caller.
+DAO sử dụng `SQLException` cho lỗi JDBC. Các Service chuyển lỗi kỹ thuật ra ngoài dưới dạng `ServiceException` và giữ nguyên nguyên nhân; Service/DAO không in thông báo hoặc ghi log. UI chịu trách nhiệm hiển thị thông báo thân thiện. Kết quả nghiệp vụ dự kiến được trả về dưới dạng boolean để UI tự quyết định nội dung thông báo.

@@ -1,7 +1,9 @@
 package Controllers;
 
 import Model.Users;
+import Model.GiangVien;
 import Services.AuthService;
+import Services.ServiceException;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -33,17 +35,33 @@ public class LoginController {
             return;
         }
 
-        Users user = authService.login(email, password);
+        Users user;
+        try {
+            user = authService.login(email, password);
+        } catch (ServiceException e) {
+            lblError.setText("Không thể đăng nhập do lỗi hệ thống. Vui lòng thử lại sau.");
+            lblError.setVisible(true);
+            lblError.setManaged(true);
+            return;
+        }
 
         if (user != null) {
             lblError.setVisible(false);
             lblError.setManaged(false);
 
             try {
-                FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/views/DashBoardView.fxml"));
+                boolean lecturer = user instanceof GiangVien
+                        && "GIAOVIEN".equalsIgnoreCase(user.getRole());
+                String view = lecturer ? "/views/GiangVienView.fxml" : "/views/DashBoardView.fxml";
+                FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource(view));
                 Scene dashboardScene = new Scene(fxmlLoader.load(), 1200, 760);
-                DashBoardController dashboardController = fxmlLoader.getController();
-                dashboardController.setLoggedInUser(user);
+                if (lecturer) {
+                    GiangVienController controller = fxmlLoader.getController();
+                    controller.setLecturer(user);
+                } else {
+                    DashBoardController controller = fxmlLoader.getController();
+                    controller.setLoggedInUser(user);
+                }
 
                 Stage currentStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
                 currentStage.setScene(dashboardScene);
@@ -52,8 +70,10 @@ public class LoginController {
                 currentStage.setMinHeight(650);
                 currentStage.centerOnScreen();
 
-            } catch (IOException e) {
-                throw new IllegalStateException("Không thể tải giao diện dashboard.", e);
+            } catch (IOException | RuntimeException e) {
+                lblError.setText("Không thể mở màn hình tài khoản. Vui lòng thử lại.");
+                lblError.setVisible(true);
+                lblError.setManaged(true);
             }
         } else {
             lblError.setText("Email hoặc Mật khẩu không chính xác!");

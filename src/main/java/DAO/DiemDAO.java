@@ -1,9 +1,15 @@
 package DAO;
 
+import Model.BangDiemSinhVien;
+import Model.TrangThaiDangKy;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 // Truy cập cơ sở dữ liệu để lưu điểm thành phần của sinh viên.
 public class DiemDAO {
@@ -30,53 +36,105 @@ public class DiemDAO {
         }
     }
 
-    /* @param maSV mã sinh viên trong bảng DangKyHoc (tham chiếu SinhVien.MaSV)
-     * @param maLop mã lớp sinh viên đã đăng ký
-     * @param thuTu thứ tự thành phần đánh giá trong ThanhPhanDanhGia
-     * @param diemDatDuoc điểm đạt được cần lưu vào DiemThanhPhan
-     * @return true nếu thêm điểm thành công; false nếu không tìm được kết quả duy nhất
-     */
-    public boolean nhapDiem(Connection conn, String maSV, String maLop,
-                            int thuTu, float diemDatDuoc) throws SQLException {
-        String timThanhPhan = "SELECT dk.MaDangKy, tp.MaTP "
+    /** Tải danh sách sinh viên và điểm của các thành phần đang hoạt động trong lớp. */
+    public List<BangDiemSinhVien> layBangDiemTheoLop(Connection conn, String maLop) throws SQLException {
+        String sql = "SELECT dk.MaDangKy, dk.MaSV, u.HoTen, dk.DiemTongKet, dk.TrangThai, "
+                + "tp.MaTP, d.DiemDatDuoc "
                 + "FROM DangKyHoc dk "
-                + "JOIN LopHoc lh ON dk.MaLop = lh.MaLop "
-                + "JOIN ThanhPhanDanhGia tp ON lh.MaMon = tp.MaMon "
-                + "WHERE dk.MaSV = ? AND dk.MaLop = ? "
-                + "AND tp.ThuTu = ? AND tp.TrangThai = 1";
-        // NgayNhap được cơ sở dữ liệu gán theo giá trị mặc định CURRENT_TIMESTAMP.
-        String themDiem = "INSERT INTO DiemThanhPhan (MaDangKy, MaTP, DiemDatDuoc) "
-                + "VALUES (?, ?, ?)";
+                + "JOIN SinhVien sv ON sv.MaSV = dk.MaSV "
+                + "JOIN Users u ON u.UserID = sv.UserID "
+                + "JOIN LopHoc lh ON lh.MaLop = dk.MaLop "
+                + "LEFT JOIN ThanhPhanDanhGia tp ON tp.MaMon = lh.MaMon AND tp.TrangThai = 1 "
+                + "LEFT JOIN DiemThanhPhan d ON d.MaDangKy = dk.MaDangKy AND d.MaTP = tp.MaTP "
+                + "WHERE dk.MaLop = ? AND dk.TrangThai <> 'HUY' "
+                + "ORDER BY u.HoTen, dk.MaSV, tp.ThuTu, tp.MaTP";
+        Map<Integer, BangDiemSinhVien> rows = new LinkedHashMap<>();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, maLop);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    int maDangKy = rs.getInt("MaDangKy");
+                    BangDiemSinhVien row = rows.get(maDangKy);
+                    if (row == null) {
+                        java.math.BigDecimal total = rs.getBigDecimal("DiemTongKet");
+                        row = new BangDiemSinhVien(maDangKy, rs.getString("MaSV"),
+                                rs.getString("HoTen"), total == null ? null : total.floatValue(),
+                                TrangThaiDangKy.valueOf(rs.getString("TrangThai")));
+                        rows.put(maDangKy, row);
+                    }
+                    int maTP = rs.getInt("MaTP");
+                    if (!rs.wasNull()) {
+                        java.math.BigDecimal score = rs.getBigDecimal("DiemDatDuoc");
+                        row.setDiemThanhPhan(maTP, score == null ? null : score.floatValue());
+                    }
+                }
+            }
+        }
+        return new ArrayList<>(rows.values());
+    }
 
-        try (PreparedStatement timPS = conn.prepareStatement(timThanhPhan)) {
-            // Gán tham số vào các dấu ? theo thứ tự trong câu truy vấn tìm kiếm.
-            timPS.setString(1, maSV);
-            timPS.setString(2, maLop);
-            timPS.setInt(3, thuTu);
-
-            int maDangKy;
-            int maTP;
-            try (ResultSet rs = timPS.executeQuery()) {
-                // Không có đăng ký hoặc thành phần đánh giá phù hợp thì không lưu điểm.
+    /** Thêm hoặc cập nhật điểm theo mã thành phần trong transaction của Service. */
+    public boolean nhapDiem(Connection conn, String maSV, String maLop,
+                            int maTP, float diemDatDuoc) throws SQLException {
+        int maDangKy;
+        String registrationSql = "SELECT MaDangKy FROM DangKyHoc "
+                + "WHERE MaSV = ? AND MaLop = ? AND TrangThai <> 'HUY' FOR UPDATE";
+        try (PreparedStatement ps = conn.prepareStatement(registrationSql)) {
+            ps.setString(1, maSV);
+            ps.setString(2, maLop);
+            try (ResultSet rs = ps.executeQuery()) {
                 if (!rs.next()) {
                     return false;
                 }
                 maDangKy = rs.getInt("MaDangKy");
-                maTP = rs.getInt("MaTP");
-                // Có nhiều kết quả thì không xác định được duy nhất nơi cần nhập điểm.
                 if (rs.next()) {
+                    throw new SQLException("Multiple active registrations found for the same student and class.");
+                }
+            }
+        }
+
+        String componentSql = "SELECT 1 FROM ThanhPhanDanhGia tp "
+                + "JOIN LopHoc lh ON lh.MaMon = tp.MaMon "
+                + "WHERE tp.MaTP = ? AND lh.MaLop = ? AND tp.TrangThai = 1";
+        try (PreparedStatement ps = conn.prepareStatement(componentSql)) {
+            ps.setInt(1, maTP);
+            ps.setString(2, maLop);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
                     return false;
                 }
             }
+        }
 
-            // Lưu điểm với mã đăng ký và mã thành phần vừa tìm được.
-            try (PreparedStatement themPS = conn.prepareStatement(themDiem)) {
-                themPS.setInt(1, maDangKy);
-                themPS.setInt(2, maTP);
-                themPS.setFloat(3, diemDatDuoc);
-                // Có ít nhất một dòng được thêm nghĩa là lưu điểm thành công.
-                return themPS.executeUpdate() > 0;
+        int maDiem;
+        String existingSql = "SELECT MaDiemTP FROM DiemThanhPhan "
+                + "WHERE MaDangKy = ? AND MaTP = ? FOR UPDATE";
+        try (PreparedStatement ps = conn.prepareStatement(existingSql)) {
+            ps.setInt(1, maDangKy);
+            ps.setInt(2, maTP);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    try (PreparedStatement insert = conn.prepareStatement(
+                            "INSERT INTO DiemThanhPhan (MaDangKy, MaTP, DiemDatDuoc) VALUES (?, ?, ?)")) {
+                        insert.setInt(1, maDangKy);
+                        insert.setInt(2, maTP);
+                        insert.setFloat(3, diemDatDuoc);
+                        return insert.executeUpdate() == 1;
+                    }
+                }
+                maDiem = rs.getInt("MaDiemTP");
+                if (rs.next()) {
+                    throw new SQLException("Duplicate scores exist for the same registration and component.");
+                }
             }
         }
+        try (PreparedStatement update = conn.prepareStatement(
+                "UPDATE DiemThanhPhan SET DiemDatDuoc = ?, NgayNhap = CURRENT_TIMESTAMP "
+                        + "WHERE MaDiemTP = ?")) {
+            update.setFloat(1, diemDatDuoc);
+            update.setInt(2, maDiem);
+            return update.executeUpdate() == 1;
+        }
     }
+
 }
