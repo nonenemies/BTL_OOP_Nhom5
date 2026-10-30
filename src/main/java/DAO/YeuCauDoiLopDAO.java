@@ -34,10 +34,6 @@ public class YeuCauDoiLopDAO {
         }
     }
 
-    public YeuCauDoiLop getYeuCauById(Connection conn, int maYeuCau) throws SQLException {
-        return docYeuCau(conn, maYeuCau, false);
-    }
-
     /** Chỉ gọi trong transaction; khóa yêu cầu đến lúc commit/rollback. */
     public YeuCauDoiLop getYeuCauByIdForUpdate(Connection conn, int maYeuCau) throws SQLException {
         return docYeuCau(conn, maYeuCau, true);

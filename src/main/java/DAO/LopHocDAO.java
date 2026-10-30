@@ -63,12 +63,6 @@ public class LopHocDAO {
         }
     }
 
-    /** Lấy các lớp đang hoạt động. */
-    public List<LopHoc> layDanhSachLop() throws SQLException {
-        return truyVanDanhSach("SELECT MaLop, MaMon, MaGV, HocKy, SiSoToiDa, SiSoHienTai, TrangThai "
-                + "FROM LopHoc WHERE TrangThai = '" + TrangThaiHoatDong.HOAT_DONG.name() + "' ORDER BY MaLop", null);
-    }
-
     /** Lấy các lớp được phân công cho một giảng viên, gồm cả lớp đã kết thúc. */
     public List<LopHoc> layDanhSachLopCuaGiangVien(String maGV) throws SQLException {
         String sql = "SELECT MaLop, MaMon, MaGV, HocKy, SiSoToiDa, SiSoHienTai, TrangThai "
@@ -150,28 +144,6 @@ public class LopHocDAO {
                 + "FROM LopHoc WHERE MaLop = ? FOR UPDATE";
         List<LopHoc> ketQua = truyVanDanhSach(conn, sql, maLop);
         return ketQua.isEmpty() ? null : ketQua.get(0);
-    }
-
-    /** Lấy các lớp đang hoạt động của một môn. */
-    public List<LopHoc> layLopTheoMon(String maMon) throws SQLException {
-        String sql = "SELECT MaLop, MaMon, MaGV, HocKy, SiSoToiDa, SiSoHienTai, TrangThai "
-                + "FROM LopHoc WHERE MaMon = ? AND TrangThai = '" + TrangThaiHoatDong.HOAT_DONG.name()
-                + "' ORDER BY MaLop";
-        return truyVanDanhSach(sql, maMon);
-    }
-
-    /** Trả về true nếu lớp đang hoạt động và còn chỗ. */
-    public boolean kiemTraConCho(String maLop) throws SQLException {
-        String sql = "SELECT 1 FROM LopHoc WHERE MaLop = ? AND TrangThai = '"
-                + TrangThaiHoatDong.HOAT_DONG.name() + "' "
-                + "AND SiSoHienTai < SiSoToiDa";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, maLop);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }
-        }
     }
 
     /** Tăng sĩ số nguyên tử nếu lớp còn hoạt động và chưa đầy. */

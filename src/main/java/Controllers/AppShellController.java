@@ -87,22 +87,8 @@ public class AppShellController {
         }
     }
 
-    public void showDashboard() {
-        if ("SINHVIEN".equalsIgnoreCase(user.getRole())) {
-            showScreen(DASHBOARD);
-        }
-    }
-
     public void showTimetable() {
         if (isStudent()) showScreen(TIMETABLE);
-    }
-
-    public void showRegistration() {
-        if (isStudent()) showScreen(REGISTRATION);
-    }
-
-    public void showExchange() {
-        if (isStudent()) showScreen(EXCHANGE);
     }
 
     private void configureNavigation() {

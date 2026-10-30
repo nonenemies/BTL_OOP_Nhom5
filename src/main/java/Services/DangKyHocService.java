@@ -133,16 +133,6 @@ public class DangKyHocService {
         }
     }
 
-    public List<DangKyHoc> xemThoiKhoaBieu(String maSV) {
-        try {
-            return dangKyDAO.layDanhSachLopCuaSinhVien(maSV);
-        } catch (SQLException e) {
-            throw new ServiceException("Không thể tải thời khóa biểu.", e);
-        } catch (RuntimeException e) {
-            throw ServiceException.wrap("Không thể tải thời khóa biểu.", e);
-        }
-    }
-
     public List<LopHocThoiKhoaBieu> xemLichHocTheoTuan(String maSV) {
         if (maSV == null || maSV.isBlank()) {
             throw new IllegalArgumentException("Mã sinh viên không hợp lệ.");
