@@ -39,11 +39,6 @@ public class ThanhPhanDanhGiaService {
         }
     }
 
-    public boolean suaThanhPhan(Users nguoiDung, ThanhPhanDanhGia thanhPhan) {
-        if (thanhPhan == null) throw new ServiceException("Thành phần không được null.");
-        return suaThanhPhan(nguoiDung, thanhPhan.getMaMon(), List.of(thanhPhan));
-    }
-
     /** Cho phép điều chỉnh nhiều trọng số cùng lúc mà tổng cuối cùng vẫn bằng 1. */
     public boolean suaThanhPhan(Users nguoiDung, String maMon,
                                List<ThanhPhanDanhGia> danhSach) {

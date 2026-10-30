@@ -1,7 +1,6 @@
 package Controllers;
 
 import Model.Users;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 
@@ -24,17 +23,7 @@ public class DashBoardController {
     }
 
     @FXML
-    public void onBtnDangKyClick(ActionEvent event) {
-        if (appShell != null) appShell.showRegistration();
-    }
-
-    @FXML
-    public void onBtnThoiKhoaBieuClick(ActionEvent event) {
+    public void onBtnThoiKhoaBieuClick() {
         if (appShell != null) appShell.showTimetable();
-    }
-
-    @FXML
-    public void onBtnDoiLopClick(ActionEvent event) {
-        if (appShell != null) appShell.showExchange();
     }
 }

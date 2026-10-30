@@ -39,34 +39,6 @@ public class DiemService {
         }
     }
 
-    /** Tính lại điểm tổng kết khi tất cả thành phần đang hoạt động đã có điểm. */
-    public int tinhDiemTongKet(GiangVien giangVien, String maSV, String maLop) {
-        kiemTraGiangVien(giangVien);
-        if (maSV == null || maSV.isBlank()) {
-            throw new ServiceException("Mã sinh viên không hợp lệ.");
-        }
-        try (Connection conn = DBConnection.getConnection()) {
-            conn.setAutoCommit(false);
-            try {
-                kiemTraPhuTrach(conn, giangVien, maLop, true);
-                int updated = diemDAO.capNhatDiemTongKet(conn, maSV, maLop);
-                conn.commit();
-                return updated;
-            } catch (SQLException | RuntimeException e) {
-                try {
-                    conn.rollback();
-                } catch (SQLException rollbackError) {
-                    e.addSuppressed(rollbackError);
-                }
-                throw e;
-            }
-        } catch (SQLException e) {
-            throw new ServiceException("Không thể tính điểm tổng kết.", e);
-        } catch (RuntimeException e) {
-            throw ServiceException.wrap("Không thể tính điểm tổng kết.", e);
-        }
-    }
-
     /**
      * Lưu mới hoặc cập nhật điểm thành phần, sau đó tính lại điểm tổng kết nếu đã đủ điểm.
      * Kết quả nghiệp vụ không hợp lệ được trả về false; lỗi cơ sở dữ liệu được ném lên caller.

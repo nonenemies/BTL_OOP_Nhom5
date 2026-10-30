@@ -41,21 +41,6 @@ public class UsersDAO {
         }
     }
 
-    public Users layTheoEmail(String email) throws SQLException {
-        try (Connection conn = DBConnection.getConnection()) {
-            return layTheoEmail(conn, email);
-        }
-    }
-
-    public Users layTheoEmail(Connection conn, String email) throws SQLException {
-        try (PreparedStatement ps = conn.prepareStatement(USER_SELECT + "WHERE u.Email = ?")) {
-            ps.setString(1, email);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() ? docNguoiDung(rs) : null;
-            }
-        }
-    }
-
     public Users layTheoEmailDangHoatDong(String email) throws SQLException {
         try (Connection conn = DBConnection.getConnection()) {
             try (PreparedStatement ps = conn.prepareStatement(

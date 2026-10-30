@@ -62,30 +62,10 @@ public class MonHocDAO {
         }
     }
 
-    /** Lấy các môn đang hoạt động, dùng cho danh sách chọn môn. */
-    public List<MonHoc> layDanhSachMon() throws SQLException {
-        return truyVanDanhSach("SELECT MaMon, TenMon, SoTinChi, LoaiMon, MoTa, TrangThai "
-                + "FROM MonHoc WHERE TrangThai = '" + TrangThaiHoatDong.HOAT_DONG.name() + "' ORDER BY MaMon");
-    }
-
     /** Lấy mọi môn, gồm cả môn đã ngừng hoạt động, dùng cho màn hình quản trị. */
     public List<MonHoc> layTatCaMonHoc() throws SQLException {
         return truyVanDanhSach("SELECT MaMon, TenMon, SoTinChi, LoaiMon, MoTa, TrangThai "
                 + "FROM MonHoc ORDER BY MaMon");
-    }
-
-    /** Tra môn theo mã, gồm cả môn đã ngừng hoạt động. */
-    public MonHoc layMonTheoMa(String maMon) throws SQLException {
-        String sql = "SELECT MaMon, TenMon, SoTinChi, LoaiMon, MoTa, TrangThai "
-                + "FROM MonHoc WHERE MaMon = ?";
-
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, maMon);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() ? docMonHoc(rs) : null;
-            }
-        }
     }
 
     private List<MonHoc> truyVanDanhSach(String sql) throws SQLException {
