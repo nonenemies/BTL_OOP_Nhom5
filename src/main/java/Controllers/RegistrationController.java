@@ -9,9 +9,6 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -20,9 +17,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.stage.Stage;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -33,7 +28,6 @@ public class RegistrationController {
     private final FilteredList<LopHocDangKy> filteredClasses = new FilteredList<>(classes, item -> true);
     private Users student;
 
-    @FXML private Label lblStudent;
     @FXML private Label lblStatus;
     @FXML private Label lblEmpty;
     @FXML private Label lblCourseName;
@@ -101,7 +95,6 @@ public class RegistrationController {
             setStatus("Không xác định được mã sinh viên. Vui lòng quay lại và đăng nhập lại.", true);
             return;
         }
-        lblStudent.setText(student.getHoTen() + "  ·  Mã sinh viên " + student.getMaSo());
         loadClasses();
     }
 
@@ -176,26 +169,6 @@ public class RegistrationController {
         } catch (RuntimeException e) {
             setStatus("Đã xảy ra lỗi khi hủy đăng ký. Vui lòng thử lại sau.", true);
             showError("Đã xảy ra lỗi khi hủy đăng ký. Vui lòng thử lại sau.");
-        }
-    }
-
-    @FXML
-    private void onBackToDashboard(ActionEvent event) {
-        if (student == null) {
-            showError("Không thể quay lại dashboard vì phiên sinh viên không còn hợp lệ.");
-            return;
-        }
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/DashBoardView.fxml"));
-            Scene scene = new Scene(loader.load(), 1200, 760);
-            DashBoardController controller = loader.getController();
-            controller.setLoggedInUser(student);
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setScene(scene);
-            stage.setTitle("Phần mềm Quản lý Tín chỉ - " + student.getHoTen());
-            stage.centerOnScreen();
-        } catch (IOException | RuntimeException e) {
-            showError("Không thể mở dashboard. Vui lòng thử lại.");
         }
     }
 

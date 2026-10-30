@@ -15,22 +15,14 @@
             styleClass="dashboard-page" stylesheets="@../css/app.css"
             xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="Controllers.GiangVienController">
-    <top>
-        <HBox alignment="CENTER_LEFT" spacing="14.0" styleClass="teacher-topbar">
-            <padding><Insets bottom="22.0" left="28.0" right="28.0" top="22.0" /></padding>
-            <VBox spacing="4.0">
-                <Label styleClass="topbar-kicker" text="CREDIT HUB · GIẢNG VIÊN" />
-                <Label styleClass="topbar-title" text="Quản lý lớp học phần" />
-            </VBox>
-            <Region HBox.hgrow="ALWAYS" />
-            <Label fx:id="lblLecturer" styleClass="student-name" text="Tài khoản giảng viên" />
-            <Button onAction="#onRefresh" styleClass="text-button" text="Làm mới" />
-            <Button onAction="#onLogout" styleClass="nav-item logout-item" text="Đăng xuất" />
-        </HBox>
-    </top>
     <center>
         <VBox spacing="16.0">
             <padding><Insets bottom="24.0" left="28.0" right="28.0" top="4.0" /></padding>
+            <HBox alignment="CENTER_LEFT" spacing="12.0">
+                <Label styleClass="section-title" text="Lớp học phần và bảng điểm" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Button onAction="#onRefresh" styleClass="text-button" text="Làm mới" />
+            </HBox>
             <Label fx:id="lblStatus" styleClass="teacher-status-info" text="Chọn một lớp để xem danh sách sinh viên." />
             <HBox spacing="16.0" VBox.vgrow="ALWAYS">
                 <VBox minWidth="280.0" prefWidth="330.0" spacing="10.0" styleClass="teacher-panel">
