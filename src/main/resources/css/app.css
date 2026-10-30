@@ -205,6 +205,12 @@
     -fx-background-color: #f5f7fb;
 }
 
+.app-topbar {
+    -fx-background-color: #ffffff;
+    -fx-border-color: transparent transparent #e9edf4 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
 .teacher-topbar {
     -fx-background-color: #ffffff;
     -fx-border-color: transparent transparent #e9edf4 transparent;

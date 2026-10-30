@@ -130,6 +130,12 @@ Màn hình `TimetableView.fxml` luôn hiển thị 17 hàng ca và các cột t�
 
 Giảng viên đăng nhập được chuyển đến `GiangVienView.fxml`. Màn hình chỉ liệt kê các lớp được phân công, tải danh sách sinh viên đã đăng ký và bảng điểm theo các thành phần đánh giá đang hoạt động. Chức năng lưu điểm hỗ trợ cả nhập mới và cập nhật; Service kiểm tra quyền phụ trách lớp, lưu điểm và tính lại điểm tổng kết trong cùng transaction. Điểm tổng kết chỉ được cập nhật khi đã đủ điểm cho các thành phần đang hoạt động.
 
+Sau khi đăng nhập, `AppShell.fxml` giữ sidebar và khung ứng dụng cố định; các Controller nạp nội dung chức năng vào vùng trung tâm mà không thay toàn bộ Scene. Menu được cấu hình theo role: sinh viên có tổng quan, thời khóa biểu, đăng ký và đổi lớp; giảng viên có lớp phụ trách/bảng điểm; admin có các mục quản lý sinh viên, giảng viên, môn học, lớp học phần và thành phần đánh giá.
+
+### Quản trị viên
+
+`AdminView.fxml` dùng lại các model và DAO hiện có để tìm kiếm, thêm, cập nhật và ngừng hoạt động tài khoản sinh viên/giảng viên; quản lý môn học và quan hệ môn tiên quyết; quản lý lớp học phần, sĩ số tối đa và giảng viên phụ trách; cấu hình trọng số thành phần đánh giá qua `ThanhPhanDanhGiaService`. Tài khoản, môn học và lớp được ngừng hoạt động thay vì xóa vật lý để giữ dữ liệu học vụ và lịch sử liên quan. Việc tạo/cập nhật tài khoản cùng hồ sơ vai trò được thực hiện trong một transaction.
+
 ### Thành phần đánh giá
 
 `ThanhPhanDanhGiaService` kiểm tra tài khoản admin đang hoạt động, dữ liệu tên/trọng số/thứ tự và tổng trọng số bằng `1`. Các thay đổi được ghi trong một transaction; lỗi sẽ rollback. Hướng dẫn chi tiết tại `docs/thanh-phan-danh-gia.md`.

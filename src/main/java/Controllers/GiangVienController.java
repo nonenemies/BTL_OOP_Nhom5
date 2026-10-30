@@ -11,11 +11,6 @@ import Services.ServiceException;
 import Services.ThanhPhanDanhGiaService;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
-import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
@@ -23,9 +18,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.util.StringConverter;
-import javafx.stage.Stage;
 
-import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +29,6 @@ public class GiangVienController {
     private final ThanhPhanDanhGiaService thanhPhanService = new ThanhPhanDanhGiaService();
     private final DecimalFormat diemFormat = new DecimalFormat("0.##");
 
-    @FXML private Label lblLecturer;
     @FXML private Label lblStatus;
     @FXML private TableView<LopHoc> tblClasses;
     @FXML private TableColumn<LopHoc, String> colClassCode;
@@ -98,7 +90,6 @@ public class GiangVienController {
             return;
         }
         giangVien = lecturer;
-        lblLecturer.setText(lecturer.getHoTen() + " · Mã giảng viên " + lecturer.getMaGiangVien());
         loadClasses();
     }
 
@@ -142,28 +133,6 @@ public class GiangVienController {
             showStatus("Đã lưu điểm thành phần.", false);
         } catch (ServiceException e) {
             showStatus("Không thể lưu điểm. Vui lòng thử lại sau.", true);
-        }
-    }
-
-    @FXML
-    private void onLogout(javafx.event.ActionEvent event) {
-        Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmation.setTitle("Xác nhận đăng xuất");
-        confirmation.setHeaderText("Bạn muốn đăng xuất khỏi tài khoản?");
-        confirmation.setContentText("Bạn sẽ được đưa về màn hình đăng nhập.");
-        Optional<ButtonType> response = confirmation.showAndWait();
-        if (response.isEmpty() || response.get() != ButtonType.OK) return;
-
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/LoginView.fxml"));
-            Scene scene = new Scene(loader.load(), 1080, 680);
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setScene(scene);
-            stage.setTitle("Đăng nhập - Credit Hub");
-            stage.centerOnScreen();
-            giangVien = null;
-        } catch (IOException | RuntimeException e) {
-            showStatus("Không thể đăng xuất lúc này. Vui lòng thử lại.", true);
         }
     }
 

@@ -1,7 +1,6 @@
 package Controllers;
 
 import Model.Users;
-import Model.GiangVien;
 import Services.AuthService;
 import Services.ServiceException;
 import javafx.event.ActionEvent;
@@ -50,18 +49,10 @@ public class LoginController {
             lblError.setManaged(false);
 
             try {
-                boolean lecturer = user instanceof GiangVien
-                        && "GIAOVIEN".equalsIgnoreCase(user.getRole());
-                String view = lecturer ? "/views/GiangVienView.fxml" : "/views/DashBoardView.fxml";
-                FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource(view));
+                FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/views/AppShell.fxml"));
                 Scene dashboardScene = new Scene(fxmlLoader.load(), 1200, 760);
-                if (lecturer) {
-                    GiangVienController controller = fxmlLoader.getController();
-                    controller.setLecturer(user);
-                } else {
-                    DashBoardController controller = fxmlLoader.getController();
-                    controller.setLoggedInUser(user);
-                }
+                AppShellController appShell = fxmlLoader.getController();
+                appShell.start(user);
 
                 Stage currentStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
                 currentStage.setScene(dashboardScene);

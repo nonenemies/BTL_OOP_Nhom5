@@ -11,9 +11,6 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
@@ -24,9 +21,6 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.util.StringConverter;
-import javafx.stage.Stage;
-
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Locale;
@@ -39,7 +33,6 @@ public class ExchangeController {
             new FilteredList<>(marketplace, item -> true);
     private Users student;
 
-    @FXML private Label lblStudent;
     @FXML private Label lblStatus;
     @FXML private Label lblMarketEmpty;
     @FXML private Label lblMyEmpty;
@@ -89,7 +82,6 @@ public class ExchangeController {
             setStatus("Không xác định được mã sinh viên. Vui lòng quay lại và đăng nhập lại.", true);
             return;
         }
-        lblStudent.setText(student.getHoTen() + "  ·  Mã sinh viên " + student.getMaSo());
         loadData();
     }
 
@@ -192,26 +184,6 @@ public class ExchangeController {
         }
     }
 
-    @FXML
-    private void onBackToDashboard(ActionEvent event) {
-        if (student == null) {
-            showError("Không thể quay lại dashboard vì phiên sinh viên không còn hợp lệ.");
-            return;
-        }
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/DashBoardView.fxml"));
-            Scene scene = new Scene(loader.load(), 1200, 760);
-            DashBoardController controller = loader.getController();
-            controller.setLoggedInUser(student);
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setScene(scene);
-            stage.setTitle("Phần mềm Quản lý Tín chỉ - " + student.getHoTen());
-            stage.centerOnScreen();
-        } catch (IOException | RuntimeException e) {
-            showError("Không thể mở dashboard. Vui lòng thử lại.");
-        }
-    }
-
     private void loadData() {
         if (student == null || student.getMaSo() == null || student.getMaSo().isBlank()) return;
         try {
@@ -279,9 +251,4 @@ public class ExchangeController {
         lblStatus.setManaged(true);
     }
 
-    private void showError(String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR, message);
-        alert.setHeaderText("Không thể tiếp tục");
-        alert.showAndWait();
-    }
 }

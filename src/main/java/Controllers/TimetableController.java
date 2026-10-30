@@ -6,17 +6,13 @@ import Services.DangKyHocService;
 import Services.ServiceException;
 import javafx.geometry.Insets;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
 
-import java.io.IOException;
 import java.util.List;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
@@ -37,7 +33,6 @@ public class TimetableController {
     private final List<Node> lessonCards = new ArrayList<>();
     private Users student;
 
-    @FXML private Label lblStudent;
     @FXML private Label lblStatus;
     @FXML private GridPane gridSchedule;
 
@@ -61,33 +56,12 @@ public class TimetableController {
             showStatus("Không xác định được mã sinh viên. Vui lòng đăng nhập lại.", true);
             return;
         }
-        lblStudent.setText(student.getHoTen() + "  ·  Mã sinh viên " + student.getMaSo());
         loadTimetable();
     }
 
     @FXML
     private void onRefresh() {
         loadTimetable();
-    }
-
-    @FXML
-    private void onBackToDashboard(javafx.event.ActionEvent event) {
-        if (student == null) {
-            showStatus("Không thể quay lại dashboard vì phiên sinh viên không còn hợp lệ.", true);
-            return;
-        }
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/DashBoardView.fxml"));
-            Scene scene = new Scene(loader.load(), 1200, 760);
-            DashBoardController controller = loader.getController();
-            controller.setLoggedInUser(student);
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setScene(scene);
-            stage.setTitle("Phần mềm Quản lý Tín chỉ - " + student.getHoTen());
-            stage.centerOnScreen();
-        } catch (IOException | RuntimeException e) {
-            showStatus("Không thể mở dashboard. Vui lòng thử lại.", true);
-        }
     }
 
     private void loadTimetable() {

@@ -18,19 +18,6 @@
             styleClass="dashboard-page" stylesheets="@../css/app.css"
             xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="Controllers.ExchangeController">
-    <top>
-        <HBox alignment="CENTER_LEFT" spacing="14.0" styleClass="registration-topbar">
-            <padding><Insets bottom="16.0" left="34.0" right="34.0" top="16.0" /></padding>
-            <children>
-                <Button onAction="#onBackToDashboard" styleClass="registration-back-button" text="←  Dashboard" />
-                <Region HBox.hgrow="ALWAYS" />
-                <VBox alignment="CENTER_RIGHT" spacing="3.0">
-                    <Label styleClass="brand-name registration-brand" text="CREDIT HUB" />
-                    <Label fx:id="lblStudent" styleClass="student-id" text="Thông tin sinh viên" />
-                </VBox>
-            </children>
-        </HBox>
-    </top>
     <center>
         <VBox spacing="16.0" styleClass="exchange-content">
             <padding><Insets bottom="28.0" left="34.0" right="34.0" top="22.0" /></padding>

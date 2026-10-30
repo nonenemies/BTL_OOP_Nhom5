@@ -12,55 +12,6 @@
             styleClass="dashboard-page" stylesheets="@../css/app.css"
             xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="Controllers.DashBoardController">
-    <left>
-        <VBox prefWidth="248.0" spacing="0.0" styleClass="sidebar">
-            <padding>
-                <Insets bottom="24.0" left="20.0" right="20.0" top="28.0" />
-            </padding>
-            <children>
-                <HBox alignment="CENTER_LEFT" spacing="12.0" styleClass="sidebar-brand">
-                    <StackPane prefHeight="40.0" prefWidth="40.0" styleClass="brand-mark">
-                        <Label styleClass="brand-mark-text" text="C" />
-                    </StackPane>
-                    <VBox spacing="2.0">
-                        <Label styleClass="brand-name" text="CREDIT HUB" />
-                        <Label styleClass="brand-caption" text="STUDENT PORTAL" />
-                    </VBox>
-                </HBox>
-
-                <Label styleClass="nav-section-title" text="KHÔNG GIAN HỌC TẬP">
-                    <VBox.margin>
-                        <Insets top="42.0" />
-                    </VBox.margin>
-                </Label>
-                <Button maxWidth="Infinity" styleClass="nav-item nav-item-active" text="Tổng quan">
-                    <VBox.margin><Insets top="12.0" /></VBox.margin>
-                </Button>
-                <Button maxWidth="Infinity" onAction="#onBtnThoiKhoaBieuClick"
-                        styleClass="nav-item" text="Thời khóa biểu">
-                    <VBox.margin><Insets top="6.0" /></VBox.margin>
-                </Button>
-                <Button maxWidth="Infinity" onAction="#onBtnDangKyClick" styleClass="nav-item" text="Đăng ký tín chỉ">
-                    <VBox.margin><Insets top="6.0" /></VBox.margin>
-                </Button>
-                <Button maxWidth="Infinity" onAction="#onBtnDoiLopClick" styleClass="nav-item" text="Yêu cầu đổi lớp">
-                    <VBox.margin><Insets top="6.0" /></VBox.margin>
-                </Button>
-
-                <Region VBox.vgrow="ALWAYS" />
-                <VBox spacing="8.0" styleClass="sidebar-help">
-                    <Label styleClass="help-title" text="Cần hỗ trợ?" />
-                    <Label styleClass="help-description" text="Liên hệ phòng đào tạo nếu bạn cần trợ giúp." wrapText="true" />
-                    <Button maxWidth="Infinity" styleClass="help-button" text="Trung tâm hỗ trợ">
-                        <VBox.margin><Insets top="6.0" /></VBox.margin>
-                    </Button>
-                </VBox>
-                <Button maxWidth="Infinity" onAction="#onBtnDangXuatClick" styleClass="nav-item logout-item" text="Đăng xuất">
-                    <VBox.margin><Insets top="18.0" /></VBox.margin>
-                </Button>
-            </children>
-        </VBox>
-    </left>
     <center>
         <VBox spacing="26.0" styleClass="dashboard-content">
             <padding>
