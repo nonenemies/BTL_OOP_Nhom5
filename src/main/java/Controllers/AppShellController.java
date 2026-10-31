@@ -17,13 +17,18 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public class AppShellController {
+    private static final Logger LOGGER = Logger.getLogger(AppShellController.class.getName());
     private static final String DASHBOARD = "dashboard";
     private static final String TIMETABLE = "timetable";
+    private static final String STUDENT_GRADES = "student-grades";
+    private static final String CHATBOT = "chatbot";
     private static final String REGISTRATION = "registration";
     private static final String EXCHANGE = "exchange";
     private static final String GRADEBOOK = "gradebook";
@@ -52,12 +57,10 @@ public class AppShellController {
         lblUserRole.setText(roleLabel(user));
         configureNavigation();
 
-        if (user instanceof GiangVien) {
-            showScreen(GRADEBOOK);
-        } else if ("SINHVIEN".equalsIgnoreCase(user.getRole())) {
+        if (user instanceof GiangVien
+                || "SINHVIEN".equalsIgnoreCase(user.getRole())
+                || "ADMIN".equalsIgnoreCase(user.getRole())) {
             showScreen(DASHBOARD);
-        } else if ("ADMIN".equalsIgnoreCase(user.getRole())) {
-            showScreen(ADMIN_STUDENTS);
         } else {
             showError("Vai trò tài khoản không được hỗ trợ.");
         }
@@ -98,10 +101,14 @@ public class AppShellController {
             addNavigationButton("Tổng quan", DASHBOARD);
             addNavigationButton("Thời khóa biểu", TIMETABLE);
             addNavigationButton("Đăng ký tín chỉ", REGISTRATION);
+            addNavigationButton("Điểm tổng kết", STUDENT_GRADES);
+            addNavigationButton("Trợ lý AI học tập", CHATBOT);
             addNavigationButton("Yêu cầu đổi lớp", EXCHANGE);
         } else if (user instanceof GiangVien) {
+            addNavigationButton("Tổng quan", DASHBOARD);
             addNavigationButton("Lớp phụ trách và bảng điểm", GRADEBOOK);
         } else if ("ADMIN".equalsIgnoreCase(user.getRole())) {
+            addNavigationButton("Tổng quan", DASHBOARD);
             addNavigationButton("Quản lý sinh viên", ADMIN_STUDENTS);
             addNavigationButton("Quản lý giảng viên", ADMIN_LECTURERS);
             addNavigationButton("Quản lý môn học", ADMIN_COURSES);
@@ -123,6 +130,8 @@ public class AppShellController {
         String resource = switch (screen) {
             case DASHBOARD -> "/views/DashBoardView.fxml";
             case TIMETABLE -> "/views/TimetableView.fxml";
+            case STUDENT_GRADES -> "/views/StudentGradesView.fxml";
+            case CHATBOT -> "/views/ChatbotUI.fxml";
             case REGISTRATION -> "/views/RegistrationView.fxml";
             case EXCHANGE -> "/views/ExchangeView.fxml";
             case GRADEBOOK -> "/views/GiangVienView.fxml";
@@ -141,6 +150,10 @@ public class AppShellController {
                 registration.setStudent(user);
             } else if (controller instanceof TimetableController timetable) {
                 timetable.setStudent(user);
+            } else if (controller instanceof StudentGradesController grades) {
+                grades.setStudent(user);
+            } else if (controller instanceof ChatbotController chatbot) {
+                chatbot.setStudent(user);
             } else if (controller instanceof ExchangeController exchange) {
                 exchange.setStudent(user);
             } else if (controller instanceof GiangVienController lecturer) {
@@ -157,8 +170,18 @@ public class AppShellController {
             lblContentTitle.setText(screenTitle(screen));
             updateNavigationSelection();
         } catch (IOException | RuntimeException e) {
-            showError("Không thể mở chức năng này. Vui lòng thử lại.");
+            LOGGER.log(Level.SEVERE, "Unable to open screen: " + screen, e);
+            showError("Không thể mở chức năng này: " + rootMessage(e));
         }
+    }
+
+    private String rootMessage(Throwable error) {
+        Throwable cause = error;
+        while (cause.getCause() != null) {
+            cause = cause.getCause();
+        }
+        String message = cause.getMessage();
+        return message == null || message.isBlank() ? "lỗi không xác định" : message;
     }
 
     private void updateNavigationSelection() {
@@ -174,9 +197,10 @@ public class AppShellController {
 
     private String navigationTitleForScreen(String screen) {
         return switch (screen) {
-            case DASHBOARD -> "SINHVIEN".equalsIgnoreCase(user.getRole())
-                    ? "Tổng quan" : "Tổng quan quản trị";
+            case DASHBOARD -> "Tổng quan";
             case TIMETABLE -> "Thời khóa biểu";
+            case STUDENT_GRADES -> "Điểm tổng kết";
+            case CHATBOT -> "Trợ lý AI học tập";
             case REGISTRATION -> "Đăng ký tín chỉ";
             case EXCHANGE -> "Yêu cầu đổi lớp";
             case GRADEBOOK -> "Lớp phụ trách và bảng điểm";
@@ -191,8 +215,10 @@ public class AppShellController {
 
     private String screenTitle(String screen) {
         return switch (screen) {
-            case DASHBOARD -> "Không gian học tập";
+            case DASHBOARD -> "Tổng quan";
             case TIMETABLE -> "Thời khóa biểu";
+            case STUDENT_GRADES -> "Điểm tổng kết";
+            case CHATBOT -> "Trợ lý AI tư vấn học tập";
             case REGISTRATION -> "Đăng ký tín chỉ";
             case EXCHANGE -> "Yêu cầu đổi lớp";
             case GRADEBOOK -> "Lớp phụ trách và bảng điểm";

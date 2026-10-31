@@ -32,7 +32,6 @@
                         <HBox alignment="CENTER_LEFT" spacing="12.0" styleClass="registration-filter-card">
                             <TextField fx:id="txtSearch" HBox.hgrow="ALWAYS" promptText="Tìm theo mã lớp, mã môn, tên môn hoặc giảng viên..."
                                        styleClass="form-field registration-search" />
-                            <ComboBox fx:id="cmbSemester" prefWidth="180.0" styleClass="registration-semester" />
                             <Button onAction="#onRefresh" styleClass="registration-refresh-button" text="↻  Tải lại" />
                         </HBox>
 

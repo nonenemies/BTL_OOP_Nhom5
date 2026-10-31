@@ -1,6 +1,8 @@
 # BTL OOP - Quản lý sinh viên
 
-Ứng dụng JavaFX quản lý các nghiệp vụ học vụ gồm đăng nhập, đăng ký/hủy lớp, đổi lớp, thời khóa biểu và quản lý điểm theo vai trò sinh viên/giảng viên.
+Ứng dụng JavaFX quản lý các nghiệp vụ học vụ gồm đăng nhập, đăng ký/hủy lớp, đổi lớp, thời khóa biểu, quản lý điểm và trợ lý AI tư vấn học tập.
+
+Sau khi đăng nhập, sinh viên, giảng viên và quản trị viên đều vào màn hình tổng quan chung. Màn hình hiển thị hồ sơ và các số liệu phù hợp với vai trò, lấy từ dữ liệu hệ thống; các nghiệp vụ khác vẫn được truy cập qua thanh điều hướng bên trái.
 
 ## Công nghệ và yêu cầu
 
@@ -11,6 +13,7 @@
 - MySQL
 - MySQL Connector/J 9.5.0
 - JDBC với `PreparedStatement`
+- Google Gemini API và Gson cho trợ lý AI tư vấn học tập
 
 JavaFX 21.0.13 được chọn để chạy cùng JDK 17. AtlantaFX 2.0.1 được build với Java 17 và JavaFX 20, nên dùng cùng JavaFX 21 là lựa chọn tương thích gần với phiên bản nền của thư viện. Cả nhóm nên dùng JDK 17 và giữ các phiên bản dependency theo `pom.xml`.
 
@@ -94,6 +97,7 @@ Chạy `Database/SQL/test.sql` trên một MySQL test để tạo schema và d�
 | `DB_URL` | Không | `jdbc:mysql://localhost:3306/QuanLyTinChi` |
 | `DB_USER` | Có | Không có |
 | `DB_PASSWORD` | Có | Không có |
+| `GEMINI_API_KEY` | Chỉ cần dùng chatbot | Không có |
 
 Ví dụ PowerShell (chỉ áp dụng cho cửa sổ hiện tại):
 
@@ -101,10 +105,11 @@ Ví dụ PowerShell (chỉ áp dụng cho cửa sổ hiện tại):
 $env:DB_URL = "jdbc:mysql://localhost:3306/QuanLyTinChi"
 $env:DB_USER = "your_mysql_user"
 $env:DB_PASSWORD = "your_mysql_password"
+$env:GEMINI_API_KEY = "your_gemini_api_key"
 mvn test
 ```
 
-Trong IntelliJ IDEA, cấu hình các biến này trong **Run → Edit Configurations → Environment variables** cho cấu hình chạy. Ứng dụng không có tài khoản/mật khẩu mặc định và không tự đọc `.env` hay `*.local.properties`; không ghi credentials thật vào mã nguồn hoặc commit lên Git.
+Trong IntelliJ IDEA, cấu hình các biến này trong **Run → Edit Configurations → Environment variables** cho cấu hình chạy. Chatbot dùng model Gemini 3.6 Flash và chỉ đọc API key từ `GEMINI_API_KEY`. Khi tư vấn, ứng dụng gửi câu hỏi cùng dữ liệu học phần, học kỳ, tín chỉ, trạng thái và điểm của sinh viên đang đăng nhập tới Google Gemini; không gửi mã sinh viên, email hoặc tên. Ứng dụng không có tài khoản/mật khẩu mặc định và không tự đọc `.env` hay `*.local.properties`; không ghi credentials thật vào mã nguồn hoặc commit lên Git.
 
 `test.sql` chỉ dành cho database test. Script tạo database tên `QuanLyTinChi`; giữ `DB_URL` cùng tên này để kết nối đúng schema. Nếu database cũ dùng schema khác với `test.sql`, hãy sao lưu trước và tạo lại database test theo schema hiện tại hoặc thực hiện migration phù hợp.
 
@@ -114,7 +119,7 @@ Các bảng chính: `Users`, `SinhVien`, `GiaoVien`, `Admin`, `MonHoc`, `MonTien
 
 - `MaSV` và `MaGV` là mã nghiệp vụ kiểu chuỗi; khóa ngoại tới sinh viên/giảng viên dùng các mã này. `YeuCauDoiLop.NguoiXuLy` vẫn tham chiếu `Users.UserID`, vì đây là ID tài khoản người xử lý.
 - Các mã tự tăng như `UserID`, `MaDangKy`, `MaYeuCau`, `MaTP` và `MaDiemTP` là ID số do database quản lý.
-- `LichHoc` lưu lịch lặp theo tuần của lớp bằng thứ, giờ bắt đầu và giờ kết thúc.
+- `LichHoc` lưu lịch lặp theo tuần của lớp bằng thứ, giờ bắt đầu, giờ kết thúc và phòng học.
 - `Users`, `MonHoc` và `LopHoc` sử dụng `Model.TrangThaiHoatDong` (`HOAT_DONG`, `NGUNG_HOAT_DONG`); các cột tương ứng trong MySQL dùng `ENUM`. `ThanhPhanDanhGia.TrangThai` là cờ bật/tắt riêng, không phải enum này.
 - Các trạng thái đăng ký và yêu cầu đổi lớp được biểu diễn bằng enum model tương ứng.
 
@@ -128,9 +133,13 @@ Màn hình `TimetableView.fxml` luôn hiển thị 17 hàng ca và các cột t�
 
 ### Điểm
 
-Giảng viên đăng nhập được chuyển đến `GiangVienView.fxml`. Màn hình chỉ liệt kê các lớp được phân công, tải danh sách sinh viên đã đăng ký và bảng điểm theo các thành phần đánh giá đang hoạt động. Chức năng lưu điểm hỗ trợ cả nhập mới và cập nhật; Service kiểm tra quyền phụ trách lớp, lưu điểm và tính lại điểm tổng kết trong cùng transaction. Điểm tổng kết chỉ được cập nhật khi đã đủ điểm cho các thành phần đang hoạt động.
+Giảng viên đăng nhập được chuyển đến màn hình tổng quan; các lớp được phân công và bảng điểm mở từ thanh điều hướng. Màn hình bảng điểm chỉ liệt kê các lớp được phân công, tải danh sách sinh viên đã đăng ký và bảng điểm theo các thành phần đánh giá đang hoạt động. Chức năng lưu điểm hỗ trợ cả nhập mới và cập nhật; Service kiểm tra quyền phụ trách lớp, lưu điểm và tính lại điểm tổng kết trong cùng transaction. Điểm tổng kết chỉ được cập nhật khi đã đủ điểm cho các thành phần đang hoạt động.
 
-Sau khi đăng nhập, `AppShell.fxml` giữ sidebar và khung ứng dụng cố định; các Controller nạp nội dung chức năng vào vùng trung tâm mà không thay toàn bộ Scene. Menu được cấu hình theo role: sinh viên có tổng quan, thời khóa biểu, đăng ký và đổi lớp; giảng viên có lớp phụ trách/bảng điểm; admin có các mục quản lý sinh viên, giảng viên, môn học, lớp học phần và thành phần đánh giá.
+Sinh viên xem điểm tổng kết tại `StudentGradesView.fxml`, được nhóm theo học kỳ. Điểm trung bình học kỳ và toàn khóa là trung bình có trọng số tín chỉ trên thang 10, chỉ tính học phần đã có điểm tổng kết. Tín chỉ đạt trong kỳ và tín chỉ tích lũy chỉ tính học phần hoàn thành có điểm từ 4,0; một môn đã đạt chỉ được cộng tín chỉ tích lũy một lần. Lịch sử học lại được tính theo từng lượt có điểm trong trung bình.
+
+Sinh viên có thể mở **Trợ lý AI học tập** từ sidebar để hỏi về kết quả học tập và kế hoạch học. Yêu cầu mạng chạy nền để không khóa giao diện; cần cấu hình `GEMINI_API_KEY` trước khi sử dụng.
+
+Sau khi đăng nhập, `AppShell.fxml` giữ sidebar và khung ứng dụng cố định; các Controller nạp nội dung chức năng vào vùng trung tâm mà không thay toàn bộ Scene. Menu được cấu hình theo role: sinh viên có tổng quan, thời khóa biểu, điểm tổng kết, đăng ký và đổi lớp; giảng viên có lớp phụ trách/bảng điểm; admin có các mục quản lý sinh viên, giảng viên, môn học, lớp học phần và thành phần đánh giá.
 
 ### Quản trị viên
 

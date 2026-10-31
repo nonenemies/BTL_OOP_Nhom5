@@ -8,9 +8,15 @@ public class LopHocThoiKhoaBieu {
     private final int thu;
     private final String gioBatDau;
     private final String gioKetThuc;
+    private final String phongHoc;
 
     public LopHocThoiKhoaBieu(String maLop, String maMon, String tenMon, String hocKy,
                               int thu, String gioBatDau, String gioKetThuc) {
+        this(maLop, maMon, tenMon, hocKy, thu, gioBatDau, gioKetThuc, null);
+    }
+
+    public LopHocThoiKhoaBieu(String maLop, String maMon, String tenMon, String hocKy,
+                              int thu, String gioBatDau, String gioKetThuc, String phongHoc) {
         this.maLop = maLop;
         this.maMon = maMon;
         this.tenMon = tenMon;
@@ -18,6 +24,7 @@ public class LopHocThoiKhoaBieu {
         this.thu = thu;
         this.gioBatDau = gioBatDau;
         this.gioKetThuc = gioKetThuc;
+        this.phongHoc = phongHoc;
     }
 
     public String getMaLop() { return maLop; }
@@ -27,4 +34,5 @@ public class LopHocThoiKhoaBieu {
     public int getThu() { return thu; }
     public String getGioBatDau() { return gioBatDau; }
     public String getGioKetThuc() { return gioKetThuc; }
+    public String getPhongHoc() { return phongHoc; }
 }

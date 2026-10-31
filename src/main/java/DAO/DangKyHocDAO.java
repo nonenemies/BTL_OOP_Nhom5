@@ -148,7 +148,7 @@ public class DangKyHocDAO {
         List<LopHocThoiKhoaBieu> lichHoc = new ArrayList<>();
         String sql = "SELECT lh.MaLop, mh.MaMon, mh.TenMon, lh.HocKy, lich.Thu, "
                 + "TIME_FORMAT(lich.GioBatDau, '%H:%i') AS GioBatDau, "
-                + "TIME_FORMAT(lich.GioKetThuc, '%H:%i') AS GioKetThuc "
+                + "TIME_FORMAT(lich.GioKetThuc, '%H:%i') AS GioKetThuc, lich.PhongHoc "
                 + "FROM DangKyHoc dk "
                 + "JOIN LopHoc lh ON lh.MaLop = dk.MaLop "
                 + "JOIN MonHoc mh ON mh.MaMon = lh.MaMon "
@@ -167,7 +167,8 @@ public class DangKyHocDAO {
                             rs.getString("HocKy"),
                             rs.getInt("Thu"),
                             rs.getString("GioBatDau"),
-                            rs.getString("GioKetThuc")));
+                            rs.getString("GioKetThuc"),
+                            rs.getString("PhongHoc")));
                 }
             }
         }

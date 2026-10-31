@@ -1,6 +1,7 @@
 package DAO;
 
 import Model.BangDiemSinhVien;
+import Model.LopHocDangKy;
 import Model.TrangThaiDangKy;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -13,6 +14,50 @@ import java.util.Map;
 
 // Truy cập cơ sở dữ liệu để lưu điểm thành phần của sinh viên.
 public class DiemDAO {
+
+    /** Lấy các học phần sinh viên đã đăng ký, không gồm các đăng ký đã hủy. */
+    public List<LopHocDangKy> layKetQuaHocTap(Connection conn, String maSV) throws SQLException {
+        String sql = "SELECT lh.MaLop, mh.MaMon, mh.TenMon, lh.HocKy, mh.SoTinChi, "
+                + "dk.DiemTongKet, dk.TrangThai, "
+                + "COALESCE(lich.LichHoc, 'Chưa xếp lịch') AS LichHoc, "
+                + "CASE WHEN lich.MaLop IS NULL THEN 0 ELSE 1 END AS CoLichHoc "
+                + "FROM DangKyHoc dk "
+                + "JOIN LopHoc lh ON lh.MaLop = dk.MaLop "
+                + "JOIN MonHoc mh ON mh.MaMon = lh.MaMon "
+                + "LEFT JOIN ("
+                + "SELECT MaLop, GROUP_CONCAT(CONCAT('Thứ ', Thu, ' ', "
+                + "TIME_FORMAT(GioBatDau, '%H:%i'), '-', TIME_FORMAT(GioKetThuc, '%H:%i'), "
+                + "' · ', COALESCE(NULLIF(TRIM(PhongHoc), ''), 'Chưa cập nhật phòng')) "
+                + "ORDER BY Thu, GioBatDau SEPARATOR ' | ') AS LichHoc "
+                + "FROM LichHoc GROUP BY MaLop"
+                + ") lich ON lich.MaLop = lh.MaLop "
+                + "WHERE dk.MaSV = ? AND dk.TrangThai <> 'HUY' "
+                + "ORDER BY lh.HocKy, lh.MaLop, mh.MaMon";
+        List<LopHocDangKy> results = new ArrayList<>();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, maSV);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    java.math.BigDecimal finalGrade = rs.getBigDecimal("DiemTongKet");
+                    results.add(new LopHocDangKy(
+                            rs.getString("MaLop"),
+                            rs.getString("MaMon"),
+                            rs.getString("TenMon"),
+                            null,
+                            rs.getString("HocKy"),
+                            rs.getString("LichHoc"),
+                            rs.getBoolean("CoLichHoc"),
+                            rs.getObject("SoTinChi", Integer.class),
+                            null,
+                            null,
+                            true,
+                            TrangThaiDangKy.valueOf(rs.getString("TrangThai")),
+                            finalGrade == null ? null : finalGrade.floatValue()));
+                }
+            }
+        }
+        return results;
+    }
 
     /** Chỉ cập nhật khi mỗi thành phần đang hoạt động có đúng một điểm. */
     public int capNhatDiemTongKet(Connection conn, String maSV, String maLop) throws SQLException {

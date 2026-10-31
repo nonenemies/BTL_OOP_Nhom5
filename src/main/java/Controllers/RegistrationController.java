@@ -11,7 +11,6 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -38,7 +37,6 @@ public class RegistrationController {
     @FXML private Label lblSchedule;
     @FXML private Label lblCapacity;
     @FXML private TextField txtSearch;
-    @FXML private ComboBox<String> cmbSemester;
     @FXML private TableView<LopHocDangKy> tblClasses;
     @FXML private TableColumn<LopHocDangKy, String> colClassCode;
     @FXML private TableColumn<LopHocDangKy, String> colCourseCode;
@@ -77,10 +75,7 @@ public class RegistrationController {
         colRegisteredCredits.setCellValueFactory(new PropertyValueFactory<>("soTinChi"));
         colRegisteredStatus.setCellValueFactory(new PropertyValueFactory<>("trangThai"));
         tblClasses.setItems(filteredClasses);
-        cmbSemester.getItems().add("Tất cả học kỳ");
-        cmbSemester.getSelectionModel().selectFirst();
         txtSearch.textProperty().addListener((observable, oldValue, newValue) -> applyFilters());
-        cmbSemester.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());
         tblClasses.getSelectionModel().selectedItemProperty().addListener(
                 (observable, oldValue, selected) -> showSelection(selected));
         tblRegistered.getSelectionModel().selectedItemProperty().addListener(
@@ -177,10 +172,6 @@ public class RegistrationController {
         try {
             List<LopHocDangKy> items = registrationService.xemDanhSachLopDangKy(student.getMaSo());
             classes.setAll(items);
-            cmbSemester.getItems().setAll("Tất cả học kỳ");
-            items.stream().map(LopHocDangKy::getHocKy).filter(value -> value != null && !value.isBlank())
-                    .distinct().sorted().forEach(cmbSemester.getItems()::add);
-            cmbSemester.getSelectionModel().selectFirst();
             applyFilters();
             tblRegistered.getSelectionModel().clearSelection();
             btnCancelRegistration.setDisable(true);
@@ -210,13 +201,10 @@ public class RegistrationController {
 
     private void applyFilters() {
         String query = txtSearch.getText() == null ? "" : txtSearch.getText().trim().toLowerCase(Locale.ROOT);
-        String semester = cmbSemester.getValue();
         filteredClasses.setPredicate(item -> {
-            boolean semesterMatches = semester == null || semester.equals("Tất cả học kỳ")
-                    || semester.equals(item.getHocKy());
             String searchable = (item.getMaLop() + " " + item.getMaMon() + " " + item.getTenMon()
                     + " " + item.getGiangVien()).toLowerCase(Locale.ROOT);
-            return semesterMatches && searchable.contains(query);
+            return searchable.contains(query);
         });
         boolean hasRows = !filteredClasses.isEmpty();
         lblEmpty.setVisible(!hasRows);

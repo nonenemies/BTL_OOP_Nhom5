@@ -8,16 +8,23 @@ public class LichHoc {
     private int thu;
     private LocalTime gioBatDau;
     private LocalTime gioKetThuc;
+    private String phongHoc;
 
     public LichHoc() {
     }
 
     public LichHoc(int maLich, String maLop, int thu, LocalTime gioBatDau, LocalTime gioKetThuc) {
+        this(maLich, maLop, thu, gioBatDau, gioKetThuc, null);
+    }
+
+    public LichHoc(int maLich, String maLop, int thu, LocalTime gioBatDau,
+                   LocalTime gioKetThuc, String phongHoc) {
         this.maLich = maLich;
         this.maLop = maLop;
         this.thu = thu;
         this.gioBatDau = gioBatDau;
         this.gioKetThuc = gioKetThuc;
+        this.phongHoc = phongHoc;
     }
 
     public int getMaLich() { return maLich; }
@@ -30,4 +37,6 @@ public class LichHoc {
     public void setGioBatDau(LocalTime gioBatDau) { this.gioBatDau = gioBatDau; }
     public LocalTime getGioKetThuc() { return gioKetThuc; }
     public void setGioKetThuc(LocalTime gioKetThuc) { this.gioKetThuc = gioKetThuc; }
+    public String getPhongHoc() { return phongHoc; }
+    public void setPhongHoc(String phongHoc) { this.phongHoc = phongHoc; }
 }

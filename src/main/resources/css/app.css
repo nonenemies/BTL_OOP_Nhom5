@@ -205,6 +205,88 @@
     -fx-background-color: #f5f7fb;
 }
 
+.chatbot-page,
+.chatbot-content {
+    -fx-background-color: #f5f7fb;
+}
+
+.chat-scroll-pane {
+    -fx-background-color: #ffffff;
+    -fx-background: #ffffff;
+    -fx-border-color: #e5e9f2;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+}
+
+.chat-messages {
+    -fx-background-color: #ffffff;
+}
+
+.chat-message-row {
+    -fx-padding: 1 0;
+}
+
+.chat-bubble-user,
+.chat-bubble-ai {
+    -fx-padding: 11 14;
+    -fx-background-radius: 14;
+    -fx-font-size: 12px;
+}
+
+.chat-bubble-user {
+    -fx-background-color: #4569dc;
+    -fx-text-fill: #ffffff;
+}
+
+.chat-bubble-ai {
+    -fx-background-color: #eef1f6;
+    -fx-text-fill: #273651;
+}
+
+.chat-composer {
+    -fx-padding: 10;
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 12;
+    -fx-border-color: #e5e9f2;
+    -fx-border-radius: 12;
+}
+
+.chat-input {
+    -fx-background-color: #f7f8fb;
+    -fx-background-radius: 9;
+    -fx-border-color: #e3e7ef;
+    -fx-border-radius: 9;
+    -fx-padding: 10 13;
+    -fx-font-size: 12px;
+}
+
+.chat-send-button {
+    -fx-background-color: #4569dc;
+    -fx-background-radius: 9;
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 20;
+    -fx-cursor: hand;
+}
+
+.chat-send-button:hover {
+    -fx-background-color: #365bcf;
+}
+
+.chat-status-info,
+.chat-status-error {
+    -fx-font-size: 10px;
+}
+
+.chat-status-info {
+    -fx-text-fill: #68748b;
+}
+
+.chat-status-error {
+    -fx-text-fill: #b52e42;
+}
+
 .app-topbar {
     -fx-background-color: #ffffff;
     -fx-border-color: transparent transparent #e9edf4 transparent;
@@ -336,6 +418,53 @@
 
 .dashboard-content {
     -fx-background-color: #f5f7fb;
+}
+
+.dashboard-scroll {
+    -fx-background-color: #f5f7fb;
+    -fx-background: #f5f7fb;
+    -fx-border-color: transparent;
+}
+
+.dashboard-sections {
+    -fx-alignment: top-left;
+}
+
+.dashboard-panel {
+    -fx-padding: 18;
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 12;
+    -fx-border-color: #e9edf4;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+}
+
+.profile-panel {
+    -fx-min-width: 240px;
+    -fx-pref-width: 300px;
+}
+
+.activity-panel {
+    -fx-min-width: 300px;
+    -fx-pref-width: 600px;
+}
+
+.profile-detail-label {
+    -fx-text-fill: #929db0;
+    -fx-font-size: 10px;
+}
+
+.profile-detail-value {
+    -fx-text-fill: #2b3851;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-text-alignment: right;
+}
+
+.timetable-lesson-room {
+    -fx-text-fill: #365bcf;
+    -fx-font-size: 9px;
+    -fx-font-weight: bold;
 }
 
 .topbar-kicker {
@@ -720,6 +849,35 @@
 
 .registered-table {
     -fx-pref-height: 170px;
+}
+
+.grades-content {
+    -fx-background-color: #f7f8fc;
+}
+
+.grades-summary {
+    -fx-alignment: center-left;
+}
+
+.grades-metric {
+    -fx-padding: 12 14;
+    -fx-background-color: #f7f8fc;
+    -fx-background-radius: 9;
+    -fx-border-color: #edf0f5;
+    -fx-border-radius: 9;
+    -fx-border-width: 1;
+}
+
+.grades-metric-heading {
+    -fx-text-fill: #7f8ba0;
+    -fx-font-size: 9px;
+    -fx-font-weight: bold;
+}
+
+.grades-metric-value {
+    -fx-text-fill: #253657;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
 }
 
 .registration-cancel-button {

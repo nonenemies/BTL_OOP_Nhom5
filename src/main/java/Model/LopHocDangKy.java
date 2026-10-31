@@ -14,11 +14,20 @@ public class LopHocDangKy {
     private final Integer siSoToiDa;
     private final boolean daDangKy;
     private final TrangThaiDangKy trangThaiDangKy;
+    private final Float diemTongKet;
 
     public LopHocDangKy(String maLop, String maMon, String tenMon, String giangVien,
                         String hocKy, String lichHoc, boolean coLichHoc,
                         Integer soTinChi, Integer siSoHienTai, Integer siSoToiDa,
                         boolean daDangKy, TrangThaiDangKy trangThaiDangKy) {
+        this(maLop, maMon, tenMon, giangVien, hocKy, lichHoc, coLichHoc,
+                soTinChi, siSoHienTai, siSoToiDa, daDangKy, trangThaiDangKy, null);
+    }
+
+    public LopHocDangKy(String maLop, String maMon, String tenMon, String giangVien,
+                        String hocKy, String lichHoc, boolean coLichHoc,
+                        Integer soTinChi, Integer siSoHienTai, Integer siSoToiDa,
+                        boolean daDangKy, TrangThaiDangKy trangThaiDangKy, Float diemTongKet) {
         this.maLop = maLop;
         this.maMon = maMon;
         this.tenMon = tenMon;
@@ -31,6 +40,7 @@ public class LopHocDangKy {
         this.siSoToiDa = siSoToiDa;
         this.daDangKy = daDangKy;
         this.trangThaiDangKy = trangThaiDangKy;
+        this.diemTongKet = diemTongKet;
     }
 
     public String getMaLop() { return maLop; }
@@ -44,6 +54,8 @@ public class LopHocDangKy {
     public Integer getSiSoHienTai() { return siSoHienTai; }
     public Integer getSiSoToiDa() { return siSoToiDa; }
     public boolean isDaDangKy() { return daDangKy; }
+    public Float getDiemTongKet() { return diemTongKet; }
+    public TrangThaiDangKy getTrangThaiDangKy() { return trangThaiDangKy; }
     public boolean isCoTheHuy() {
         return daDangKy && trangThaiDangKy == TrangThaiDangKy.DANG_HOC;
     }
