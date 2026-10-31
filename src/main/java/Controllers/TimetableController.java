@@ -183,7 +183,11 @@ public class TimetableController {
         actualTime.getStyleClass().add("timetable-lesson-time");
         Label semester = new Label("Học kỳ " + lesson.getHocKy());
         semester.getStyleClass().add("timetable-lesson-semester");
-        card.getChildren().addAll(courseName, courseCode, actualTime, semester);
+        Label room = new Label(lesson.getPhongHoc() == null || lesson.getPhongHoc().isBlank()
+                ? "Chưa cập nhật phòng học" : lesson.getPhongHoc());
+        room.setWrapText(true);
+        room.getStyleClass().add("timetable-lesson-room");
+        card.getChildren().addAll(courseName, courseCode, actualTime, room, semester);
         return card;
     }
 

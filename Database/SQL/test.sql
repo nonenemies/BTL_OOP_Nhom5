@@ -73,6 +73,7 @@ CREATE TABLE LichHoc (
     Thu INT NOT NULL,
     GioBatDau TIME NOT NULL,
     GioKetThuc TIME NOT NULL,
+    PhongHoc VARCHAR(50) NULL,
     FOREIGN KEY (MaLop) REFERENCES LopHoc(MaLop)
 );
 
@@ -150,6 +151,6 @@ INSERT INTO LopHoc (MaLop, MaMon, MaGV, HocKy, SiSoToiDa, SiSoHienTai) VALUES
 ('OOP_L01', 'IT01', 'GV01', '2024-1', 40, 0),
 ('DB_L01', 'IT02', 'GV01', '2024-1', 40, 0);
 
-INSERT INTO LichHoc (MaLop, Thu, GioBatDau, GioKetThuc) VALUES
-('OOP_L01', 2, '08:00:00', '10:00:00'),
-('DB_L01', 3, '08:00:00', '10:00:00');
+INSERT INTO LichHoc (MaLop, Thu, GioBatDau, GioKetThuc, PhongHoc) VALUES
+('OOP_L01', 2, '08:00:00', '10:00:00', 'Phòng 101 - Nhà A'),
+('DB_L01', 3, '08:00:00', '10:00:00', 'Phòng 202 - Nhà A');

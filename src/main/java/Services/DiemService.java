@@ -5,6 +5,8 @@ import DAO.LopHocDAO;
 import Model.BangDiemSinhVien;
 import Model.GiangVien;
 import Model.LopHoc;
+import Model.LopHocDangKy;
+import Model.SinhVien;
 import Model.TrangThaiHoatDong;
 import Model.ThanhPhanDanhGia;
 import Util.DBConnection;
@@ -15,6 +17,21 @@ import java.util.List;
 public class DiemService {
     private final DiemDAO diemDAO = new DiemDAO();
     private final LopHocDAO lopHocDAO = new LopHocDAO();
+
+    public List<LopHocDangKy> layKetQuaHocTap(SinhVien sinhVien) {
+        if (sinhVien == null || !"SINHVIEN".equalsIgnoreCase(sinhVien.getRole())
+                || sinhVien.getMaSinhVien() == null || sinhVien.getMaSinhVien().isBlank()
+                || sinhVien.getTrangThai() != TrangThaiHoatDong.HOAT_DONG) {
+            throw new ServiceException("Tài khoản sinh viên không hợp lệ hoặc đã ngừng hoạt động.");
+        }
+        try (Connection conn = DBConnection.getConnection()) {
+            return diemDAO.layKetQuaHocTap(conn, sinhVien.getMaSinhVien());
+        } catch (SQLException e) {
+            throw new ServiceException("Không thể tải bảng điểm tổng kết.", e);
+        } catch (RuntimeException e) {
+            throw ServiceException.wrap("Không thể tải bảng điểm tổng kết.", e);
+        }
+    }
 
     public List<LopHoc> layLopPhuTrach(GiangVien giangVien) {
         kiemTraGiangVien(giangVien);

@@ -15,7 +15,8 @@ import java.util.Objects;
 /** Truy vấn lịch học lặp theo tuần của lớp học phần. */
 public class LichHocDAO {
     public LichHoc layTheoMa(Connection conn, int maLich) throws SQLException {
-        String sql = "SELECT MaLich, MaLop, Thu, GioBatDau, GioKetThuc FROM LichHoc WHERE MaLich = ?";
+        String sql = "SELECT MaLich, MaLop, Thu, GioBatDau, GioKetThuc, PhongHoc "
+                + "FROM LichHoc WHERE MaLich = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, maLich);
             try (ResultSet rs = ps.executeQuery()) {
@@ -31,7 +32,7 @@ public class LichHocDAO {
     }
 
     public List<LichHoc> layTheoLop(Connection conn, String maLop) throws SQLException {
-        String sql = "SELECT MaLich, MaLop, Thu, GioBatDau, GioKetThuc "
+        String sql = "SELECT MaLich, MaLop, Thu, GioBatDau, GioKetThuc, PhongHoc "
                 + "FROM LichHoc WHERE MaLop = ? ORDER BY Thu, GioBatDau";
         List<LichHoc> schedules = new ArrayList<>();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -44,7 +45,7 @@ public class LichHocDAO {
     }
 
     public List<LichHoc> layTatCa() throws SQLException {
-        String sql = "SELECT MaLich, MaLop, Thu, GioBatDau, GioKetThuc "
+        String sql = "SELECT MaLich, MaLop, Thu, GioBatDau, GioKetThuc, PhongHoc "
                 + "FROM LichHoc ORDER BY MaLop, Thu, GioBatDau";
         List<LichHoc> schedules = new ArrayList<>();
         try (Connection conn = DBConnection.getConnection();
@@ -58,12 +59,14 @@ public class LichHocDAO {
     public boolean them(Connection conn, LichHoc lichHoc) throws SQLException {
         Objects.requireNonNull(lichHoc, "lichHoc không được null");
         validate(lichHoc);
-        String sql = "INSERT INTO LichHoc (MaLop, Thu, GioBatDau, GioKetThuc) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO LichHoc (MaLop, Thu, GioBatDau, GioKetThuc, PhongHoc) "
+                + "VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, lichHoc.getMaLop());
             ps.setInt(2, lichHoc.getThu());
             ps.setTime(3, Time.valueOf(lichHoc.getGioBatDau()));
             ps.setTime(4, Time.valueOf(lichHoc.getGioKetThuc()));
+            ps.setString(5, lichHoc.getPhongHoc());
             return ps.executeUpdate() == 1;
         }
     }
@@ -71,14 +74,16 @@ public class LichHocDAO {
     public boolean capNhat(Connection conn, LichHoc lichHoc) throws SQLException {
         Objects.requireNonNull(lichHoc, "lichHoc không được null");
         validate(lichHoc);
-        String sql = "UPDATE LichHoc SET MaLop = ?, Thu = ?, GioBatDau = ?, GioKetThuc = ? "
+        String sql = "UPDATE LichHoc SET MaLop = ?, Thu = ?, GioBatDau = ?, GioKetThuc = ?, "
+                + "PhongHoc = ? "
                 + "WHERE MaLich = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, lichHoc.getMaLop());
             ps.setInt(2, lichHoc.getThu());
             ps.setTime(3, Time.valueOf(lichHoc.getGioBatDau()));
             ps.setTime(4, Time.valueOf(lichHoc.getGioKetThuc()));
-            ps.setInt(5, lichHoc.getMaLich());
+            ps.setString(5, lichHoc.getPhongHoc());
+            ps.setInt(6, lichHoc.getMaLich());
             return ps.executeUpdate() == 1;
         }
     }
@@ -101,6 +106,7 @@ public class LichHocDAO {
 
     private LichHoc docLichHoc(ResultSet rs) throws SQLException {
         return new LichHoc(rs.getInt("MaLich"), rs.getString("MaLop"), rs.getInt("Thu"),
-                rs.getTime("GioBatDau").toLocalTime(), rs.getTime("GioKetThuc").toLocalTime());
+                rs.getTime("GioBatDau").toLocalTime(), rs.getTime("GioKetThuc").toLocalTime(),
+                rs.getString("PhongHoc"));
     }
 }
