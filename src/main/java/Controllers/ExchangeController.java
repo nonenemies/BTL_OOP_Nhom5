@@ -154,7 +154,7 @@ public class ExchangeController {
         if (confirmation.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) return;
 
         try {
-            boolean success = exchangeService.sinhVienBChotDon(selected.getMaYeuCau(), student.getMaSo());
+            boolean success = exchangeService.xacNhanDoiLop(selected.getMaYeuCau(), student.getMaSo());
             setStatus(success ? "Đổi lớp thành công." : "Không thể hoàn tất yêu cầu đổi lớp.", !success);
             loadData();
         } catch (ServiceException e) {

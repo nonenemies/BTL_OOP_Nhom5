@@ -9,6 +9,7 @@ import DAO.MonTienQuyetDAO;
 import DAO.ChuongTrinhDaoTaoDAO;
 import Model.YeuCauDoiLop;
 import Model.MonHoc;
+import Model.QuyDinhTinChi;
 import Util.DBConnection;
 import java.util.*;
 
@@ -127,7 +128,6 @@ public class YeuCauDoiLopService {
                         || lopCu.getTrangThai() != Model.TrangThaiHoatDong.HOAT_DONG
                         || lopMuonVao.getTrangThai() != Model.TrangThaiHoatDong.HOAT_DONG
                         || !lopCu.getHocKy().equals(lopMuonVao.getHocKy())
-                        || dangKyDAO.daChotHocKy(conn, maSVA, lopCu.getHocKy())
                         || !chuongTrinhDaoTaoDAO.monThuocChuongTrinh(conn, maSVA, lopMuonVao.getMaMon())
                         || dangKyDAO.kiemTraDaDangKy(conn, maSVA, lopMoiA)
                         || dangKyDAO.daDatMon(conn, maSVA, lopMuonVao.getMaMon())
@@ -145,7 +145,7 @@ public class YeuCauDoiLopService {
                 int projectedCredits = dangKyDAO.tongTinChiDangHoc(conn, maSVA, lopCu.getHocKy())
                         - currentClassCredits + targetClassCredits;
                 if (currentClassCredits <= 0 || targetClassCredits <= 0
-                        || projectedCredits < 11 || projectedCredits > 26) {
+                        || projectedCredits > QuyDinhTinChi.MAX_TIN_CHI) {
                     return rollbackAndReturn(conn, false);
                 }
                 YeuCauDoiLop yc = new YeuCauDoiLop(maSVA, lopCuA, lopMoiA, lyDo);
@@ -169,7 +169,7 @@ public class YeuCauDoiLopService {
         }
     }
 
-    public boolean sinhVienBChotDon(int maYeuCau, String maSV_B) {
+    public boolean xacNhanDoiLop(int maYeuCau, String maSV_B) {
         if (maYeuCau <= 0 || maSV_B == null || maSV_B.isBlank()) {
             return false;
         }
@@ -210,8 +210,6 @@ public class YeuCauDoiLopService {
                         || lopCu.getTrangThai() != Model.TrangThaiHoatDong.HOAT_DONG
                         || lopMoi.getTrangThai() != Model.TrangThaiHoatDong.HOAT_DONG
                         || !lopCu.getHocKy().equals(lopMoi.getHocKy())
-                        || dangKyDAO.daChotHocKy(conn, maSV_A, lopCu.getHocKy())
-                        || dangKyDAO.daChotHocKy(conn, maSV_B, lopCu.getHocKy())
                         || !chuongTrinhDaoTaoDAO.monThuocChuongTrinh(conn, maSV_A, lopMoi.getMaMon())
                         || !chuongTrinhDaoTaoDAO.monThuocChuongTrinh(conn, maSV_B, lopCu.getMaMon())
                         || !dangKyDAO.dangHocChuaCoDiem(conn, maSV_A, lopA_DangHoc)
@@ -233,7 +231,8 @@ public class YeuCauDoiLopService {
                 int creditsB = dangKyDAO.tongTinChiDangHoc(conn, maSV_B, lopCu.getHocKy())
                         - newClassCredits + oldClassCredits;
                 if (oldClassCredits <= 0 || newClassCredits <= 0
-                        || creditsA < 11 || creditsB < 11 || creditsA > 26 || creditsB > 26) {
+                        || creditsA > QuyDinhTinChi.MAX_TIN_CHI
+                        || creditsB > QuyDinhTinChi.MAX_TIN_CHI) {
                     return rollbackAndReturn(conn, false);
                 }
                 if (!dangKyDAO.coLichHoc(conn, lopA_MuonSang)) return rollbackAndReturn(conn, false);
@@ -259,9 +258,9 @@ public class YeuCauDoiLopService {
                 // GIAO DỊCH HOÁN ĐỔI LỚP
                 boolean doiA = dangKyDAO.capNhatLopChoSinhVien(conn, maSV_A, lopA_DangHoc, lopA_MuonSang);
                 boolean doiB = dangKyDAO.capNhatLopChoSinhVien(conn, maSV_B, lopA_MuonSang, lopA_DangHoc);
-                boolean chotDon = yeuCauDAO.capNhatTrangThaiDuyet(conn, maYeuCau, maSV_B, "DA_DUYET");
+                boolean daDuyetDon = yeuCauDAO.capNhatTrangThaiDuyet(conn, maYeuCau, maSV_B, "DA_DUYET");
 
-                if (doiA && doiB && chotDon) {
+                if (doiA && doiB && daDuyetDon) {
                     conn.commit();
                     return true;
                 } else {

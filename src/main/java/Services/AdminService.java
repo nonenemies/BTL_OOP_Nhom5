@@ -185,6 +185,26 @@ public class AdminService {
                 if (!lichHocDAO.lopHoatDong(conn, lichHoc.getMaLop())) {
                     throw new ServiceException("Chỉ có thể xếp lịch cho lớp đang hoạt động.");
                 }
+                if (lichHoc.getMaLich() > 0) {
+                    LichHoc lichHienTai = lichHocDAO.layTheoMa(conn, lichHoc.getMaLich());
+                    if (lichHienTai == null) {
+                        conn.rollback();
+                        return false;
+                    }
+                    boolean currentClassHasStudents =
+                            lichHocDAO.coSinhVienDangKy(conn, lichHienTai.getMaLop());
+                    boolean targetClassHasStudents = !lichHienTai.getMaLop().equals(lichHoc.getMaLop())
+                            && lichHocDAO.coSinhVienDangKy(conn, lichHoc.getMaLop());
+                    if ((currentClassHasStudents || targetClassHasStudents)
+                            && (!lichHienTai.getMaLop().equals(lichHoc.getMaLop())
+                            || lichHienTai.getThu() != lichHoc.getThu()
+                            || !lichHienTai.getGioBatDau().equals(lichHoc.getGioBatDau())
+                            || !lichHienTai.getGioKetThuc().equals(lichHoc.getGioKetThuc()))) {
+                        throw new ServiceException("Lớp đã có sinh viên, chỉ được đổi phòng.");
+                    }
+                } else if (lichHocDAO.coSinhVienDangKy(conn, lichHoc.getMaLop())) {
+                    throw new ServiceException("Lớp đã có sinh viên đăng ký, không thể thêm lịch.");
+                }
                 if (lichHocDAO.coXungDot(conn, lichHoc)) {
                     throw new ServiceException("Lịch bị trùng với lớp khác của giảng viên, phòng học hoặc chính lớp này.");
                 }
@@ -213,6 +233,14 @@ public class AdminService {
             conn.setAutoCommit(false);
             try {
                 kiemTraAdminTrongDatabase(conn, admin);
+                LichHoc lichHoc = lichHocDAO.layTheoMa(conn, maLich);
+                if (lichHoc == null) {
+                    conn.rollback();
+                    return false;
+                }
+                if (lichHocDAO.coSinhVienDangKy(conn, lichHoc.getMaLop())) {
+                    throw new ServiceException("Lớp đã có sinh viên đăng ký, không thể xóa lịch");
+                }
                 boolean deleted = lichHocDAO.xoa(conn, maLich);
                 if (!deleted) {
                     conn.rollback();

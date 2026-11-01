@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
@@ -15,6 +15,9 @@
             xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="Controllers.RegistrationController">
     <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED"
+                    styleClass="registration-scroll">
+          <content>
         <VBox spacing="9.0" styleClass="registration-content">
             <padding><Insets bottom="12.0" left="24.0" right="24.0" top="12.0" /></padding>
             <HBox alignment="CENTER_LEFT" spacing="12.0">
@@ -34,16 +37,15 @@
                         styleClass="login-button registration-confirm" text="Đăng ký môn đã chọn" />
             </HBox>
 
-            <VBox spacing="6.0" styleClass="registration-card" VBox.vgrow="ALWAYS">
+            <VBox spacing="6.0" styleClass="registration-card">
                 <HBox alignment="CENTER_LEFT">
                     <VBox spacing="2.0">
                         <Label styleClass="section-title" text="Các môn học đang mở" />
                         <Label styleClass="section-subtitle"
-                               text="Chọn một lớp để đăng ký. Lịch học và giảng viên hiển thị cùng nhau." />
+                               text="Dòng nền xanh là lớp bạn đã đăng ký. Lịch học và giảng viên hiển thị cùng nhau." />
                     </VBox>
                 </HBox>
-                <TableView fx:id="tblClasses" minHeight="150.0" prefHeight="260.0"
-                           styleClass="registration-table" VBox.vgrow="ALWAYS">
+                <TableView fx:id="tblClasses" styleClass="registration-table">
                     <columns>
                         <TableColumn fx:id="colCourseName" prefWidth="300.0" text="TÊN HỌC PHẦN" />
                         <TableColumn fx:id="colCourseCode" prefWidth="190.0" text="MÃ HỌC PHẦN · LỚP" />
@@ -54,20 +56,19 @@
                 </TableView>
                 <Label fx:id="lblEmpty" managed="false" visible="false" styleClass="registration-empty"
                        text="Hiện chưa có lớp học nào được mở." wrapText="true" />
-                <Label styleClass="registration-action-copy"
-                       text="Mỗi học kỳ đăng ký từ 11 đến 26 tín chỉ. Có thể đăng ký nhiều đợt cho đến khi chốt."
-                       wrapText="true" />
+                <Label fx:id="lblCreditPolicy" styleClass="registration-action-copy" wrapText="true" />
             </VBox>
+            <Label fx:id="lblCreditStatus" managed="false" visible="false"
+                   styleClass="registration-message" wrapText="true" />
 
             <VBox spacing="6.0" styleClass="registration-card">
                 <HBox alignment="CENTER_LEFT">
                     <VBox spacing="2.0">
                         <Label styleClass="section-title" text="Các lớp đã đăng ký" />
-                        <Label styleClass="section-subtitle" text="Lớp đang học và trạng thái chốt đăng ký." />
+                        <Label styleClass="section-subtitle" text="Lớp đang học và trạng thái hiện tại." />
                     </VBox>
                 </HBox>
-                <TableView fx:id="tblRegistered" prefHeight="115.0"
-                           styleClass="registration-table registered-table">
+                <TableView fx:id="tblRegistered" styleClass="registration-table registered-table">
                     <columns>
                         <TableColumn fx:id="colRegisteredClass" prefWidth="125.0" text="MÃ LỚP" />
                         <TableColumn fx:id="colRegisteredCourse" prefWidth="260.0" text="HỌC PHẦN" />
@@ -78,9 +79,6 @@
                     </columns>
                 </TableView>
                 <HBox alignment="CENTER_RIGHT" spacing="8.0">
-                    <ComboBox fx:id="cmbLockSemester" promptText="Chọn học kỳ để chốt" />
-                    <Button fx:id="btnLockSemester" disable="true" onAction="#onLockSemester"
-                            styleClass="login-button registration-confirm" text="Chốt đăng ký" />
                     <Button fx:id="btnCancelRegistration" disable="true" onAction="#onCancelRegistration"
                             styleClass="registration-cancel-button" text="Hủy lớp đã chọn" />
                 </HBox>
@@ -88,5 +86,7 @@
             <Label fx:id="lblStatus" managed="false" visible="false"
                    styleClass="registration-message" text="Thông báo trạng thái" wrapText="true" />
         </VBox>
+          </content>
+        </ScrollPane>
     </center>
 </BorderPane>

@@ -12,7 +12,5 @@ public enum KetQuaDangKy {
     TRUNG_LICH,
     VUOT_QUA_TIN_CHI,
     DA_CO_DIEM,
-    CHUA_DU_TIN_CHI_DE_CHOT,
-    KHONG_THE_CHOT,
     KHONG_HOP_LE
 }
