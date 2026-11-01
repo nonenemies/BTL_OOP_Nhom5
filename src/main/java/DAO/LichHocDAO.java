@@ -95,6 +95,46 @@ public class LichHocDAO {
         }
     }
 
+    public boolean coXungDot(Connection conn, LichHoc lichHoc) throws SQLException {
+        String sql = "SELECT 1 FROM LichHoc currentSchedule "
+                + "JOIN LopHoc currentClass ON currentClass.MaLop = currentSchedule.MaLop "
+                + "JOIN LopHoc targetClass ON targetClass.MaLop = ? "
+                + "WHERE currentSchedule.Thu = ? "
+                + "AND currentClass.HocKy = targetClass.HocKy "
+                + "AND currentSchedule.GioBatDau < ? "
+                + "AND currentSchedule.GioKetThuc > ? "
+                + "AND (currentClass.MaLop = targetClass.MaLop "
+                + "OR currentClass.MaGV = targetClass.MaGV "
+                + "OR (? IS NOT NULL AND TRIM(?) <> '' "
+                + "AND currentSchedule.PhongHoc = ?)) "
+                + (lichHoc.getMaLich() > 0 ? "AND currentSchedule.MaLich <> ? " : "")
+                + "LIMIT 1";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            int index = 1;
+            ps.setString(index++, lichHoc.getMaLop());
+            ps.setInt(index++, lichHoc.getThu());
+            ps.setTime(index++, Time.valueOf(lichHoc.getGioKetThuc()));
+            ps.setTime(index++, Time.valueOf(lichHoc.getGioBatDau()));
+            ps.setString(index++, lichHoc.getPhongHoc());
+            ps.setString(index++, lichHoc.getPhongHoc());
+            ps.setString(index++, lichHoc.getPhongHoc());
+            if (lichHoc.getMaLich() > 0) ps.setInt(index, lichHoc.getMaLich());
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    public boolean lopHoatDong(Connection conn, String maLop) throws SQLException {
+        try (PreparedStatement ps = conn.prepareStatement(
+                "SELECT 1 FROM LopHoc WHERE MaLop = ? AND TrangThai = 'HOAT_DONG'")) {
+            ps.setString(1, maLop);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
     private void validate(LichHoc lichHoc) {
         if (lichHoc.getMaLop() == null || lichHoc.getMaLop().isBlank()
                 || lichHoc.getThu() < 2 || lichHoc.getThu() > 8

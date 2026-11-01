@@ -10,56 +10,83 @@ import Model.MonHoc;
 import Model.DangKyHoc;
 import Model.LopHocDangKy;
 import Model.LopHocThoiKhoaBieu;
+import Model.KetQuaDangKy;
 import Model.TrangThaiDangKy;
+import DAO.ChuongTrinhDaoTaoDAO;
 import Util.DBConnection;
 
 public class DangKyHocService {
     private final DangKyHocDAO dangKyDAO = new DangKyHocDAO();
     private final LopHocDAO lopHocDAO = new LopHocDAO();
+    private final ChuongTrinhDaoTaoDAO chuongTrinhDaoTaoDAO = new ChuongTrinhDaoTaoDAO();
 
     public boolean xuLyDangKyHoc(String maSV, String maLop) {
+        return dangKyHoc(maSV, maLop) == KetQuaDangKy.THANH_CONG;
+    }
+
+    public KetQuaDangKy dangKyHoc(String maSV, String maLop) {
         if (maSV == null || maSV.isBlank() || maLop == null || maLop.isBlank()) {
-            return false;
+            return KetQuaDangKy.KHONG_HOP_LE;
         }
         try (Connection conn = DBConnection.getConnection()) {
-            conn.setAutoCommit(false); // Bắt đầu Transaction
+            conn.setAutoCommit(false);
 
             try {
                 if (!dangKyDAO.khoaSinhVienChoDangKy(conn, maSV)) {
-                    return rollbackAndReturn(conn, false);
+                    return rollbackAndReturn(conn, KetQuaDangKy.SINH_VIEN_KHONG_HOAT_DONG);
                 }
-                // Khóa trước khi đọc để lượt đăng ký tiếp theo thấy dữ liệu mới nhất.
                 var lopHoc = lopHocDAO.layLopTheoMaForUpdate(conn, maLop);
                 if (lopHoc == null) {
-                    return rollbackAndReturn(conn, false);
+                    return rollbackAndReturn(conn, KetQuaDangKy.LOP_KHONG_HOAT_DONG);
                 }
-                if (dangKyDAO.kiemTraDaDangKy(conn, maSV, maLop)) {
-                    return rollbackAndReturn(conn, false);
+                if (lopHoc.getTrangThai() != Model.TrangThaiHoatDong.HOAT_DONG) {
+                    return rollbackAndReturn(conn, KetQuaDangKy.LOP_KHONG_HOAT_DONG);
+                }
+                if (!chuongTrinhDaoTaoDAO.dangTrongDotDangKy(conn, maSV)) {
+                    return rollbackAndReturn(conn, KetQuaDangKy.DOT_DANG_KY_DA_DONG);
+                }
+                if (!chuongTrinhDaoTaoDAO.monThuocChuongTrinh(conn, maSV, lopHoc.getMaMon())) {
+                    return rollbackAndReturn(conn, KetQuaDangKy.KHONG_HOP_LE);
+                }
+                if (dangKyDAO.daChotHocKy(conn, maSV, lopHoc.getHocKy())) {
+                    return rollbackAndReturn(conn, KetQuaDangKy.KHONG_THE_CHOT);
+                }
+                if (dangKyDAO.kiemTraDaDangKy(conn, maSV, maLop)
+                        || dangKyDAO.daDangKyMonTrongHocKy(conn, maSV, lopHoc.getMaMon(), lopHoc.getHocKy())) {
+                    return rollbackAndReturn(conn, KetQuaDangKy.DA_DANG_KY_MON_TRONG_HOC_KY);
+                }
+                if (dangKyDAO.daDatMon(conn, maSV, lopHoc.getMaMon())) {
+                    return rollbackAndReturn(conn, KetQuaDangKy.DA_QUA_MON);
                 }
                 if (!dangKyDAO.coLichHoc(conn, maLop)) {
-                    return rollbackAndReturn(conn, false);
+                    return rollbackAndReturn(conn, KetQuaDangKy.LOP_CHUA_XEP_LICH);
                 }
                 if (dangKyDAO.coLopBiTrungLich(conn, maSV, maLop, null)) {
-                    return rollbackAndReturn(conn, false);
+                    return rollbackAndReturn(conn, KetQuaDangKy.TRUNG_LICH);
                 }
                 for (MonHoc mon : MonTienQuyetDAO.layDanhSachMonTienQuyet(conn, lopHoc.getMaMon())) {
-                    if (!dangKyDAO.kiemTraDaQuaMon(conn, maSV, mon.getMaMon())) {
-                        return rollbackAndReturn(conn, false);
+                    if (mon.getTrangThai() != Model.TrangThaiHoatDong.HOAT_DONG
+                            || !dangKyDAO.kiemTraDaQuaMon(conn, maSV, mon.getMaMon())) {
+                        return rollbackAndReturn(conn, KetQuaDangKy.THIEU_MON_TIEN_QUYET);
                     }
                 }
 
-                // Kiểm tra sức chứa và tăng sĩ số trong cùng transaction.
+                int credits = dangKyDAO.laySoTinChi(conn, lopHoc.getMaMon());
+                if (credits <= 0 || dangKyDAO.tongTinChiDangHoc(conn, maSV, lopHoc.getHocKy()) + credits > 26) {
+                    return rollbackAndReturn(conn, KetQuaDangKy.VUOT_QUA_TIN_CHI);
+                }
+
                 if (!lopHocDAO.tangSiSo(conn, maLop)) {
-                    return rollbackAndReturn(conn, false);
+                    return rollbackAndReturn(conn, KetQuaDangKy.LOP_KHONG_HOAT_DONG);
                 }
 
                 DangKyHoc dk = new DangKyHoc(maLop, maSV);
                 if (!dangKyDAO.themDangKyMoi(conn, dk)) {
-                    return rollbackAndReturn(conn, false);
+                    return rollbackAndReturn(conn, KetQuaDangKy.KHONG_HOP_LE);
                 }
 
-                conn.commit(); // Thành công 100% mới lưu
-                return true;
+                conn.commit();
+                return KetQuaDangKy.THANH_CONG;
 
             } catch (SQLException e) {
                 boolean rollbackFailed = false;
@@ -70,7 +97,7 @@ public class DangKyHocService {
                     rollbackFailed = true;
                 }
                 if (!rollbackFailed && e.getErrorCode() == 1062) {
-                    return false;
+                    return KetQuaDangKy.DA_DANG_KY_MON_TRONG_HOC_KY;
                 }
                 throw e;
             } catch (RuntimeException e) {
@@ -102,16 +129,23 @@ public class DangKyHocService {
                     return rollbackAndReturn(conn, false);
                 }
 
+                var lopHoc = lopHocDAO.layLopTheoMa(conn, maLop);
+                if (lopHoc == null || !chuongTrinhDaoTaoDAO.dangTrongDotDangKy(conn, maSV)
+                        || dangKyDAO.daChotDangKy(conn, maSV, maLop)) {
+                    return rollbackAndReturn(conn, false);
+                }
                 TrangThaiDangKy trangThai = dangKyDAO.layTrangThaiDangKyForUpdate(conn, maSV, maLop);
                 if (trangThai == null || trangThai == TrangThaiDangKy.HUY) {
                     return rollbackAndReturn(conn, false);
                 }
-                if (trangThai == TrangThaiDangKy.DA_HOAN_THANH) {
+                if (trangThai != TrangThaiDangKy.DANG_HOC
+                        || dangKyDAO.coDiem(conn, maSV, maLop)) {
                     return rollbackAndReturn(conn, false);
                 }
                 if (!dangKyDAO.huyDangKy(conn, maSV, maLop)) {
                     return rollbackAndReturn(conn, false);
                 }
+
                 if (!lopHocDAO.giamSiSo(conn, maLop)) {
                     return rollbackAndReturn(conn, false);
                 }
@@ -130,6 +164,47 @@ public class DangKyHocService {
             throw new ServiceException("Không thể hủy đăng ký lớp.", e);
         } catch (RuntimeException e) {
             throw ServiceException.wrap("Không thể hủy đăng ký lớp.", e);
+        }
+    }
+
+    public KetQuaDangKy chotDangKyHocKy(String maSV, String hocKy) {
+        if (maSV == null || maSV.isBlank() || hocKy == null || hocKy.isBlank()) {
+            return KetQuaDangKy.KHONG_HOP_LE;
+        }
+        try (Connection conn = DBConnection.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                if (!dangKyDAO.khoaSinhVienChoDangKy(conn, maSV)) {
+                    return rollbackAndReturn(conn, KetQuaDangKy.SINH_VIEN_KHONG_HOAT_DONG);
+                }
+                if (!chuongTrinhDaoTaoDAO.dangTrongDotDangKy(conn, maSV)) {
+                    return rollbackAndReturn(conn, KetQuaDangKy.DOT_DANG_KY_DA_DONG);
+                }
+                int credits = dangKyDAO.tongTinChiDangHoc(conn, maSV, hocKy);
+                if (credits < 11) {
+                    return rollbackAndReturn(conn, KetQuaDangKy.CHUA_DU_TIN_CHI_DE_CHOT);
+                }
+                if (credits > 26) {
+                    return rollbackAndReturn(conn, KetQuaDangKy.VUOT_QUA_TIN_CHI);
+                }
+                if (!dangKyDAO.daChotHocKy(conn, maSV, hocKy)
+                        && !dangKyDAO.chotHocKy(conn, maSV, hocKy)) {
+                    return rollbackAndReturn(conn, KetQuaDangKy.KHONG_THE_CHOT);
+                }
+                conn.commit();
+                return KetQuaDangKy.THANH_CONG;
+            } catch (SQLException | RuntimeException e) {
+                try {
+                    conn.rollback();
+                } catch (SQLException rollbackError) {
+                    e.addSuppressed(rollbackError);
+                }
+                throw e;
+            }
+        } catch (SQLException e) {
+            throw new ServiceException("Không thể chốt đăng ký học kỳ.", e);
+        } catch (RuntimeException e) {
+            throw ServiceException.wrap("Không thể chốt đăng ký học kỳ.", e);
         }
     }
 
@@ -156,7 +231,7 @@ public class DangKyHocService {
         }
     }
 
-    private boolean rollbackAndReturn(Connection conn, boolean result) throws SQLException {
+    private <T> T rollbackAndReturn(Connection conn, T result) throws SQLException {
         conn.rollback();
         return result;
     }

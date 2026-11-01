@@ -81,6 +81,9 @@ public class ThanhPhanDanhGiaService {
                 if (dao.timMonDeCapNhat(conn, maMon) == null) {
                     throw new ServiceException("Môn học không tồn tại.");
                 }
+                if (sua && dao.daCoDiem(conn, maMon)) {
+                    throw new ServiceException("Không thể sửa trọng số hoặc trạng thái thành phần sau khi đã nhập điểm.");
+                }
                 List<ThanhPhanDanhGia> hienTai = dao.layTheoMonDeCapNhat(conn, maMon);
                 List<ThanhPhanDanhGia> sauKhiLuu = new ArrayList<>(hienTai);
                 if (sua) {

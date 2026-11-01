@@ -82,8 +82,6 @@ public class StudentGradesController {
         List<String> semesterOrder = new ArrayList<>(grouped.keySet());
         Set<String> accumulatedCourses = new LinkedHashSet<>();
         long totalEarnedCredits = 0;
-        double cumulativeWeightedScore = 0;
-        long cumulativeGradedCredits = 0;
         List<VBox> cards = new ArrayList<>();
 
         for (String semester : semesterOrder) {
@@ -98,8 +96,6 @@ public class StudentGradesController {
                 if (result.getDiemTongKet() != null && credits > 0) {
                     semesterWeightedScore += result.getDiemTongKet() * credits;
                     semesterGradedCredits += credits;
-                    cumulativeWeightedScore += result.getDiemTongKet() * credits;
-                    cumulativeGradedCredits += credits;
                 }
                 if (isPassed(result)) {
                     if (semesterPassedCourses.add(result.getMaMon()) && result.getSoTinChi() != null) {
@@ -113,8 +109,7 @@ public class StudentGradesController {
 
             double semesterAverage = semesterGradedCredits == 0 ? Double.NaN
                     : semesterWeightedScore / semesterGradedCredits;
-            double cumulativeAverage = cumulativeGradedCredits == 0 ? Double.NaN
-                    : cumulativeWeightedScore / cumulativeGradedCredits;
+            double cumulativeAverage = diemService.tinhGpaTichLuy(results, semester);
 
             VBox card = createSemesterCard(semester, semesterResults, semesterAverage,
                     cumulativeAverage, semesterEarnedCredits, totalEarnedCredits);
@@ -123,7 +118,7 @@ public class StudentGradesController {
         for (int i = cards.size() - 1; i >= 0; i--) {
             semesterResults.getChildren().add(cards.get(i));
         }
-        showInfo("Điểm trung bình được tính theo trọng số tín chỉ trên thang điểm 10. "
+        showInfo("Điểm trung bình học kỳ tính theo tín chỉ; GPA tích lũy lấy điểm cao nhất của mỗi môn. "
                 + "Tín chỉ tích lũy chỉ tính các học phần đã hoàn thành và đạt từ 4,0.");
     }
 
@@ -152,6 +147,9 @@ public class StudentGradesController {
                 result.getSoTinChi() == null ? "—" : result.getSoTinChi().toString()));
         table.getColumns().add(column("Điểm tổng kết", 100, result -> result.getDiemTongKet() == null
                 ? "Chưa có điểm" : SCORE_FORMAT.format(result.getDiemTongKet())));
+        table.getColumns().add(column("Điểm thành phần", 250, result ->
+                result.getDiemThanhPhan() == null || result.getDiemThanhPhan().isBlank()
+                        ? "Chưa có điểm thành phần" : result.getDiemThanhPhan()));
         table.getColumns().add(column("Trạng thái", 115, LopHocDangKy::getTrangThai));
 
         HBox summary = new HBox(12,

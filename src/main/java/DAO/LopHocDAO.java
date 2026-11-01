@@ -36,18 +36,72 @@ public class LopHocDAO {
     /** Sửa thông tin lớp; không ghi đè sĩ số hiện tại do dữ liệu có thể đã thay đổi. */
     public boolean suaLopHoc(LopHoc lopHoc) throws SQLException {
         Objects.requireNonNull(lopHoc, "lopHoc không được null");
-        String sql = "UPDATE LopHoc SET MaMon = ?, MaGV = ?, HocKy = ?, SiSoToiDa = ? "
-                + "WHERE MaLop = ? AND SiSoHienTai <= ?";
+        try (Connection conn = DBConnection.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                String selectSql = "SELECT MaMon, MaGV, HocKy, SiSoHienTai "
+                        + "FROM LopHoc WHERE MaLop = ? FOR UPDATE";
+                String maMonHienTai;
+                String maGVHienTai;
+                String hocKyHienTai;
+                int siSoHienTai;
+                try (PreparedStatement ps = conn.prepareStatement(selectSql)) {
+                    ps.setString(1, lopHoc.getMaLop());
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (!rs.next()) {
+                            conn.rollback();
+                            return false;
+                        }
+                        maMonHienTai = rs.getString("MaMon");
+                        maGVHienTai = rs.getString("MaGV");
+                        hocKyHienTai = rs.getString("HocKy");
+                        siSoHienTai = rs.getInt("SiSoHienTai");
+                    }
+                }
 
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, lopHoc.getMaMon());
-            ps.setString(2, lopHoc.getMaGV());
-            ps.setString(3, lopHoc.getHocKy());
-            ps.setObject(4, lopHoc.getSiSoToiDa());
-            ps.setString(5, lopHoc.getMaLop());
-            ps.setObject(6, lopHoc.getSiSoToiDa());
-            return ps.executeUpdate() == 1;
+                boolean academicFieldsChanged = !Objects.equals(maMonHienTai, lopHoc.getMaMon())
+                        || !Objects.equals(maGVHienTai, lopHoc.getMaGV())
+                        || !Objects.equals(hocKyHienTai, lopHoc.getHocKy());
+                if (lopHoc.getSiSoToiDa() == null || lopHoc.getSiSoToiDa() < siSoHienTai) {
+                    conn.rollback();
+                    return false;
+                }
+                if (academicFieldsChanged) {
+                    try (PreparedStatement ps = conn.prepareStatement(
+                            "SELECT 1 FROM DangKyHoc WHERE MaLop = ? LIMIT 1")) {
+                        ps.setString(1, lopHoc.getMaLop());
+                        try (ResultSet rs = ps.executeQuery()) {
+                            if (rs.next()) {
+                                conn.rollback();
+                                return false;
+                            }
+                        }
+                    }
+                }
+
+                String updateSql = "UPDATE LopHoc SET MaMon = ?, MaGV = ?, HocKy = ?, SiSoToiDa = ? "
+                        + "WHERE MaLop = ?";
+                try (PreparedStatement ps = conn.prepareStatement(updateSql)) {
+                    ps.setString(1, lopHoc.getMaMon());
+                    ps.setString(2, lopHoc.getMaGV());
+                    ps.setString(3, lopHoc.getHocKy());
+                    ps.setInt(4, lopHoc.getSiSoToiDa());
+                    ps.setString(5, lopHoc.getMaLop());
+                    if (ps.executeUpdate() != 1) {
+                        conn.rollback();
+                        return false;
+                    }
+                }
+                conn.commit();
+                return true;
+            } catch (SQLException | RuntimeException e) {
+                try {
+                    conn.rollback();
+                } catch (SQLException rollbackError) {
+                    e.addSuppressed(rollbackError);
+                }
+                throw e;
+            }
         }
     }
 
@@ -78,6 +132,7 @@ public class LopHocDAO {
                 + "CASE WHEN lich.LichHoc IS NULL THEN 0 ELSE 1 END AS CoLichHoc, "
                 + "mh.SoTinChi, lh.SiSoHienTai, lh.SiSoToiDa, "
                 + "CASE WHEN dk.MaDangKy IS NULL THEN 0 ELSE 1 END AS DaDangKy, "
+                + "COALESCE(dk.DaChot, 0) AS DaChot, "
                 + "dk.TrangThai AS TrangThaiDangKy "
                 + "FROM LopHoc lh "
                 + "JOIN MonHoc mh ON mh.MaMon = lh.MaMon "
@@ -92,13 +147,22 @@ public class LopHocDAO {
                 + ") lich ON lich.MaLop = lh.MaLop "
                 + "LEFT JOIN DangKyHoc dk ON dk.MaLop = lh.MaLop AND dk.MaSV = ? "
                 + "AND dk.TrangThai <> 'HUY' "
-                + "WHERE (lh.TrangThai = 'HOAT_DONG' AND mh.TrangThai = 'HOAT_DONG') "
+                + "WHERE (lh.TrangThai = 'HOAT_DONG' AND mh.TrangThai = 'HOAT_DONG' "
+                + "AND EXISTS (SELECT 1 FROM SinhVien sv "
+                + "JOIN Users u ON u.UserID = sv.UserID "
+                + "JOIN DotDangKyNganh dot ON dot.Khoa = u.Khoa "
+                + "JOIN ChuongTrinhDaoTao ct ON ct.Khoa = u.Khoa AND ct.MaMon = lh.MaMon "
+                + "WHERE sv.MaSV = ? AND CURRENT_TIMESTAMP BETWEEN dot.MoDangKy AND dot.DongDangKy "
+                + "AND NOT EXISTS (SELECT 1 FROM DangKyHoc dk2 JOIN LopHoc lh2 ON lh2.MaLop = dk2.MaLop "
+                + "WHERE dk2.MaSV = sv.MaSV AND lh2.HocKy = lh.HocKy "
+                + "AND dk2.TrangThai = 'DANG_HOC' AND dk2.DaChot = 1))) "
                 + "OR dk.MaDangKy IS NOT NULL ORDER BY lh.HocKy DESC, mh.MaMon, lh.MaLop";
 
         List<LopHocDangKy> danhSach = new ArrayList<>();
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, maSV);
+            ps.setString(2, maSV);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     danhSach.add(new LopHocDangKy(
@@ -111,7 +175,8 @@ public class LopHocDAO {
                             rs.getObject("SiSoToiDa", Integer.class),
                             rs.getBoolean("DaDangKy"),
                             rs.getString("TrangThaiDangKy") == null ? null
-                                    : Model.TrangThaiDangKy.valueOf(rs.getString("TrangThaiDangKy"))));
+                                    : Model.TrangThaiDangKy.valueOf(rs.getString("TrangThaiDangKy")),
+                            null, null, rs.getBoolean("DaChot")));
                 }
             }
         }

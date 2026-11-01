@@ -24,8 +24,11 @@ import javafx.util.StringConverter;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Locale;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ExchangeController {
+    private static final Logger LOGGER = Logger.getLogger(ExchangeController.class.getName());
     private final YeuCauDoiLopService exchangeService = new YeuCauDoiLopService();
     private final LopHocDAO classDAO = new LopHocDAO();
     private final ObservableList<YeuCauDoiLop> marketplace = FXCollections.observableArrayList();
@@ -200,6 +203,7 @@ public class ExchangeController {
             applySearch();
             updateEmptyLabels();
         } catch (SQLException | ServiceException e) {
+            LOGGER.log(Level.SEVERE, "Unable to load class-exchange data.", e);
             cmbCurrentClass.getItems().clear();
             cmbWantedClass.getItems().clear();
             marketplace.clear();
@@ -208,6 +212,7 @@ public class ExchangeController {
             updateEmptyLabels();
             setStatus("Không thể tải dữ liệu đổi lớp. Kiểm tra kết nối cơ sở dữ liệu rồi thử tải lại.", true);
         } catch (RuntimeException e) {
+            LOGGER.log(Level.SEVERE, "Unexpected error while loading class-exchange data.", e);
             setStatus("Đã xảy ra lỗi khi tải dữ liệu. Vui lòng thử tải lại.", true);
         }
     }

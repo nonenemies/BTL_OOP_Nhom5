@@ -22,8 +22,11 @@ import java.text.DecimalFormat;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DashBoardController {
+    private static final Logger LOGGER = Logger.getLogger(DashBoardController.class.getName());
     private static final DecimalFormat SCORE_FORMAT = new DecimalFormat("0.##");
 
     private final DiemService diemService = new DiemService();
@@ -100,8 +103,10 @@ public class DashBoardController {
                 showError("Vai trò tài khoản không được hỗ trợ.");
             }
         } catch (ServiceException e) {
+            LOGGER.log(Level.SEVERE, "Unable to load dashboard for role " + loggedInUser.getRole(), e);
             showError("Không thể tải dữ liệu tổng quan. Vui lòng thử tải lại.");
         } catch (RuntimeException e) {
+            LOGGER.log(Level.SEVERE, "Unexpected error while rendering dashboard.", e);
             showError("Đã xảy ra lỗi khi hiển thị dữ liệu tổng quan. Vui lòng tải lại.");
         }
     }
@@ -115,24 +120,18 @@ public class DashBoardController {
         List<LopHocDangKy> registrations = diemService.layKetQuaHocTap(student);
         long activeCourses = registrations.stream()
                 .filter(item -> item.getTrangThaiDangKy() == TrangThaiDangKy.DANG_HOC).count();
-        long gradedCredits = 0;
-        double weightedScore = 0;
         long earnedCredits = 0;
         Set<String> passedCourses = new LinkedHashSet<>();
         for (LopHocDangKy registration : registrations) {
             int credits = registration.getSoTinChi() == null ? 0 : registration.getSoTinChi();
-            if (registration.getDiemTongKet() != null && credits > 0) {
-                weightedScore += registration.getDiemTongKet() * credits;
-                gradedCredits += credits;
-            }
             if (registration.getTrangThaiDangKy() == TrangThaiDangKy.DA_HOAN_THANH
                     && registration.getDiemTongKet() != null && registration.getDiemTongKet() >= 4
                     && passedCourses.add(registration.getMaMon())) {
                 earnedCredits += credits;
             }
         }
-        String average = gradedCredits == 0 ? "—"
-                : SCORE_FORMAT.format(weightedScore / gradedCredits) + " / 10";
+        double gpa = diemService.tinhGpaTichLuy(registrations, null);
+        String average = Double.isNaN(gpa) ? "—" : SCORE_FORMAT.format(gpa) + " / 10";
         addMetric("HỌC PHẦN ĐANG HỌC", Long.toString(activeCourses), "HP", "stat-icon-violet");
         addMetric("TÍN CHỈ ĐÃ TÍCH LŨY", Long.toString(earnedCredits), "TC", "stat-icon-blue");
         addMetric("ĐIỂM TRUNG BÌNH", average, "TB", "stat-icon-green");
@@ -157,7 +156,7 @@ public class DashBoardController {
                     item.getDiemTongKet() == null
                             ? "Đang học" : "Điểm " + SCORE_FORMAT.format(item.getDiemTongKet())));
         }
-        showInfo("Điểm trung bình được tính theo tín chỉ từ các học phần đã có điểm tổng kết.");
+        showInfo("Điểm trung bình tích lũy lấy điểm cao nhất của mỗi môn, có trọng số theo tín chỉ.");
     }
 
     private void loadLecturerOverview(GiangVien lecturer) {

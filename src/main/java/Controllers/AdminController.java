@@ -3,11 +3,14 @@ package Controllers;
 import Model.Admin;
 import Model.GiangVien;
 import Model.LopHoc;
+import Model.LichHoc;
 import Model.MonHoc;
 import Model.SinhVien;
 import Model.ThanhPhanDanhGia;
 import Model.TrangThaiHoatDong;
 import Model.Users;
+import Model.CauHinhHocKy;
+import Model.DotDangKyNganh;
 import Services.AdminService;
 import Services.ServiceException;
 import Services.ThanhPhanDanhGiaService;
@@ -31,6 +34,10 @@ import javafx.util.StringConverter;
 
 import java.sql.Date;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -39,6 +46,8 @@ import java.util.Optional;
 public class AdminController {
     private static final String STUDENT_ROLE = "SINHVIEN";
     private static final String LECTURER_ROLE = "GIAOVIEN";
+    private static final DateTimeFormatter TERM_DATE_TIME =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     private final AdminService adminService = new AdminService();
     private final ThanhPhanDanhGiaService thanhPhanService = new ThanhPhanDanhGiaService();
@@ -50,6 +59,7 @@ public class AdminController {
     private final FilteredList<LopHoc> filteredClasses = new FilteredList<>(classes, item -> true);
     private final ObservableList<MonHoc> prerequisites = FXCollections.observableArrayList();
     private final ObservableList<ThanhPhanDanhGia> components = FXCollections.observableArrayList();
+    private final ObservableList<LichHoc> schedules = FXCollections.observableArrayList();
 
     @FXML private TabPane adminTabs;
     @FXML private Label lblStatus;
@@ -118,12 +128,32 @@ public class AdminController {
     @FXML private TextField txtComponentWeight;
     @FXML private TextField txtComponentOrder;
     @FXML private CheckBox chkComponentActive;
+    @FXML private ComboBox<LopHoc> cmbScheduleClass;
+    @FXML private TableView<LichHoc> tblSchedules;
+    @FXML private TableColumn<LichHoc, Integer> colScheduleDay;
+    @FXML private TableColumn<LichHoc, String> colScheduleStart;
+    @FXML private TableColumn<LichHoc, String> colScheduleEnd;
+    @FXML private TableColumn<LichHoc, String> colScheduleRoom;
+    @FXML private TextField txtScheduleDay;
+    @FXML private TextField txtScheduleStart;
+    @FXML private TextField txtScheduleEnd;
+    @FXML private TextField txtScheduleRoom;
+    @FXML private TextField txtTermCode;
+    @FXML private DatePicker dpSemesterEnd;
+    @FXML private TextField txtGradeEntryDeadline;
+    @FXML private ComboBox<String> cmbProgramMajor;
+    @FXML private TableView<MonHoc> tblProgramCourses;
+    @FXML private TableColumn<MonHoc, String> colProgramCourseCode;
+    @FXML private TableColumn<MonHoc, String> colProgramCourseName;
+    @FXML private DatePicker dpMajorRegistrationOpensOn;
+    @FXML private DatePicker dpMajorRegistrationClosesOn;
 
     private Admin admin;
     private Users selectedAccount;
     private MonHoc selectedCourse;
     private LopHoc selectedClass;
     private ThanhPhanDanhGia selectedComponent;
+    private LichHoc selectedSchedule;
     private List<ThanhPhanDanhGia> loadedComponents = List.of();
     private List<ThanhPhanDanhGia> newComponents = new ArrayList<>();
 
@@ -133,6 +163,9 @@ public class AdminController {
         configureCourseTable();
         configureClassTable();
         configureComponentTable();
+        configureScheduleTable();
+        colProgramCourseCode.setCellValueFactory(new PropertyValueFactory<>("maMon"));
+        colProgramCourseName.setCellValueFactory(new PropertyValueFactory<>("tenMon"));
         cmbAccountRole.setItems(FXCollections.observableArrayList(STUDENT_ROLE, LECTURER_ROLE));
         cmbAccountRole.getSelectionModel().selectFirst();
         cmbUserStatus.setItems(FXCollections.observableArrayList(TrangThaiHoatDong.values()));
@@ -157,10 +190,26 @@ public class AdminController {
                 (o, oldValue, selected) -> populateClassForm(selected));
         tblComponents.getSelectionModel().selectedItemProperty().addListener(
                 (o, oldValue, selected) -> populateComponentForm(selected));
+        tblSchedules.getSelectionModel().selectedItemProperty().addListener(
+                (o, oldValue, selected) -> populateScheduleForm(selected));
+        cmbScheduleClass.valueProperty().addListener(
+                (o, oldValue, selected) -> loadSchedules(selected));
         cmbComponentCourse.valueProperty().addListener((o, oldValue, selected) -> loadComponents(selected));
         cmbClassCourse.setConverter(courseConverter());
         cmbPrerequisite.setConverter(courseConverter());
         cmbComponentCourse.setConverter(courseConverter());
+        cmbScheduleClass.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(LopHoc courseClass) {
+                return courseClass == null ? "" : courseClass.getMaLop() + " · "
+                        + courseClass.getMaMon() + " · HK " + courseClass.getHocKy();
+            }
+
+            @Override
+            public LopHoc fromString(String value) {
+                return null;
+            }
+        });
         cmbClassLecturer.setConverter(new StringConverter<>() {
             @Override
             public String toString(GiangVien lecturer) {
@@ -195,6 +244,119 @@ public class AdminController {
         onClearClassForm();
         onClearComponentForm();
         loadAllData();
+        onLoadTermSettings();
+    }
+
+    @FXML
+    private void onLoadTermSettings() {
+        String hocKy = txtTermCode.getText() == null ? "" : txtTermCode.getText().trim();
+        if (admin == null || hocKy.isBlank()) return;
+        try {
+            CauHinhHocKy config = adminService.layCauHinhHocKy(admin, hocKy);
+            if (config == null) {
+                dpSemesterEnd.setValue(null);
+                txtGradeEntryDeadline.clear();
+                setStatus("Học kỳ chưa có cấu hình điểm; nhập ngày kết thúc và hạn nhập điểm.", false);
+                return;
+            }
+            dpSemesterEnd.setValue(config.ketThucHocKy());
+            txtGradeEntryDeadline.setText(TERM_DATE_TIME.format(config.hanNhapDiem()));
+            setStatus("Đã tải mốc điểm của học kỳ " + hocKy + ".", false);
+        } catch (ServiceException e) {
+            setStatus(e.getMessage(), true);
+        }
+    }
+
+    @FXML
+    private void onSaveTermSettings() {
+        try {
+            LocalDateTime gradeDeadline = LocalDateTime.parse(
+                    required(txtGradeEntryDeadline.getText(), "Hạn nhập điểm"), TERM_DATE_TIME);
+            LocalDate semesterEnd = dpSemesterEnd.getValue();
+            if (semesterEnd == null) throw new IllegalArgumentException("Chọn ngày kết thúc học kỳ.");
+            boolean saved = adminService.luuCauHinhHocKy(admin, required(txtTermCode.getText(), "Mã học kỳ"),
+                    semesterEnd, gradeDeadline);
+            setStatus(saved ? "Đã lưu mốc nhập điểm cho học kỳ." : "Không thể lưu cấu hình điểm.", !saved);
+        } catch (DateTimeParseException e) {
+            setStatus("Hạn nhập điểm cần theo định dạng yyyy-MM-dd HH:mm, ví dụ 2026-11-02 08:00.", true);
+        } catch (IllegalArgumentException | ServiceException e) {
+            setStatus(e.getMessage(), true);
+        }
+    }
+
+    @FXML
+    private void onLoadMajorRegistration() {
+            String major = cmbProgramMajor.getValue() == null ? "" : cmbProgramMajor.getValue().trim();
+            if (admin == null || major.isBlank()) return;
+            try {
+                tblProgramCourses.setItems(FXCollections.observableArrayList(
+                        adminService.layMonTheoKhoa(admin, major)));
+                DotDangKyNganh period = adminService.layDotDangKyNganh(admin, major);
+                if (period == null) {
+                    dpMajorRegistrationOpensOn.setValue(null);
+                    dpMajorRegistrationClosesOn.setValue(null);
+                    setStatus("Chưa có lịch đăng ký cho khoa/ngành này.", false);
+                } else {
+                    dpMajorRegistrationOpensOn.setValue(period.moDangKy().toLocalDate());
+                    dpMajorRegistrationClosesOn.setValue(period.dongDangKy().toLocalDate());
+                    setStatus("Đã tải chương trình và lịch đăng ký của " + major + ".", false);
+                }
+            } catch (ServiceException e) {
+                setStatus(e.getMessage(), true);
+            }
+        }
+
+    @FXML
+    private void onSaveMajorRegistration() {
+            try {
+                String major = required(cmbProgramMajor.getValue(), "Khoa/ngành");
+                LocalDate opensOn = dpMajorRegistrationOpensOn.getValue();
+                LocalDate closesOn = dpMajorRegistrationClosesOn.getValue();
+                if (opensOn == null) throw new IllegalArgumentException("Chọn ngày mở đăng ký.");
+                if (closesOn == null) throw new IllegalArgumentException("Chọn ngày đóng đăng ký.");
+                LocalDateTime opensAt = opensOn.atTime(12, 0);
+                LocalDateTime closesAt = closesOn.atTime(12, 0);
+                boolean saved = adminService.luuDotDangKyNganh(admin, major, opensAt, closesAt);
+                setStatus(saved ? "Đã lưu lịch đăng ký cho " + major + "." : "Không thể lưu lịch đăng ký.", !saved);
+            } catch (IllegalArgumentException | ServiceException e) {
+                setStatus(e.getMessage(), true);
+            }
+        }
+
+    @FXML
+    private void onAddAllProgramCourses() {
+            String major = cmbProgramMajor.getValue() == null ? "" : cmbProgramMajor.getValue().trim();
+            if (major.isBlank()) {
+                setStatus("Chọn khoa/ngành trước khi thêm môn.", true);
+                return;
+            }
+            try {
+                int addedCount = adminService.themTatCaMonVaoChuongTrinh(admin, major);
+                onLoadMajorRegistration();
+                setStatus(addedCount == 0
+                        ? "Tất cả môn đang hoạt động đã có trong chương trình."
+                        : "Đã thêm " + addedCount + " môn vào chương trình " + major + ".", false);
+            } catch (ServiceException e) {
+                setStatus(e.getMessage(), true);
+            }
+        }
+
+    @FXML
+    private void onRemoveProgramCourse() {
+            MonHoc course = tblProgramCourses.getSelectionModel().getSelectedItem();
+            String major = cmbProgramMajor.getValue() == null ? "" : cmbProgramMajor.getValue().trim();
+            if (course == null) {
+                setStatus("Chọn môn cần gỡ khỏi chương trình đào tạo.", true);
+                return;
+            }
+            try {
+                if (adminService.xoaMonKhoiChuongTrinh(admin, major, course.getMaMon())) {
+                    onLoadMajorRegistration();
+                    setStatus("Đã gỡ môn khỏi chương trình.", false);
+                }
+            } catch (ServiceException e) {
+                setStatus(e.getMessage(), true);
+        }
     }
 
     @FXML
@@ -564,6 +726,17 @@ public class AdminController {
         tblComponents.setItems(components);
     }
 
+    private void configureScheduleTable() {
+        colScheduleDay.setCellValueFactory(data ->
+                new javafx.beans.property.ReadOnlyObjectWrapper<>(data.getValue().getThu()));
+        colScheduleStart.setCellValueFactory(data -> new javafx.beans.property.ReadOnlyStringWrapper(
+                data.getValue().getGioBatDau().toString()));
+        colScheduleEnd.setCellValueFactory(data -> new javafx.beans.property.ReadOnlyStringWrapper(
+                data.getValue().getGioKetThuc().toString()));
+        colScheduleRoom.setCellValueFactory(new PropertyValueFactory<>("phongHoc"));
+        tblSchedules.setItems(schedules);
+    }
+
     private void loadAllData() {
         if (admin == null) return;
         loadAccounts();
@@ -578,6 +751,20 @@ public class AdminController {
     private void loadAccounts() {
         try {
             accounts.setAll(adminService.layDanhSachTaiKhoan(admin));
+            String selectedMajor = cmbProgramMajor.getValue();
+            List<String> majors = accounts.stream()
+                    .map(Users::getKhoa)
+                    .filter(khoa -> khoa != null && !khoa.isBlank())
+                    .map(String::trim)
+                    .distinct()
+                    .sorted(String.CASE_INSENSITIVE_ORDER)
+                    .toList();
+            cmbProgramMajor.setItems(FXCollections.observableArrayList(majors));
+            if (selectedMajor != null && majors.contains(selectedMajor)) {
+                cmbProgramMajor.setValue(selectedMajor);
+            } else if (!majors.isEmpty()) {
+                cmbProgramMajor.getSelectionModel().selectFirst();
+            }
             filterAccounts();
         } catch (ServiceException e) {
             setStatus("Không thể tải tài khoản. Vui lòng kiểm tra kết nối cơ sở dữ liệu.", true);
@@ -602,6 +789,88 @@ public class AdminController {
         try {
             classes.setAll(adminService.layDanhSachLopHoc(admin));
             filterClasses();
+            cmbScheduleClass.setItems(FXCollections.observableArrayList(classes));
+        } catch (ServiceException e) {
+            setStatus(e.getMessage(), true);
+        }
+    }
+
+    private void loadSchedules(LopHoc courseClass) {
+        schedules.clear();
+        onClearScheduleForm();
+        if (courseClass == null || admin == null) return;
+        try {
+            schedules.setAll(adminService.layLichHocTheoLop(admin, courseClass.getMaLop()));
+        } catch (ServiceException e) {
+            setStatus(e.getMessage(), true);
+        }
+    }
+
+    @FXML
+    private void onRefreshSchedules() {
+        loadSchedules(cmbScheduleClass.getValue());
+    }
+
+    @FXML
+    private void onClearScheduleForm() {
+        tblSchedules.getSelectionModel().clearSelection();
+        selectedSchedule = null;
+        txtScheduleDay.clear();
+        txtScheduleStart.clear();
+        txtScheduleEnd.clear();
+        txtScheduleRoom.clear();
+    }
+
+    private void populateScheduleForm(LichHoc selected) {
+        selectedSchedule = selected;
+        if (selected == null) return;
+        txtScheduleDay.setText(Integer.toString(selected.getThu()));
+        txtScheduleStart.setText(selected.getGioBatDau().toString());
+        txtScheduleEnd.setText(selected.getGioKetThuc().toString());
+        txtScheduleRoom.setText(selected.getPhongHoc());
+    }
+
+    @FXML
+    private void onSaveSchedule() {
+        LopHoc courseClass = cmbScheduleClass.getValue();
+        if (courseClass == null) {
+            setStatus("Chọn lớp học phần trước khi xếp lịch.", true);
+            return;
+        }
+        try {
+            int day = parsePositiveInt(txtScheduleDay.getText(), "Thứ");
+            LocalTime start = LocalTime.parse(required(txtScheduleStart.getText(), "Giờ bắt đầu"));
+            LocalTime end = LocalTime.parse(required(txtScheduleEnd.getText(), "Giờ kết thúc"));
+            LichHoc schedule = new LichHoc(selectedSchedule == null ? 0 : selectedSchedule.getMaLich(),
+                    courseClass.getMaLop(), day, start, end,
+                    required(txtScheduleRoom.getText(), "Phòng học"));
+            if (!adminService.luuLichHoc(admin, schedule)) {
+                setStatus("Lịch đã thay đổi hoặc không thể lưu.", true);
+                return;
+            }
+            loadSchedules(courseClass);
+            setStatus("Đã lưu lịch học.", false);
+        } catch (DateTimeParseException e) {
+            setStatus("Giờ học cần theo định dạng HH:mm, ví dụ 08:00.", true);
+        } catch (IllegalArgumentException | ServiceException e) {
+            setStatus(e.getMessage(), true);
+        }
+    }
+
+    @FXML
+    private void onDeleteSchedule() {
+        if (selectedSchedule == null) {
+            setStatus("Chọn lịch học cần xóa.", true);
+            return;
+        }
+        LopHoc courseClass = cmbScheduleClass.getValue();
+        try {
+            if (!adminService.xoaLichHoc(admin, selectedSchedule.getMaLich())) {
+                setStatus("Lịch học đã thay đổi hoặc không tồn tại.", true);
+                return;
+            }
+            loadSchedules(courseClass);
+            setStatus("Đã xóa lịch học.", false);
         } catch (ServiceException e) {
             setStatus(e.getMessage(), true);
         }
@@ -827,7 +1096,7 @@ public class AdminController {
         return switch (section) {
             case "admin-courses" -> 1;
             case "admin-classes" -> 2;
-            case "admin-components" -> 3;
+            case "admin-components" -> 4;
             default -> 0;
         };
     }
