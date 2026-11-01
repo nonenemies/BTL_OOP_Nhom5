@@ -2,23 +2,27 @@ package Controllers;
 
 import Model.LopHocDangKy;
 import Model.KetQuaDangKy;
+import Model.QuyDinhTinChi;
+import Model.TinhTrangTinChi;
 import Model.Users;
 import Services.DangKyHocService;
 import Services.ServiceException;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.css.PseudoClass;
 
 import java.util.List;
 import java.util.Locale;
@@ -28,6 +32,7 @@ import java.util.logging.Logger;
 
 public class RegistrationController {
     private static final Logger LOGGER = Logger.getLogger(RegistrationController.class.getName());
+    private static final PseudoClass REGISTERED_ROW = PseudoClass.getPseudoClass("registered");
     private final DangKyHocService registrationService = new DangKyHocService();
     private final ObservableList<LopHocDangKy> classes = FXCollections.observableArrayList();
     private final FilteredList<LopHocDangKy> filteredClasses = new FilteredList<>(classes, item -> true);
@@ -35,6 +40,8 @@ public class RegistrationController {
 
     @FXML private Label lblStatus;
     @FXML private Label lblEmpty;
+    @FXML private Label lblCreditStatus;
+    @FXML private Label lblCreditPolicy;
     @FXML private TextField txtSearch;
     @FXML private TableView<LopHocDangKy> tblClasses;
     @FXML private TableColumn<LopHocDangKy, String> colCourseCode;
@@ -51,11 +58,12 @@ public class RegistrationController {
     @FXML private TableColumn<LopHocDangKy, String> colRegisteredStatus;
     @FXML private Button btnConfirm;
     @FXML private Button btnCancelRegistration;
-    @FXML private ComboBox<String> cmbLockSemester;
-    @FXML private Button btnLockSemester;
 
     @FXML
     private void initialize() {
+        lblCreditPolicy.setText("Mức tối thiểu " + QuyDinhTinChi.MIN_TIN_CHI
+                + " tín chỉ chỉ dùng để cảnh báo; vượt mức tối đa "
+                + QuyDinhTinChi.MAX_TIN_CHI + " tín chỉ sẽ bị từ chối.");
         colCourseName.setCellValueFactory(new PropertyValueFactory<>("tenMon"));
         colCourseCode.setCellValueFactory(cell -> new ReadOnlyStringWrapper(
                 cell.getValue().getMaMon() + " · " + cell.getValue().getMaLop()));
@@ -70,30 +78,23 @@ public class RegistrationController {
         colRegisteredCredits.setCellValueFactory(new PropertyValueFactory<>("soTinChi"));
         colRegisteredStatus.setCellValueFactory(new PropertyValueFactory<>("trangThai"));
         tblClasses.setItems(filteredClasses);
+        tblClasses.setRowFactory(table -> new TableRow<>() {
+            @Override
+            protected void updateItem(LopHocDangKy item, boolean empty) {
+                super.updateItem(item, empty);
+                pseudoClassStateChanged(REGISTERED_ROW, !empty && item.isDaDangKy());
+            }
+        });
+        tblClasses.setFixedCellSize(32);
+        tblRegistered.setFixedCellSize(32);
+        filteredClasses.addListener((ListChangeListener<LopHocDangKy>)
+                change -> fitTableHeight(tblClasses));
         txtSearch.textProperty().addListener((observable, oldValue, newValue) -> applyFilters());
         tblClasses.getSelectionModel().selectedItemProperty().addListener(
                 (observable, oldValue, selected) -> updateConfirmButton(selected));
         tblRegistered.getSelectionModel().selectedItemProperty().addListener(
                 (observable, oldValue, selected) ->
                         btnCancelRegistration.setDisable(selected == null || !selected.isCoTheHuy()));
-    }
-
-    @FXML
-    private void onLockSemester() {
-        String semester = cmbLockSemester.getValue();
-        if (student == null || semester == null) {
-            setStatus("Chọn học kỳ cần chốt đăng ký.", true);
-            return;
-        }
-        try {
-            KetQuaDangKy result = registrationService.chotDangKyHocKy(student.getMaSo(), semester);
-            boolean success = result == KetQuaDangKy.THANH_CONG;
-            setStatus(success ? "Đã chốt đăng ký học kỳ " + semester + "."
-                    : registrationFailureMessage(result), !success);
-            loadClasses();
-        } catch (ServiceException e) {
-            setStatus("Không thể chốt đăng ký do lỗi hệ thống. Vui lòng thử lại.", true);
-        }
     }
 
     public void setStudent(Users student) {
@@ -155,9 +156,8 @@ public class RegistrationController {
             case DA_QUA_MON -> "Bạn đã đạt môn này nên không thể đăng ký học lại.";
             case THIEU_MON_TIEN_QUYET -> "Bạn chưa đạt đủ các môn tiên quyết.";
             case TRUNG_LICH -> "Lịch học bị trùng với một lớp bạn đã đăng ký.";
-            case VUOT_QUA_TIN_CHI -> "Tổng tín chỉ học kỳ không được vượt quá 26.";
-            case CHUA_DU_TIN_CHI_DE_CHOT -> "Cần đăng ký ít nhất 11 tín chỉ trong học kỳ trước khi chốt.";
-            case KHONG_THE_CHOT -> "Không thể chốt học kỳ này. Hãy kiểm tra các lớp đã đăng ký.";
+            case VUOT_QUA_TIN_CHI -> "Tổng tín chỉ học kỳ không được vượt quá "
+                    + QuyDinhTinChi.MAX_TIN_CHI + ".";
             case DA_CO_DIEM -> "Không thể hủy lớp đã có điểm thành phần.";
             case THANH_CONG -> "Thao tác thành công.";
             default -> "Thông tin đăng ký không còn hợp lệ. Hãy tải lại danh sách lớp.";
@@ -206,37 +206,31 @@ public class RegistrationController {
         if (student == null || student.getMaSo() == null || student.getMaSo().isBlank()) return;
         try {
             List<LopHocDangKy> items = registrationService.xemDanhSachLopDangKy(student.getMaSo());
-            List<LopHocDangKy> availableClasses = items.stream()
-                    .filter(item -> !item.isDaDangKy())
-                    .toList();
-            classes.setAll(availableClasses);
+            List<LopHocDangKy> registeredClasses =
+                    registrationService.xemDanhSachLopDaDangKy(student.getMaSo());
+            classes.setAll(items);
             applyFilters();
             tblRegistered.getSelectionModel().clearSelection();
             btnCancelRegistration.setDisable(true);
             tblRegistered.setItems(FXCollections.observableArrayList(
-                    items.stream().filter(LopHocDangKy::isDaDangKy).toList()));
-            List<String> unconfirmedSemesters = items.stream()
-                    .filter(item -> item.isDaDangKy() && !item.isDaChot()
-                            && item.getTrangThaiDangKy() == Model.TrangThaiDangKy.DANG_HOC)
-                    .map(LopHocDangKy::getHocKy)
-                    .distinct()
-                    .sorted()
-                    .toList();
-            cmbLockSemester.setItems(FXCollections.observableArrayList(unconfirmedSemesters));
-            if (!unconfirmedSemesters.isEmpty()) {
-                cmbLockSemester.getSelectionModel().selectFirst();
-            }
-            btnLockSemester.setDisable(unconfirmedSemesters.isEmpty());
+                    registeredClasses));
+            fitTableHeight(tblRegistered);
+            updateCreditStatus(java.util.stream.Stream.concat(
+                    items.stream(), registeredClasses.stream()).toList());
             lblEmpty.setText("Chưa có lớp phù hợp. Hãy kiểm tra đợt đăng ký, chương trình đào tạo và lớp học phần.");
             updateConfirmButton(tblClasses.getSelectionModel().getSelectedItem());
-            if (availableClasses.isEmpty()) {
+            if (items.isEmpty()) {
                 setStatus("Chưa có lớp học phần phù hợp với đợt đăng ký và chương trình đào tạo.", false);
             }
         } catch (ServiceException e) {
             LOGGER.log(Level.SEVERE, "Unable to load course registration data.", e);
             classes.clear();
             tblRegistered.setItems(FXCollections.observableArrayList());
+            fitTableHeight(tblRegistered);
             btnCancelRegistration.setDisable(true);
+            lblCreditStatus.setText("");
+            lblCreditStatus.setVisible(false);
+            lblCreditStatus.setManaged(false);
             lblEmpty.setText("Không thể tải danh sách lớp. Kiểm tra kết nối cơ sở dữ liệu rồi thử tải lại.");
             updateConfirmButton(null);
             setStatus("Lỗi tải dữ liệu lớp học. Vui lòng thử lại.", true);
@@ -244,7 +238,11 @@ public class RegistrationController {
             LOGGER.log(Level.SEVERE, "Unexpected error while loading course registration data.", e);
             classes.clear();
             tblRegistered.setItems(FXCollections.observableArrayList());
+            fitTableHeight(tblRegistered);
             btnCancelRegistration.setDisable(true);
+            lblCreditStatus.setText("");
+            lblCreditStatus.setVisible(false);
+            lblCreditStatus.setManaged(false);
             lblEmpty.setText("Đã xảy ra lỗi khi tải danh sách lớp.");
             updateConfirmButton(null);
             setStatus("Đã xảy ra lỗi khi tải dữ liệu.", true);
@@ -268,6 +266,51 @@ public class RegistrationController {
                 || !item.isCoLichHoc()
                 || item.getSiSoHienTai() == null || item.getSiSoToiDa() == null
                 || item.getSiSoHienTai() >= item.getSiSoToiDa());
+    }
+
+    private void fitTableHeight(TableView<?> table) {
+        int visibleRows = Math.max(1, table.getItems().size());
+        double height = 34 + visibleRows * table.getFixedCellSize();
+        table.setMinHeight(height);
+        table.setPrefHeight(height);
+        table.setMaxHeight(height);
+    }
+
+    private void updateCreditStatus(List<LopHocDangKy> items) {
+        List<String> semesters = items.stream()
+                .map(LopHocDangKy::getHocKy)
+                .filter(semester -> semester != null && !semester.isBlank())
+                .distinct()
+                .sorted()
+                .toList();
+        if (semesters.isEmpty()) {
+            lblCreditStatus.setText("");
+            lblCreditStatus.setVisible(false);
+            lblCreditStatus.setManaged(false);
+            return;
+        }
+
+        List<TinhTrangTinChi> statuses = semesters.stream()
+                .map(semester -> registrationService.tinhTrangTinChi(student.getMaSo(), semester))
+                .toList();
+        List<String> summaries = java.util.stream.IntStream.range(0, semesters.size()).mapToObj(index -> {
+            String semester = semesters.get(index);
+            TinhTrangTinChi status = statuses.get(index);
+            if (!status.datMucToiThieu()) {
+                return semester + ": Bạn mới đăng ký " + status.tongTinChi() + "/"
+                        + QuyDinhTinChi.MIN_TIN_CHI + " tín chỉ tối thiểu.";
+            }
+            return semester + ": đã đăng ký " + status.tongTinChi()
+                    + " tín chỉ, đạt mức tối thiểu " + QuyDinhTinChi.MIN_TIN_CHI + ".";
+        }).toList();
+        boolean belowMinimum = statuses.stream().anyMatch(status -> !status.datMucToiThieu());
+        lblCreditStatus.getStyleClass().removeAll(
+                "registration-message-success", "registration-message-error");
+        lblCreditStatus.getStyleClass().add(
+                belowMinimum ? "registration-message-error" : "registration-message-success");
+        lblCreditStatus.setText(String.join(System.lineSeparator(), summaries));
+        lblCreditStatus.setVisible(true);
+        lblCreditStatus.setManaged(true);
     }
 
     private void setStatus(String message, boolean error) {

@@ -135,6 +135,17 @@ public class LichHocDAO {
         }
     }
 
+    public boolean coSinhVienDangKy(Connection conn, String maLop) throws SQLException {
+        String sql = "SELECT 1 FROM DangKyHoc "
+                + "WHERE MaLop = ? AND TrangThai <> 'HUY' LIMIT 1";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, maLop);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
     private void validate(LichHoc lichHoc) {
         if (lichHoc.getMaLop() == null || lichHoc.getMaLop().isBlank()
                 || lichHoc.getThu() < 2 || lichHoc.getThu() > 8

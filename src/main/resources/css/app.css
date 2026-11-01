@@ -854,6 +854,19 @@
     -fx-background-color: #ffffff;
 }
 
+.registration-table .table-row-cell:registered {
+    -fx-background-color: #e7f4ec;
+}
+
+.registration-table .table-row-cell:registered .table-cell {
+    -fx-text-fill: #245c3a;
+    -fx-font-weight: bold;
+}
+
+.registration-table .table-row-cell:registered:filled:hover {
+    -fx-background-color: #d7eddf;
+}
+
 .registration-table .table-row-cell:filled:hover {
     -fx-background-color: #f5f7fc;
 }
@@ -866,10 +879,6 @@
 .registration-table .table-cell {
     -fx-text-fill: #46536b;
     -fx-padding: 5 8;
-}
-
-.registered-table {
-    -fx-pref-height: 170px;
 }
 
 .grades-content {

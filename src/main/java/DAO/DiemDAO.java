@@ -36,7 +36,6 @@ public class DiemDAO {
                 + "FROM LichHoc GROUP BY MaLop"
                 + ") lich ON lich.MaLop = lh.MaLop "
                 + "WHERE dk.MaSV = ? AND dk.TrangThai <> 'HUY' "
-                + "AND (dk.DaChot = 1 OR dk.TrangThai IN ('DA_HOAN_THANH', 'KHONG_DAT')) "
                 + "ORDER BY lh.HocKy, lh.MaLop, mh.MaMon";
         List<LopHocDangKy> results = new ArrayList<>();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -79,8 +78,7 @@ public class DiemDAO {
                 + "AND COUNT(d.DiemDatDuoc) = COUNT(*)"
                 + ") ketQua ON ketQua.MaDangKy = dk.MaDangKy "
                 + "SET dk.DiemTongKet = ketQua.TongDiem, "
-                + "dk.TrangThai = IF(ketQua.TongDiem >= 4.0, 'DA_HOAN_THANH', 'KHONG_DAT'), "
-                + "dk.DaChot = 1";
+                + "dk.TrangThai = IF(ketQua.TongDiem >= 4.0, 'DA_HOAN_THANH', 'KHONG_DAT')";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, maSV);
             ps.setString(2, maLop);
@@ -98,7 +96,7 @@ public class DiemDAO {
                 + "JOIN LopHoc lh ON lh.MaLop = dk.MaLop "
                 + "LEFT JOIN ThanhPhanDanhGia tp ON tp.MaMon = lh.MaMon AND tp.TrangThai = 1 "
                 + "LEFT JOIN DiemThanhPhan d ON d.MaDangKy = dk.MaDangKy AND d.MaTP = tp.MaTP "
-                + "WHERE dk.MaLop = ? AND dk.TrangThai <> 'HUY' AND dk.DaChot = 1 "
+                + "WHERE dk.MaLop = ? AND dk.TrangThai <> 'HUY' "
                 + "ORDER BY u.HoTen, dk.MaSV, tp.ThuTu, tp.MaTP";
         Map<Integer, BangDiemSinhVien> rows = new LinkedHashMap<>();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -131,8 +129,7 @@ public class DiemDAO {
         int maDangKy;
         String registrationSql = "SELECT MaDangKy FROM DangKyHoc "
                 + "WHERE MaSV = ? AND MaLop = ? "
-                + "AND TrangThai IN ('DANG_HOC', 'DA_HOAN_THANH', 'KHONG_DAT') "
-                + "AND DaChot = 1 FOR UPDATE";
+                + "AND TrangThai IN ('DANG_HOC', 'DA_HOAN_THANH', 'KHONG_DAT') FOR UPDATE";
         try (PreparedStatement ps = conn.prepareStatement(registrationSql)) {
             ps.setString(1, maSV);
             ps.setString(2, maLop);

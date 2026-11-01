@@ -58,13 +58,13 @@ public class YeuCauDoiLopDAO {
         }
     }
 
-    public boolean capNhatTrangThaiDuyet(Connection conn, int maYeuCau, String maSVNguoiChot, String trangThai) throws SQLException {
+    public boolean capNhatTrangThaiDuyet(Connection conn, int maYeuCau, String maSVNguoiXuLy, String trangThai) throws SQLException {
         String sql = "UPDATE YeuCauDoiLop yc "
                 + "JOIN SinhVien sv ON sv.MaSV = ? "
                 + "SET yc.TrangThai = ?, yc.NguoiXuLy = sv.UserID, yc.NgayXuLy = NOW() "
                 + "WHERE yc.MaYeuCau = ? AND yc.TrangThai = 'CHO_XAC_NHAN'";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, maSVNguoiChot);
+            ps.setString(1, maSVNguoiXuLy);
             ps.setString(2, trangThai);
             ps.setInt(3, maYeuCau);
             return ps.executeUpdate() > 0;

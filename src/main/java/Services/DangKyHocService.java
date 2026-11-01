@@ -12,6 +12,8 @@ import Model.LopHocDangKy;
 import Model.LopHocThoiKhoaBieu;
 import Model.KetQuaDangKy;
 import Model.TrangThaiDangKy;
+import Model.QuyDinhTinChi;
+import Model.TinhTrangTinChi;
 import DAO.ChuongTrinhDaoTaoDAO;
 import Util.DBConnection;
 
@@ -48,9 +50,6 @@ public class DangKyHocService {
                 if (!chuongTrinhDaoTaoDAO.monThuocChuongTrinh(conn, maSV, lopHoc.getMaMon())) {
                     return rollbackAndReturn(conn, KetQuaDangKy.KHONG_HOP_LE);
                 }
-                if (dangKyDAO.daChotHocKy(conn, maSV, lopHoc.getHocKy())) {
-                    return rollbackAndReturn(conn, KetQuaDangKy.KHONG_THE_CHOT);
-                }
                 if (dangKyDAO.kiemTraDaDangKy(conn, maSV, maLop)
                         || dangKyDAO.daDangKyMonTrongHocKy(conn, maSV, lopHoc.getMaMon(), lopHoc.getHocKy())) {
                     return rollbackAndReturn(conn, KetQuaDangKy.DA_DANG_KY_MON_TRONG_HOC_KY);
@@ -72,7 +71,8 @@ public class DangKyHocService {
                 }
 
                 int credits = dangKyDAO.laySoTinChi(conn, lopHoc.getMaMon());
-                if (credits <= 0 || dangKyDAO.tongTinChiDangHoc(conn, maSV, lopHoc.getHocKy()) + credits > 26) {
+                if (credits <= 0 || dangKyDAO.tongTinChiDangHoc(conn, maSV, lopHoc.getHocKy()) + credits
+                        > QuyDinhTinChi.MAX_TIN_CHI) {
                     return rollbackAndReturn(conn, KetQuaDangKy.VUOT_QUA_TIN_CHI);
                 }
 
@@ -130,8 +130,7 @@ public class DangKyHocService {
                 }
 
                 var lopHoc = lopHocDAO.layLopTheoMa(conn, maLop);
-                if (lopHoc == null || !chuongTrinhDaoTaoDAO.dangTrongDotDangKy(conn, maSV)
-                        || dangKyDAO.daChotDangKy(conn, maSV, maLop)) {
+                if (lopHoc == null || !chuongTrinhDaoTaoDAO.dangTrongDotDangKy(conn, maSV)) {
                     return rollbackAndReturn(conn, false);
                 }
                 TrangThaiDangKy trangThai = dangKyDAO.layTrangThaiDangKyForUpdate(conn, maSV, maLop);
@@ -167,47 +166,6 @@ public class DangKyHocService {
         }
     }
 
-    public KetQuaDangKy chotDangKyHocKy(String maSV, String hocKy) {
-        if (maSV == null || maSV.isBlank() || hocKy == null || hocKy.isBlank()) {
-            return KetQuaDangKy.KHONG_HOP_LE;
-        }
-        try (Connection conn = DBConnection.getConnection()) {
-            conn.setAutoCommit(false);
-            try {
-                if (!dangKyDAO.khoaSinhVienChoDangKy(conn, maSV)) {
-                    return rollbackAndReturn(conn, KetQuaDangKy.SINH_VIEN_KHONG_HOAT_DONG);
-                }
-                if (!chuongTrinhDaoTaoDAO.dangTrongDotDangKy(conn, maSV)) {
-                    return rollbackAndReturn(conn, KetQuaDangKy.DOT_DANG_KY_DA_DONG);
-                }
-                int credits = dangKyDAO.tongTinChiDangHoc(conn, maSV, hocKy);
-                if (credits < 11) {
-                    return rollbackAndReturn(conn, KetQuaDangKy.CHUA_DU_TIN_CHI_DE_CHOT);
-                }
-                if (credits > 26) {
-                    return rollbackAndReturn(conn, KetQuaDangKy.VUOT_QUA_TIN_CHI);
-                }
-                if (!dangKyDAO.daChotHocKy(conn, maSV, hocKy)
-                        && !dangKyDAO.chotHocKy(conn, maSV, hocKy)) {
-                    return rollbackAndReturn(conn, KetQuaDangKy.KHONG_THE_CHOT);
-                }
-                conn.commit();
-                return KetQuaDangKy.THANH_CONG;
-            } catch (SQLException | RuntimeException e) {
-                try {
-                    conn.rollback();
-                } catch (SQLException rollbackError) {
-                    e.addSuppressed(rollbackError);
-                }
-                throw e;
-            }
-        } catch (SQLException e) {
-            throw new ServiceException("Không thể chốt đăng ký học kỳ.", e);
-        } catch (RuntimeException e) {
-            throw ServiceException.wrap("Không thể chốt đăng ký học kỳ.", e);
-        }
-    }
-
     public List<LopHocThoiKhoaBieu> xemLichHocTheoTuan(String maSV) {
         if (maSV == null || maSV.isBlank()) {
             throw new IllegalArgumentException("Mã sinh viên không hợp lệ.");
@@ -228,6 +186,33 @@ public class DangKyHocService {
             throw new ServiceException("Không thể tải danh sách lớp đăng ký.", e);
         } catch (RuntimeException e) {
             throw ServiceException.wrap("Không thể tải danh sách lớp đăng ký.", e);
+        }
+    }
+
+    public List<LopHocDangKy> xemDanhSachLopDaDangKy(String maSV) {
+        if (maSV == null || maSV.isBlank()) {
+            throw new IllegalArgumentException("Mã sinh viên không hợp lệ.");
+        }
+        try {
+            return lopHocDAO.layDanhSachLopDaDangKy(maSV);
+        } catch (SQLException e) {
+            throw new ServiceException("Không thể tải danh sách lớp đã đăng ký.", e);
+        } catch (RuntimeException e) {
+            throw ServiceException.wrap("Không thể tải danh sách lớp đã đăng ký.", e);
+        }
+    }
+
+    public TinhTrangTinChi tinhTrangTinChi(String maSV, String hocKy) {
+        if (maSV == null || maSV.isBlank() || hocKy == null || hocKy.isBlank()) {
+            throw new IllegalArgumentException("Mã sinh viên và học kỳ là bắt buộc.");
+        }
+        try (Connection conn = DBConnection.getConnection()) {
+            int totalCredits = dangKyDAO.tongTinChiDangHoc(conn, maSV, hocKy);
+            return new TinhTrangTinChi(totalCredits, totalCredits >= QuyDinhTinChi.MIN_TIN_CHI);
+        } catch (SQLException e) {
+            throw new ServiceException("Không thể tải tổng tín chỉ của học kỳ.", e);
+        } catch (RuntimeException e) {
+            throw ServiceException.wrap("Không thể tải tổng tín chỉ của học kỳ.", e);
         }
     }
 

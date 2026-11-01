@@ -16,7 +16,6 @@ public class LopHocDangKy {
     private final TrangThaiDangKy trangThaiDangKy;
     private final Float diemTongKet;
     private final String diemThanhPhan;
-    private final boolean daChot;
 
     public LopHocDangKy(String maLop, String maMon, String tenMon, String giangVien,
                         String hocKy, String lichHoc, boolean coLichHoc,
@@ -39,15 +38,6 @@ public class LopHocDangKy {
                         Integer soTinChi, Integer siSoHienTai, Integer siSoToiDa,
                         boolean daDangKy, TrangThaiDangKy trangThaiDangKy, Float diemTongKet,
                         String diemThanhPhan) {
-        this(maLop, maMon, tenMon, giangVien, hocKy, lichHoc, coLichHoc, soTinChi,
-                siSoHienTai, siSoToiDa, daDangKy, trangThaiDangKy, diemTongKet, diemThanhPhan, false);
-    }
-
-    public LopHocDangKy(String maLop, String maMon, String tenMon, String giangVien,
-                        String hocKy, String lichHoc, boolean coLichHoc,
-                        Integer soTinChi, Integer siSoHienTai, Integer siSoToiDa,
-                        boolean daDangKy, TrangThaiDangKy trangThaiDangKy, Float diemTongKet,
-                        String diemThanhPhan, boolean daChot) {
         this.maLop = maLop;
         this.maMon = maMon;
         this.tenMon = tenMon;
@@ -62,7 +52,6 @@ public class LopHocDangKy {
         this.trangThaiDangKy = trangThaiDangKy;
         this.diemTongKet = diemTongKet;
         this.diemThanhPhan = diemThanhPhan;
-        this.daChot = daChot;
     }
 
     public String getMaLop() { return maLop; }
@@ -78,15 +67,13 @@ public class LopHocDangKy {
     public boolean isDaDangKy() { return daDangKy; }
     public Float getDiemTongKet() { return diemTongKet; }
     public String getDiemThanhPhan() { return diemThanhPhan; }
-    public boolean isDaChot() { return daChot; }
     public TrangThaiDangKy getTrangThaiDangKy() { return trangThaiDangKy; }
     public boolean isCoTheHuy() {
-        return daDangKy && !daChot && trangThaiDangKy == TrangThaiDangKy.DANG_HOC;
+        return daDangKy && trangThaiDangKy == TrangThaiDangKy.DANG_HOC;
     }
     public String getSiSo() { return siSoHienTai + " / " + siSoToiDa; }
     public String getTrangThai() {
         if (daDangKy) {
-            if (daChot && trangThaiDangKy == TrangThaiDangKy.DANG_HOC) return "Đã chốt";
             return switch (trangThaiDangKy) {
                 case DA_HOAN_THANH -> "Đã hoàn thành";
                 case KHONG_DAT -> "Không đạt";
