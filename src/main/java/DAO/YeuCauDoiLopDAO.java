@@ -10,6 +10,43 @@ import Model.TrangThaiDoiLop;
 
 public class YeuCauDoiLopDAO {
 
+    public int huyYeuCauHetHan(Connection conn) throws SQLException {
+        String sql = "UPDATE YeuCauDoiLop yc "
+                + "JOIN LopHoc lh ON lh.MaLop = yc.LopCu "
+                + "JOIN SinhVien sv ON sv.MaSV = yc.MaSV "
+                + "JOIN Users u ON u.UserID = sv.UserID "
+                + "LEFT JOIN DotDangKyNganh dot ON dot.Khoa = u.Khoa "
+                + "SET yc.TrangThai = 'HUY', yc.NgayXuLy = CURRENT_TIMESTAMP "
+                + "WHERE yc.TrangThai = 'CHO_XAC_NHAN' "
+                + "AND (dot.Khoa IS NULL OR CURRENT_TIMESTAMP NOT BETWEEN dot.MoDangKy AND dot.DongDangKy)";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            return ps.executeUpdate();
+        }
+    }
+
+    public int huyYeuCauHetHan() throws SQLException {
+        try (Connection conn = Util.DBConnection.getConnection()) {
+            return huyYeuCauHetHan(conn);
+        }
+    }
+
+    public boolean coYeuCauChoXacNhan(Connection conn, String maSV, String lopCu, String lopMoi)
+            throws SQLException {
+        String sql = "SELECT 1 FROM YeuCauDoiLop WHERE MaSV = ? "
+                + "AND TrangThai = 'CHO_XAC_NHAN' "
+                + "AND (LopCu = ? OR LopMoi = ? OR LopCu = ? OR LopMoi = ?) LIMIT 1";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, maSV);
+            ps.setString(2, lopCu);
+            ps.setString(3, lopCu);
+            ps.setString(4, lopMoi);
+            ps.setString(5, lopMoi);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
     public boolean themYeuCau(Connection conn, YeuCauDoiLop yc) throws SQLException {
         String sql = "INSERT INTO YeuCauDoiLop (MaSV, LopCu, LopMoi, LyDo) VALUES (?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -61,7 +98,13 @@ public class YeuCauDoiLopDAO {
 
     public List<YeuCauDoiLop> laySanGiaoDich() throws SQLException {
         List<YeuCauDoiLop> list = new ArrayList<>();
-        String sql = sqlThongTinYeuCau() + " WHERE yc.TrangThai = 'CHO_XAC_NHAN' ORDER BY yc.NgayTao DESC";
+        String sql = sqlThongTinYeuCau()
+                + " JOIN SinhVien svDot ON svDot.MaSV = yc.MaSV "
+                + " JOIN Users uDot ON uDot.UserID = svDot.UserID "
+                + " JOIN DotDangKyNganh dot ON dot.Khoa = uDot.Khoa "
+                + "WHERE yc.TrangThai = 'CHO_XAC_NHAN' "
+                + "AND CURRENT_TIMESTAMP BETWEEN dot.MoDangKy AND dot.DongDangKy "
+                + "ORDER BY yc.NgayTao DESC";
         try (Connection conn = Util.DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -86,10 +129,15 @@ public class YeuCauDoiLopDAO {
     }
 
     public boolean huyYeuCauCuaSinhVien(String maSV, int maYeuCau) throws SQLException {
+        try (Connection conn = Util.DBConnection.getConnection()) {
+            return huyYeuCauCuaSinhVien(conn, maSV, maYeuCau);
+        }
+    }
+
+    public boolean huyYeuCauCuaSinhVien(Connection conn, String maSV, int maYeuCau) throws SQLException {
         String sql = "UPDATE YeuCauDoiLop SET TrangThai = 'HUY', NgayXuLy = NOW() "
                 + "WHERE MaYeuCau = ? AND MaSV = ? AND TrangThai = 'CHO_XAC_NHAN'";
-        try (Connection conn = Util.DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, maYeuCau);
             ps.setString(2, maSV);
             return ps.executeUpdate() == 1;

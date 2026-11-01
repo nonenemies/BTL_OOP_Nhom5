@@ -24,7 +24,7 @@ Yêu cầu tải thêm SceneBuilder để sau này dùng
 ```text
 Database/
 └── SQL/
-    └── test.sql
+    └── QuanLyTinChi.sql
 docs/
 └── thanh-phan-danh-gia.md
 src/
@@ -90,7 +90,7 @@ Các DAO chính gồm `DangKyHocDAO`, `DiemDAO`, `LopHocDAO`, `MonHocDAO`, `MonT
 
 ## Cấu hình database
 
-Chạy `Database/SQL/test.sql` trên một MySQL test để tạo schema và dữ liệu mẫu. Kết nối đọc cấu hình từ biến môi trường:
+Chạy duy nhất `Database/SQL/QuanLyTinChi.sql` trong MySQL Workbench để tạo lại database `QuanLyTinChi` cùng schema và dữ liệu mẫu. **Script xóa toàn bộ database `QuanLyTinChi` hiện có trước khi tạo lại**, vì vậy chỉ chạy trên môi trường test/phát triển và sao lưu nếu cần giữ dữ liệu. Tài khoản mẫu dùng mật khẩu `123`; đây là dữ liệu phát triển, không dùng cho production. Kết nối ứng dụng đọc cấu hình từ biến môi trường:
 
 | Biến | Bắt buộc | Giá trị mặc định |
 | --- | --- | --- |
@@ -109,13 +109,13 @@ $env:GEMINI_API_KEY = "your_gemini_api_key"
 mvn test
 ```
 
-Trong IntelliJ IDEA, cấu hình các biến này trong **Run → Edit Configurations → Environment variables** cho cấu hình chạy. Chatbot dùng model Gemini 3.6 Flash và chỉ đọc API key từ `GEMINI_API_KEY`. Khi tư vấn, ứng dụng gửi câu hỏi cùng dữ liệu học phần, học kỳ, tín chỉ, trạng thái và điểm của sinh viên đang đăng nhập tới Google Gemini; không gửi mã sinh viên, email hoặc tên. Ứng dụng không có tài khoản/mật khẩu mặc định và không tự đọc `.env` hay `*.local.properties`; không ghi credentials thật vào mã nguồn hoặc commit lên Git.
+Trong IntelliJ IDEA, cấu hình các biến này trong **Run → Edit Configurations → Environment variables** cho cấu hình chạy. Chatbot dùng model Gemini 3.6 Flash và chỉ đọc API key từ `GEMINI_API_KEY`. Khi tư vấn, ứng dụng gửi câu hỏi cùng dữ liệu học phần, học kỳ, tín chỉ, trạng thái và điểm của sinh viên đang đăng nhập tới Google Gemini; không gửi mã sinh viên, email hoặc tên. Ứng dụng không tự tạo tài khoản mặc định và không tự đọc `.env` hay `*.local.properties`; riêng script SQL có các tài khoản demo với mật khẩu `123`. Không ghi credentials thật vào mã nguồn hoặc commit lên Git.
 
-`test.sql` chỉ dành cho database test. Script tạo database tên `QuanLyTinChi`; giữ `DB_URL` cùng tên này để kết nối đúng schema. Nếu database cũ dùng schema khác với `test.sql`, hãy sao lưu trước và tạo lại database test theo schema hiện tại hoặc thực hiện migration phù hợp.
+File SQL duy nhất tạo đầy đủ các bảng ứng dụng, chương trình đào tạo mẫu cho `CNTT`, lịch đăng ký mẫu đang mở và năm lớp/môn trong học kỳ `2026-2` (tổng cộng 15 tín chỉ để kiểm thử giới hạn tối thiểu 11). Các database đang tồn tại cần được tạo lại bằng script này; dự án không còn các file migration riêng.
 
 ## Mô hình dữ liệu và trạng thái
 
-Các bảng chính: `Users`, `SinhVien`, `GiaoVien`, `Admin`, `MonHoc`, `MonTienQuyet`, `LopHoc`, `LichHoc`, `ThanhPhanDanhGia`, `DangKyHoc`, `DiemThanhPhan` và `YeuCauDoiLop`.
+Các bảng chính: `Users`, `SinhVien`, `GiaoVien`, `Admin`, `MonHoc`, `MonTienQuyet`, `ChuongTrinhDaoTao`, `DotDangKyNganh`, `CauHinhHocKy`, `LopHoc`, `LichHoc`, `ThanhPhanDanhGia`, `DangKyHoc`, `DiemThanhPhan` và `YeuCauDoiLop`.
 
 - `MaSV` và `MaGV` là mã nghiệp vụ kiểu chuỗi; khóa ngoại tới sinh viên/giảng viên dùng các mã này. `YeuCauDoiLop.NguoiXuLy` vẫn tham chiếu `Users.UserID`, vì đây là ID tài khoản người xử lý.
 - Các mã tự tăng như `UserID`, `MaDangKy`, `MaYeuCau`, `MaTP` và `MaDiemTP` là ID số do database quản lý.
@@ -127,7 +127,7 @@ Các bảng chính: `Users`, `SinhVien`, `GiaoVien`, `Admin`, `MonHoc`, `MonTien
 
 ### Đăng ký học
 
-`DangKyHocService` kiểm tra lớp, đăng ký trùng, môn tiên quyết và lịch trùng trong transaction. Lịch được đối chiếu theo thứ và khoảng giờ trong cùng học kỳ; hai buổi giao nhau khi giờ bắt đầu của buổi này nhỏ hơn giờ kết thúc buổi kia và ngược lại. Dòng sinh viên được khóa để các yêu cầu đăng ký đồng thời của cùng một sinh viên không vượt qua kiểm tra lịch. Sĩ số được cập nhật cùng thao tác đăng ký/hủy trong transaction. Sinh viên có thể hủy lớp đang học; lớp đã hoàn thành không thể hủy. Lớp đã hủy có thể đăng ký lại nếu còn chỗ và vẫn đạt điều kiện. Lỗi database làm rollback transaction.
+Đợt đăng ký được cấu hình theo `Users.Khoa`, không theo học kỳ. Chương trình đào tạo được nạp/cố định trước khi mở đợt; Admin không thể sửa danh mục môn khi đợt đang mở. Trong thời gian đăng ký sinh viên chỉ thấy lớp hoạt động thuộc chương trình của khoa/ngành mình, bất kể giá trị học kỳ của lớp. `HocKy` trên lớp dùng để nhóm kết quả và áp dụng giới hạn tín chỉ cố định: 11–26 mỗi học kỳ. Sinh viên có thể đăng ký dần, nhưng không thể chốt học kỳ khi dưới 11; thêm lớp trên 26 bị từ chối. Chốt khóa đăng ký của học kỳ, và hủy/đổi lớp không được làm mất hiệu lực chốt. Đăng ký, hủy và đổi lớp được kiểm tra lại trong Service; lịch được đối chiếu theo thứ và khoảng giờ trong cùng học kỳ. Dòng sinh viên được khóa để các yêu cầu đồng thời không vượt qua kiểm tra lịch/tín chỉ. Sĩ số được cập nhật cùng thao tác đăng ký/hủy trong transaction. Lớp đã có điểm không thể hủy. Lớp đã hủy có thể đăng ký lại nếu còn chỗ và vẫn đạt điều kiện. Lỗi database làm rollback transaction.
 
 Màn hình `TimetableView.fxml` luôn hiển thị 17 hàng ca và các cột từ thứ 2 đến chủ nhật, kể cả khi chưa có lớp đăng ký. Ca 1 bắt đầu lúc 07:00, mỗi ca dài một giờ; ca 6 (12:00–13:00) được dành cho nghỉ trưa. Các lớp được đặt vào đúng khung giờ dựa trên lịch thực tế và kéo dài qua các hàng ca tương ứng. Cột cuối hiển thị khoảng giờ cố định của từng ca. Bảng cuộn dọc để xem hết các ca.
 

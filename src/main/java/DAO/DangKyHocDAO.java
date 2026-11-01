@@ -13,7 +13,9 @@ public class DangKyHocDAO {
 
     /** Khóa dòng sinh viên để các đăng ký đồng thời của cùng một sinh viên được tuần tự hóa. */
     public boolean khoaSinhVienChoDangKy(Connection conn, String maSV) throws SQLException {
-        String sql = "SELECT MaSV FROM SinhVien WHERE MaSV = ? FOR UPDATE";
+        String sql = "SELECT sv.MaSV FROM SinhVien sv "
+                + "JOIN Users u ON u.UserID = sv.UserID "
+                + "WHERE sv.MaSV = ? AND u.Role = 'SINHVIEN' AND u.TrangThai = 'HOAT_DONG' FOR UPDATE";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, maSV);
             try (ResultSet rs = ps.executeQuery()) {
@@ -78,6 +80,140 @@ public class DangKyHocDAO {
         }
     }
 
+    public boolean daDangKyMonTrongHocKy(Connection conn, String maSV, String maMon, String hocKy)
+            throws SQLException {
+        String sql = "SELECT 1 FROM DangKyHoc dk "
+                + "JOIN LopHoc lh ON lh.MaLop = dk.MaLop "
+                + "WHERE dk.MaSV = ? AND lh.MaMon = ? AND lh.HocKy = ? "
+                + "AND dk.TrangThai = 'DANG_HOC' LIMIT 1";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, maSV);
+            ps.setString(2, maMon);
+            ps.setString(3, hocKy);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    public int tongTinChiDangHoc(Connection conn, String maSV, String hocKy) throws SQLException {
+        String sql = "SELECT COALESCE(SUM(mh.SoTinChi), 0) AS TongTinChi "
+                + "FROM DangKyHoc dk JOIN LopHoc lh ON lh.MaLop = dk.MaLop "
+                + "JOIN MonHoc mh ON mh.MaMon = lh.MaMon "
+                + "WHERE dk.MaSV = ? AND lh.HocKy = ? AND dk.TrangThai = 'DANG_HOC'";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, maSV);
+            ps.setString(2, hocKy);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt("TongTinChi") : 0;
+            }
+        }
+    }
+
+    public int laySoTinChi(Connection conn, String maMon) throws SQLException {
+        try (PreparedStatement ps = conn.prepareStatement(
+                "SELECT SoTinChi FROM MonHoc WHERE MaMon = ? AND TrangThai = 'HOAT_DONG'")) {
+            ps.setString(1, maMon);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt("SoTinChi") : 0;
+            }
+        }
+    }
+
+    public int laySoTinChiLop(Connection conn, String maLop) throws SQLException {
+        try (PreparedStatement ps = conn.prepareStatement(
+                "SELECT mh.SoTinChi FROM LopHoc lh JOIN MonHoc mh ON mh.MaMon = lh.MaMon "
+                        + "WHERE lh.MaLop = ? AND lh.TrangThai = 'HOAT_DONG' "
+                        + "AND mh.TrangThai = 'HOAT_DONG'")) {
+            ps.setString(1, maLop);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt("SoTinChi") : 0;
+            }
+        }
+    }
+
+    public boolean daChotHocKy(Connection conn, String maSV, String hocKy) throws SQLException {
+        String sql = "SELECT 1 FROM DangKyHoc dk JOIN LopHoc lh ON lh.MaLop = dk.MaLop "
+                + "WHERE dk.MaSV = ? AND lh.HocKy = ? AND dk.TrangThai = 'DANG_HOC' "
+                + "AND dk.DaChot = 1 LIMIT 1";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, maSV);
+            ps.setString(2, hocKy);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    public boolean chotHocKy(Connection conn, String maSV, String hocKy) throws SQLException {
+        String sql = "UPDATE DangKyHoc dk JOIN LopHoc lh ON lh.MaLop = dk.MaLop "
+                + "SET dk.DaChot = 1 "
+                + "WHERE dk.MaSV = ? AND lh.HocKy = ? AND dk.TrangThai = 'DANG_HOC'";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, maSV);
+            ps.setString(2, hocKy);
+            return ps.executeUpdate() > 0;
+        }
+    }
+
+    public boolean daChotDangKy(Connection conn, String maSV, String maLop) throws SQLException {
+        String sql = "SELECT DaChot FROM DangKyHoc WHERE MaSV = ? AND MaLop = ? "
+                + "AND TrangThai = 'DANG_HOC' FOR UPDATE";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, maSV);
+            ps.setString(2, maLop);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() && rs.getBoolean("DaChot");
+            }
+        }
+    }
+
+    public boolean daDatMon(Connection conn, String maSV, String maMon) throws SQLException {
+        return kiemTraDaQuaMon(conn, maSV, maMon);
+    }
+
+    public boolean coDiem(Connection conn, String maSV, String maLop) throws SQLException {
+        String sql = "SELECT 1 FROM DiemThanhPhan d "
+                + "JOIN DangKyHoc dk ON dk.MaDangKy = d.MaDangKy "
+                + "WHERE dk.MaSV = ? AND dk.MaLop = ? LIMIT 1";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, maSV);
+            ps.setString(2, maLop);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    public boolean dangHocChuaCoDiem(Connection conn, String maSV, String maLop) throws SQLException {
+        String sql = "SELECT 1 FROM DangKyHoc dk "
+                + "WHERE dk.MaSV = ? AND dk.MaLop = ? AND dk.TrangThai = 'DANG_HOC' "
+                + "AND NOT EXISTS (SELECT 1 FROM DiemThanhPhan d WHERE d.MaDangKy = dk.MaDangKy)";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, maSV);
+            ps.setString(2, maLop);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    public boolean daDangKyMonKhacTrongHocKy(Connection conn, String maSV, String maMon,
+                                              String hocKy, String lopBoQua) throws SQLException {
+        String sql = "SELECT 1 FROM DangKyHoc dk JOIN LopHoc lh ON lh.MaLop = dk.MaLop "
+                + "WHERE dk.MaSV = ? AND lh.MaMon = ? AND lh.HocKy = ? "
+                + "AND dk.TrangThai = 'DANG_HOC' AND dk.MaLop <> ? LIMIT 1";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, maSV);
+            ps.setString(2, maMon);
+            ps.setString(3, hocKy);
+            ps.setString(4, lopBoQua);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
     public TrangThaiDangKy layTrangThaiDangKyForUpdate(Connection conn, String maSV, String maLop)
             throws SQLException {
         String sql = "SELECT TrangThai FROM DangKyHoc WHERE MaSV = ? AND MaLop = ? FOR UPDATE";
@@ -92,7 +228,7 @@ public class DangKyHocDAO {
 
     public boolean huyDangKy(Connection conn, String maSV, String maLop) throws SQLException {
         String sql = "UPDATE DangKyHoc SET TrangThai = 'HUY' "
-                + "WHERE MaSV = ? AND MaLop = ? AND TrangThai = 'DANG_HOC'";
+                + "WHERE MaSV = ? AND MaLop = ? AND TrangThai = 'DANG_HOC' AND DaChot = 0";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, maSV);
             ps.setString(2, maLop);
@@ -115,8 +251,9 @@ public class DangKyHocDAO {
     }
 
     public boolean themDangKyMoi(Connection conn, DangKyHoc dk) throws SQLException {
-        String reactivateSql = "UPDATE DangKyHoc SET TrangThai = 'DANG_HOC' "
-                + "WHERE MaSV = ? AND MaLop = ? AND TrangThai = 'HUY'";
+        String reactivateSql = "UPDATE DangKyHoc SET TrangThai = 'DANG_HOC', DaChot = 0 "
+                + "WHERE MaSV = ? AND MaLop = ? AND TrangThai = 'HUY' "
+                + "AND NOT EXISTS (SELECT 1 FROM DiemThanhPhan d WHERE d.MaDangKy = DangKyHoc.MaDangKy)";
         try (PreparedStatement ps = conn.prepareStatement(reactivateSql)) {
             ps.setString(1, dk.getMaSV());
             ps.setString(2, dk.getMaLop());
@@ -133,14 +270,54 @@ public class DangKyHocDAO {
         }
     }
 
-    public boolean capNhatLopChoSinhVien(Connection conn, String maSV, String lopCu, String lopMoi) throws SQLException {
-        String sql = "UPDATE DangKyHoc SET MaLop = ? "
-                + "WHERE MaSV = ? AND MaLop = ? AND TrangThai <> 'HUY'";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+    public boolean capNhatLopChoSinhVien(Connection conn, String maSV, String lopCu, String lopMoi)
+            throws SQLException {
+        Integer registrationId = null;
+        String sourceSql = "SELECT dk.MaDangKy FROM DangKyHoc dk "
+                + "WHERE dk.MaSV = ? AND dk.MaLop = ? AND dk.TrangThai = 'DANG_HOC' FOR UPDATE";
+        try (PreparedStatement ps = conn.prepareStatement(sourceSql)) {
+            ps.setString(1, maSV);
+            ps.setString(2, lopCu);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) return false;
+                registrationId = rs.getInt("MaDangKy");
+            }
+        }
+        if (coDiem(conn, maSV, lopCu)) return false;
+
+        Integer canceledTargetId = null;
+        boolean targetExists = false;
+        String targetSql = "SELECT MaDangKy FROM DangKyHoc "
+                + "WHERE MaSV = ? AND MaLop = ? FOR UPDATE";
+        try (PreparedStatement ps = conn.prepareStatement(targetSql)) {
+            ps.setString(1, maSV);
+            ps.setString(2, lopMoi);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    targetExists = true;
+                    canceledTargetId = rs.getInt("MaDangKy");
+                }
+            }
+        }
+
+        if (targetExists && (canceledTargetId == null || coDiem(conn, maSV, lopMoi))) return false;
+        if (canceledTargetId != null) {
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "UPDATE DangKyHoc SET TrangThai = 'HUY', DaChot = 0 WHERE MaDangKy = ?")) {
+                ps.setInt(1, registrationId);
+                if (ps.executeUpdate() != 1) return false;
+            }
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "UPDATE DangKyHoc SET TrangThai = 'DANG_HOC', DaChot = 0 WHERE MaDangKy = ?")) {
+                ps.setInt(1, canceledTargetId);
+                return ps.executeUpdate() == 1;
+            }
+        }
+        try (PreparedStatement ps = conn.prepareStatement(
+                "UPDATE DangKyHoc SET MaLop = ?, DaChot = 0 WHERE MaDangKy = ?")) {
             ps.setString(1, lopMoi);
-            ps.setString(2, maSV);
-            ps.setString(3, lopCu);
-            return ps.executeUpdate() > 0;
+            ps.setInt(2, registrationId);
+            return ps.executeUpdate() == 1;
         }
     }
 
@@ -153,7 +330,7 @@ public class DangKyHocDAO {
                 + "JOIN LopHoc lh ON lh.MaLop = dk.MaLop "
                 + "JOIN MonHoc mh ON mh.MaMon = lh.MaMon "
                 + "JOIN LichHoc lich ON lich.MaLop = lh.MaLop "
-                + "WHERE dk.MaSV = ? AND dk.TrangThai = 'DANG_HOC' "
+                + "WHERE dk.MaSV = ? AND dk.TrangThai = 'DANG_HOC' AND dk.DaChot = 1 "
                 + "ORDER BY lich.Thu, lich.GioBatDau, lich.GioKetThuc, mh.TenMon";
         try (Connection conn = Util.DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {

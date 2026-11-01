@@ -45,6 +45,19 @@ public class ThanhPhanDanhGiaDAO {
         return docDanhSach(conn, maMon, true);
     }
 
+    public boolean daCoDiem(Connection conn, String maMon) throws SQLException {
+        String sql = "SELECT 1 FROM DiemThanhPhan d "
+                + "JOIN DangKyHoc dk ON dk.MaDangKy = d.MaDangKy "
+                + "JOIN LopHoc lh ON lh.MaLop = dk.MaLop "
+                + "WHERE lh.MaMon = ? LIMIT 1";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, maMon);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
     private List<ThanhPhanDanhGia> docDanhSach(Connection conn, String maMon, boolean khoa) throws SQLException {
         List<ThanhPhanDanhGia> ketQua = new ArrayList<>();
         String sql = "SELECT MaTP, MaMon, TenThanhPhan, TrongSo, ThuTu, TrangThai "

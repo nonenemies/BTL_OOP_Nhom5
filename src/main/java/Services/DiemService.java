@@ -13,8 +13,14 @@ import Util.DBConnection;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class DiemService {
+    private static final Pattern YEAR_TERM = Pattern.compile("^(\\d{4})-(\\d+)$");
     private final DiemDAO diemDAO = new DiemDAO();
     private final LopHocDAO lopHocDAO = new LopHocDAO();
 
@@ -24,6 +30,7 @@ public class DiemService {
                 || sinhVien.getTrangThai() != TrangThaiHoatDong.HOAT_DONG) {
             throw new ServiceException("Tài khoản sinh viên không hợp lệ hoặc đã ngừng hoạt động.");
         }
+
         try (Connection conn = DBConnection.getConnection()) {
             return diemDAO.layKetQuaHocTap(conn, sinhVien.getMaSinhVien());
         } catch (SQLException e) {
@@ -31,6 +38,42 @@ public class DiemService {
         } catch (RuntimeException e) {
             throw ServiceException.wrap("Không thể tải bảng điểm tổng kết.", e);
         }
+    }
+
+    /** GPA tích lũy dùng điểm cao nhất của mỗi môn, tính đến học kỳ được yêu cầu. */
+    public double tinhGpaTichLuy(List<LopHocDangKy> results, String denHocKy) {
+        Map<String, LopHocDangKy> bestAttemptByCourse = new HashMap<>();
+        for (LopHocDangKy attempt : results) {
+            if ((denHocKy != null && compareSemesters(attempt.getHocKy(), denHocKy) > 0)
+                    || attempt.getDiemTongKet() == null
+                    || attempt.getSoTinChi() == null
+                    || attempt.getSoTinChi() <= 0) {
+                continue;
+            }
+            bestAttemptByCourse.merge(attempt.getMaMon(), attempt,
+                    (current, candidate) -> candidate.getDiemTongKet() > current.getDiemTongKet()
+                            ? candidate : current);
+        }
+
+        double weightedScore = 0;
+        int credits = 0;
+        for (LopHocDangKy attempt : bestAttemptByCourse.values()) {
+            weightedScore += attempt.getDiemTongKet() * attempt.getSoTinChi();
+            credits += attempt.getSoTinChi();
+        }
+        return credits == 0 ? Double.NaN : weightedScore / credits;
+    }
+
+    private int compareSemesters(String first, String second) {
+        Matcher firstMatch = YEAR_TERM.matcher(first == null ? "" : first);
+        Matcher secondMatch = YEAR_TERM.matcher(second == null ? "" : second);
+        if (firstMatch.matches() && secondMatch.matches()) {
+            int yearComparison = Integer.compare(
+                    Integer.parseInt(firstMatch.group(1)), Integer.parseInt(secondMatch.group(1)));
+            if (yearComparison != 0) return yearComparison;
+            return Integer.compare(Integer.parseInt(firstMatch.group(2)), Integer.parseInt(secondMatch.group(2)));
+        }
+        return Comparator.nullsFirst(String.CASE_INSENSITIVE_ORDER).compare(first, second);
     }
 
     public List<LopHoc> layLopPhuTrach(GiangVien giangVien) {
@@ -104,6 +147,9 @@ public class DiemService {
                                   String maLop, boolean khoa) throws SQLException {
         if (maLop == null || maLop.isBlank()) {
             throw new ServiceException("Mã lớp không hợp lệ.");
+        }
+        if (khoa && !diemDAO.giangVienConHoatDong(conn, giangVien.getMaGiangVien())) {
+            throw new ServiceException("Tài khoản giảng viên không còn hoạt động.");
         }
         LopHoc lopHoc = khoa ? lopHocDAO.layLopTheoMaForUpdate(conn, maLop)
                 : lopHocDAO.layLopTheoMa(conn, maLop);

@@ -5,6 +5,7 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TableColumn?>
@@ -30,6 +31,8 @@
     <TabPane fx:id="adminTabs" VBox.vgrow="ALWAYS" tabClosingPolicy="UNAVAILABLE">
         <tabs>
             <Tab text="Sinh viên &amp; giảng viên">
+                <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="ALWAYS">
+                <content>
                 <VBox spacing="10.0">
                     <padding><Insets bottom="12.0" left="10.0" right="10.0" top="10.0" /></padding>
                     <HBox alignment="CENTER_LEFT" spacing="10.0">
@@ -74,8 +77,12 @@
                         <Button onAction="#onSaveAccount" styleClass="primary-button" text="Lưu tài khoản" />
                     </HBox>
                 </VBox>
+                </content>
+                </ScrollPane>
             </Tab>
             <Tab text="Môn học &amp; tiên quyết">
+                <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="ALWAYS">
+                <content>
                 <VBox spacing="10.0">
                     <padding><Insets bottom="12.0" left="10.0" right="10.0" top="10.0" /></padding>
                     <TextField fx:id="txtCourseSearch" promptText="Tìm mã môn, tên môn, loại môn..." />
@@ -120,8 +127,12 @@
                         </columns>
                     </TableView>
                 </VBox>
+                </content>
+                </ScrollPane>
             </Tab>
             <Tab text="Lớp học phần">
+                <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="ALWAYS">
+                <content>
                 <VBox spacing="10.0">
                     <padding><Insets bottom="12.0" left="10.0" right="10.0" top="10.0" /></padding>
                     <TextField fx:id="txtClassSearch" promptText="Tìm mã lớp, môn, giảng viên, học kỳ..." />
@@ -154,8 +165,56 @@
                         <Button onAction="#onSaveClass" styleClass="primary-button" text="Lưu lớp học phần" />
                     </HBox>
                 </VBox>
+                </content>
+                </ScrollPane>
+            </Tab>
+            <Tab text="Lịch học">
+                <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="ALWAYS">
+                <content>
+                <VBox spacing="10.0">
+                    <padding><Insets bottom="14.0" left="12.0" right="12.0" top="12.0" /></padding>
+                    <HBox alignment="CENTER_LEFT" spacing="10.0">
+                        <Label text="Lớp học phần:" />
+                        <ComboBox fx:id="cmbScheduleClass" promptText="Chọn lớp" maxWidth="Infinity"
+                                  HBox.hgrow="ALWAYS" />
+                        <Button onAction="#onRefreshSchedules" text="Tải lịch" />
+                    </HBox>
+                    <TableView fx:id="tblSchedules" prefHeight="270.0" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="colScheduleDay" text="Thứ" prefWidth="90.0" />
+                            <TableColumn fx:id="colScheduleStart" text="Bắt đầu" prefWidth="130.0" />
+                            <TableColumn fx:id="colScheduleEnd" text="Kết thúc" prefWidth="130.0" />
+                            <TableColumn fx:id="colScheduleRoom" text="Phòng học" prefWidth="220.0" />
+                        </columns>
+                    </TableView>
+                    <GridPane hgap="10.0" vgap="8.0">
+                        <columnConstraints>
+                            <ColumnConstraints hgrow="ALWAYS" percentWidth="20.0" />
+                            <ColumnConstraints hgrow="ALWAYS" percentWidth="25.0" />
+                            <ColumnConstraints hgrow="ALWAYS" percentWidth="25.0" />
+                            <ColumnConstraints hgrow="ALWAYS" percentWidth="30.0" />
+                        </columnConstraints>
+                        <TextField fx:id="txtScheduleDay" promptText="Thứ (2–8)"
+                                   GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                        <TextField fx:id="txtScheduleStart" promptText="Bắt đầu (HH:mm)"
+                                   GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                        <TextField fx:id="txtScheduleEnd" promptText="Kết thúc (HH:mm)"
+                                   GridPane.columnIndex="2" GridPane.rowIndex="0" />
+                        <TextField fx:id="txtScheduleRoom" promptText="Phòng học"
+                                   GridPane.columnIndex="3" GridPane.rowIndex="0" />
+                    </GridPane>
+                    <HBox alignment="CENTER_RIGHT" spacing="8.0">
+                        <Button onAction="#onClearScheduleForm" text="Làm mới" />
+                        <Button onAction="#onDeleteSchedule" text="Xóa lịch chọn" />
+                        <Button onAction="#onSaveSchedule" styleClass="primary-button" text="Lưu lịch học" />
+                    </HBox>
+                </VBox>
+                </content>
+                </ScrollPane>
             </Tab>
             <Tab text="Thành phần đánh giá">
+                <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="ALWAYS">
+                <content>
                 <VBox spacing="10.0">
                     <padding><Insets bottom="12.0" left="10.0" right="10.0" top="10.0" /></padding>
                     <HBox alignment="CENTER_LEFT" spacing="10.0">
@@ -189,6 +248,89 @@
                         <Button onAction="#onSaveComponents" styleClass="primary-button" text="Lưu cấu hình" />
                     </HBox>
                 </VBox>
+                </content>
+                </ScrollPane>
+            </Tab>
+            <Tab text="Mốc điểm">
+                <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="ALWAYS">
+                <content>
+                <VBox spacing="12.0">
+                    <padding><Insets bottom="18.0" left="16.0" right="16.0" top="16.0" /></padding>
+                    <Label styleClass="section-title" text="Mốc học kỳ và nhập điểm" />
+                    <Label styleClass="section-subtitle"
+                           text="Học kỳ chỉ dùng để phân loại kết quả. Sinh viên nhập điểm từ ngày kết thúc học kỳ đến hạn chót."
+                           wrapText="true" />
+                    <HBox alignment="CENTER_LEFT" spacing="10.0">
+                        <TextField fx:id="txtTermCode" promptText="Mã học kỳ, ví dụ 2026-1" />
+                        <Button onAction="#onLoadTermSettings" text="Tải cấu hình" />
+                    </HBox>
+                    <GridPane hgap="12.0" vgap="10.0">
+                        <columnConstraints>
+                            <ColumnConstraints hgrow="ALWAYS" percentWidth="50.0" />
+                            <ColumnConstraints hgrow="ALWAYS" percentWidth="50.0" />
+                        </columnConstraints>
+                        <DatePicker fx:id="dpSemesterEnd" promptText="Ngày kết thúc học kỳ"
+                                    maxWidth="Infinity" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                        <TextField fx:id="txtGradeEntryDeadline" promptText="Hạn chót nhập điểm (yyyy-MM-dd HH:mm)"
+                                   GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                    </GridPane>
+                    <HBox alignment="CENTER_RIGHT" spacing="8.0">
+                        <Button onAction="#onSaveTermSettings" styleClass="primary-button"
+                                text="Lưu mốc điểm" />
+                    </HBox>
+                    <Label text="Lịch đăng ký được quản lý riêng theo khoa/ngành trong tab “Đăng ký &amp; chương trình”." />
+                </VBox>
+                </content>
+                </ScrollPane>
+            </Tab>
+            <Tab text="Đăng ký &amp; chương trình">
+                <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="ALWAYS">
+                <content>
+                <VBox spacing="12.0">
+                    <padding><Insets bottom="18.0" left="16.0" right="16.0" top="16.0" /></padding>
+                    <Label styleClass="section-title" text="Đợt đăng ký theo khoa/ngành và chương trình đào tạo" />
+                    <Label styleClass="section-subtitle"
+                           text="Khai báo chương trình trước khi mở đợt; hệ thống khóa chỉnh sửa môn khi đợt đang mở. Mã khoa/ngành phải khớp với Users.Khoa."
+                           wrapText="true" />
+                    <HBox alignment="CENTER_LEFT" spacing="10.0">
+                        <ComboBox fx:id="cmbProgramMajor" promptText="Chọn khoa/ngành" maxWidth="Infinity"
+                                  HBox.hgrow="ALWAYS" />
+                        <Button onAction="#onLoadMajorRegistration" text="Tải dữ liệu" />
+                    </HBox>
+                    <GridPane hgap="12.0" vgap="10.0">
+                        <columnConstraints>
+                            <ColumnConstraints hgrow="ALWAYS" percentWidth="50.0" />
+                            <ColumnConstraints hgrow="ALWAYS" percentWidth="50.0" />
+                        </columnConstraints>
+                        <VBox spacing="4.0" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                            <Label text="Ngày bắt đầu · mở lúc 12:00 trưa" />
+                            <DatePicker fx:id="dpMajorRegistrationOpensOn" promptText="Chọn ngày bắt đầu"
+                                        maxWidth="Infinity" />
+                        </VBox>
+                        <VBox spacing="4.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                            <Label text="Ngày kết thúc · đóng lúc 12:00 trưa" />
+                            <DatePicker fx:id="dpMajorRegistrationClosesOn" promptText="Chọn ngày kết thúc"
+                                        maxWidth="Infinity" />
+                        </VBox>
+                    </GridPane>
+                    <HBox alignment="CENTER_RIGHT" spacing="8.0">
+                        <Button onAction="#onSaveMajorRegistration" styleClass="primary-button"
+                                text="Lưu lịch đăng ký" />
+                    </HBox>
+                    <HBox alignment="CENTER_LEFT" spacing="10.0">
+                        <Button onAction="#onAddAllProgramCourses" styleClass="primary-button"
+                                text="Thêm tất cả môn đang hoạt động vào chương trình" />
+                        <Button onAction="#onRemoveProgramCourse" text="Gỡ môn đã chọn" />
+                    </HBox>
+                    <TableView fx:id="tblProgramCourses" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="colProgramCourseCode" text="Mã môn" prefWidth="180.0" />
+                            <TableColumn fx:id="colProgramCourseName" text="Tên môn" prefWidth="500.0" />
+                        </columns>
+                    </TableView>
+                </VBox>
+                </content>
+                </ScrollPane>
             </Tab>
         </tabs>
     </TabPane>

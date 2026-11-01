@@ -51,7 +51,7 @@ public class GeminiAIService {
 
         JsonObject generationConfig = new JsonObject();
         generationConfig.addProperty("temperature", 0.4);
-        generationConfig.addProperty("maxOutputTokens", 1024);
+        generationConfig.addProperty("maxOutputTokens", 8192);
         requestBody.add("generationConfig", generationConfig);
 
         HttpRequest request = HttpRequest.newBuilder()
@@ -148,8 +148,14 @@ public class GeminiAIService {
             }
         }
         String answer = String.join("\n", textParts).trim();
-        return answer.isEmpty()
-                ? "AI chưa tạo được câu trả lời. Vui lòng thử lại với câu hỏi khác."
-                : answer;
+        if (answer.isEmpty()) {
+            return "AI chưa tạo được câu trả lời. Vui lòng thử lại với câu hỏi khác.";
+        }
+
+        JsonElement finishReason = candidate.get("finishReason");
+        if (finishReason != null && "MAX_TOKENS".equals(finishReason.getAsString())) {
+            return answer + "\n\n(Câu trả lời đã chạm giới hạn độ dài. Bạn có thể yêu cầu AI tiếp tục.)";
+        }
+        return answer;
     }
 }

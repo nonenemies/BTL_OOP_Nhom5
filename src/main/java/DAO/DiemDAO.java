@@ -19,6 +19,10 @@ public class DiemDAO {
     public List<LopHocDangKy> layKetQuaHocTap(Connection conn, String maSV) throws SQLException {
         String sql = "SELECT lh.MaLop, mh.MaMon, mh.TenMon, lh.HocKy, mh.SoTinChi, "
                 + "dk.DiemTongKet, dk.TrangThai, "
+                + "COALESCE((SELECT GROUP_CONCAT(CONCAT(tp.TenThanhPhan, ': ', d.DiemDatDuoc) "
+                + "ORDER BY tp.ThuTu, tp.MaTP SEPARATOR ' | ') "
+                + "FROM DiemThanhPhan d JOIN ThanhPhanDanhGia tp ON tp.MaTP = d.MaTP "
+                + "WHERE d.MaDangKy = dk.MaDangKy), '') AS DiemThanhPhan, "
                 + "COALESCE(lich.LichHoc, 'Chưa xếp lịch') AS LichHoc, "
                 + "CASE WHEN lich.MaLop IS NULL THEN 0 ELSE 1 END AS CoLichHoc "
                 + "FROM DangKyHoc dk "
@@ -32,6 +36,7 @@ public class DiemDAO {
                 + "FROM LichHoc GROUP BY MaLop"
                 + ") lich ON lich.MaLop = lh.MaLop "
                 + "WHERE dk.MaSV = ? AND dk.TrangThai <> 'HUY' "
+                + "AND (dk.DaChot = 1 OR dk.TrangThai IN ('DA_HOAN_THANH', 'KHONG_DAT')) "
                 + "ORDER BY lh.HocKy, lh.MaLop, mh.MaMon";
         List<LopHocDangKy> results = new ArrayList<>();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -52,7 +57,8 @@ public class DiemDAO {
                             null,
                             true,
                             TrangThaiDangKy.valueOf(rs.getString("TrangThai")),
-                            finalGrade == null ? null : finalGrade.floatValue()));
+                            finalGrade == null ? null : finalGrade.floatValue(),
+                            rs.getString("DiemThanhPhan")));
                 }
             }
         }
@@ -73,7 +79,8 @@ public class DiemDAO {
                 + "AND COUNT(d.DiemDatDuoc) = COUNT(*)"
                 + ") ketQua ON ketQua.MaDangKy = dk.MaDangKy "
                 + "SET dk.DiemTongKet = ketQua.TongDiem, "
-                + "dk.TrangThai = IF(ketQua.TongDiem >= 4.0, 'DA_HOAN_THANH', 'DANG_HOC')";
+                + "dk.TrangThai = IF(ketQua.TongDiem >= 4.0, 'DA_HOAN_THANH', 'KHONG_DAT'), "
+                + "dk.DaChot = 1";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, maSV);
             ps.setString(2, maLop);
@@ -91,7 +98,7 @@ public class DiemDAO {
                 + "JOIN LopHoc lh ON lh.MaLop = dk.MaLop "
                 + "LEFT JOIN ThanhPhanDanhGia tp ON tp.MaMon = lh.MaMon AND tp.TrangThai = 1 "
                 + "LEFT JOIN DiemThanhPhan d ON d.MaDangKy = dk.MaDangKy AND d.MaTP = tp.MaTP "
-                + "WHERE dk.MaLop = ? AND dk.TrangThai <> 'HUY' "
+                + "WHERE dk.MaLop = ? AND dk.TrangThai <> 'HUY' AND dk.DaChot = 1 "
                 + "ORDER BY u.HoTen, dk.MaSV, tp.ThuTu, tp.MaTP";
         Map<Integer, BangDiemSinhVien> rows = new LinkedHashMap<>();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -123,7 +130,9 @@ public class DiemDAO {
                             int maTP, float diemDatDuoc) throws SQLException {
         int maDangKy;
         String registrationSql = "SELECT MaDangKy FROM DangKyHoc "
-                + "WHERE MaSV = ? AND MaLop = ? AND TrangThai <> 'HUY' FOR UPDATE";
+                + "WHERE MaSV = ? AND MaLop = ? "
+                + "AND TrangThai IN ('DANG_HOC', 'DA_HOAN_THANH', 'KHONG_DAT') "
+                + "AND DaChot = 1 FOR UPDATE";
         try (PreparedStatement ps = conn.prepareStatement(registrationSql)) {
             ps.setString(1, maSV);
             ps.setString(2, maLop);
@@ -137,6 +146,17 @@ public class DiemDAO {
                 }
             }
         }
+
+        String termSql = "SELECT lh.HocKy FROM LopHoc lh WHERE lh.MaLop = ?";
+        String hocKy;
+        try (PreparedStatement ps = conn.prepareStatement(termSql)) {
+            ps.setString(1, maLop);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) return false;
+                hocKy = rs.getString("HocKy");
+            }
+        }
+        if (!new CauHinhHocKyDAO().dangTrongDotNhapDiem(conn, hocKy)) return false;
 
         String componentSql = "SELECT 1 FROM ThanhPhanDanhGia tp "
                 + "JOIN LopHoc lh ON lh.MaMon = tp.MaMon "
@@ -182,4 +202,27 @@ public class DiemDAO {
         }
     }
 
+    public boolean coDiemTrongMon(Connection conn, String maMon) throws SQLException {
+        String sql = "SELECT 1 FROM DiemThanhPhan d "
+                + "JOIN DangKyHoc dk ON dk.MaDangKy = d.MaDangKy "
+                + "JOIN LopHoc lh ON lh.MaLop = dk.MaLop "
+                + "WHERE lh.MaMon = ? LIMIT 1";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, maMon);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    public boolean giangVienConHoatDong(Connection conn, String maGV) throws SQLException {
+        String sql = "SELECT 1 FROM GiaoVien gv JOIN Users u ON u.UserID = gv.UserID "
+                + "WHERE gv.MaGV = ? AND u.Role = 'GIAOVIEN' AND u.TrangThai = 'HOAT_DONG'";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, maGV);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
 }

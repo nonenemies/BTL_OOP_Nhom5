@@ -16,19 +16,67 @@ public class MonTienQuyetDAO {
 
     /** Ghi nhận môn tiên quyết của một môn học. */
     public boolean themMonTienQuyet(String maMon, String maMonTienQuyet) throws SQLException {
-        if (maMon == null || maMonTienQuyet == null) {
+        if (maMon == null || maMon.isBlank() || maMonTienQuyet == null || maMonTienQuyet.isBlank()) {
             throw new IllegalArgumentException("Mã môn không được null");
         }
         if (maMon.equals(maMonTienQuyet)) {
             throw new IllegalArgumentException("Một môn không thể là tiên quyết của chính nó");
         }
 
-        String sql = "INSERT INTO MonTienQuyet (MaMon, MaMonTienQuyet) VALUES (?, ?)";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, maMon);
-            ps.setString(2, maMonTienQuyet);
-            return ps.executeUpdate() == 1;
+        try (Connection conn = DBConnection.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                try (PreparedStatement ps = conn.prepareStatement(
+                        "SELECT MaMon FROM MonHoc WHERE MaMon IN (?, ?) "
+                                + "AND TrangThai = 'HOAT_DONG' ORDER BY MaMon FOR UPDATE")) {
+                    ps.setString(1, maMon);
+                    ps.setString(2, maMonTienQuyet);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        int activeCourses = 0;
+                        while (rs.next()) activeCourses++;
+                        if (activeCourses != 2) {
+                            conn.rollback();
+                            throw new IllegalArgumentException("Hai môn phải tồn tại và đang hoạt động.");
+                        }
+                    }
+                }
+
+                String cycleSql = "WITH RECURSIVE prerequisites (MaMon) AS ("
+                        + "SELECT MaMonTienQuyet FROM MonTienQuyet WHERE MaMon = ? "
+                        + "UNION DISTINCT "
+                        + "SELECT mtq.MaMonTienQuyet FROM MonTienQuyet mtq "
+                        + "JOIN prerequisites p ON mtq.MaMon = p.MaMon"
+                        + ") SELECT 1 FROM prerequisites WHERE MaMon = ? LIMIT 1";
+                try (PreparedStatement ps = conn.prepareStatement(cycleSql)) {
+                    ps.setString(1, maMonTienQuyet);
+                    ps.setString(2, maMon);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) {
+                            conn.rollback();
+                            throw new IllegalArgumentException("Quan hệ này tạo thành chu trình môn tiên quyết.");
+                        }
+                    }
+                }
+
+                try (PreparedStatement ps = conn.prepareStatement(
+                        "INSERT INTO MonTienQuyet (MaMon, MaMonTienQuyet) VALUES (?, ?)")) {
+                    ps.setString(1, maMon);
+                    ps.setString(2, maMonTienQuyet);
+                    if (ps.executeUpdate() != 1) {
+                        conn.rollback();
+                        return false;
+                    }
+                }
+                conn.commit();
+                return true;
+            } catch (SQLException | RuntimeException e) {
+                try {
+                    conn.rollback();
+                } catch (SQLException rollbackError) {
+                    e.addSuppressed(rollbackError);
+                }
+                throw e;
+            }
         }
     }
 
