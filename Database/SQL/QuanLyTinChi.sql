@@ -195,10 +195,6 @@ INSERT INTO ChuongTrinhDaoTao (Khoa, MaMon) VALUES
 ('CNTT', 'IT04'),
 ('CNTT', 'IT05');
 
--- The sample registration period is open for 30 days from database setup.
-INSERT INTO CauHinhHocKy (HocKy, KetThucHocKy, HanNhapDiem)
-VALUES ('2026-2', '2026-12-31', '2027-01-31 23:59:00');
-
 INSERT INTO LopHoc (MaLop, MaMon, MaGV, HocKy, SiSoToiDa) VALUES
 ('OOP_L01', 'IT01', 'GV01', '2026-2', 40),
 ('DB_L01', 'IT02', 'GV01', '2026-2', 40),
