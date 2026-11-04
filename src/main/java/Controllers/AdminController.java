@@ -5,6 +5,7 @@ import Model.GiangVien;
 import Model.LopHoc;
 import Model.LichHoc;
 import Model.MonHoc;
+import Model.MonTienQuyet;
 import Model.SinhVien;
 import Model.ThanhPhanDanhGia;
 import Model.TrangThaiHoatDong;
@@ -57,7 +58,7 @@ public class AdminController {
     private final FilteredList<MonHoc> filteredCourses = new FilteredList<>(courses, item -> true);
     private final ObservableList<LopHoc> classes = FXCollections.observableArrayList();
     private final FilteredList<LopHoc> filteredClasses = new FilteredList<>(classes, item -> true);
-    private final ObservableList<MonHoc> prerequisites = FXCollections.observableArrayList();
+    private final ObservableList<MonTienQuyet> prerequisites = FXCollections.observableArrayList();
     private final ObservableList<ThanhPhanDanhGia> components = FXCollections.observableArrayList();
     private final ObservableList<LichHoc> schedules = FXCollections.observableArrayList();
 
@@ -99,9 +100,9 @@ public class AdminController {
     @FXML private TextField txtCourseCredits;
     @FXML private TextField txtCourseType;
     @FXML private TextArea txtCourseDescription;
-    @FXML private TableView<MonHoc> tblPrerequisites;
-    @FXML private TableColumn<MonHoc, String> colPrerequisiteCode;
-    @FXML private TableColumn<MonHoc, String> colPrerequisiteName;
+    @FXML private TableView<MonTienQuyet> tblPrerequisites;
+    @FXML private TableColumn<MonTienQuyet, String> colPrerequisiteCode;
+    @FXML private TableColumn<MonTienQuyet, String> colPrerequisiteName;
     @FXML private ComboBox<MonHoc> cmbPrerequisite;
 
     @FXML private TableView<LopHoc> tblClasses;
@@ -516,13 +517,14 @@ public class AdminController {
 
     @FXML
     private void onRemovePrerequisite() {
-        MonHoc selected = tblPrerequisites.getSelectionModel().getSelectedItem();
+        MonTienQuyet selected = tblPrerequisites.getSelectionModel().getSelectedItem();
         if (selectedCourse == null || selected == null) {
             setStatus("Chọn môn tiên quyết cần gỡ.", true);
             return;
         }
         try {
-            if (!adminService.xoaMonTienQuyet(admin, selectedCourse.getMaMon(), selected.getMaMon())) {
+            if (!adminService.xoaMonTienQuyet(
+                    admin, selectedCourse.getMaMon(), selected.getMaMonTienQuyet())) {
                 setStatus("Quan hệ tiên quyết đã thay đổi.", true);
                 return;
             }
@@ -703,8 +705,8 @@ public class AdminController {
         colCourseCredits.setCellValueFactory(new PropertyValueFactory<>("soTinChi"));
         colCourseType.setCellValueFactory(new PropertyValueFactory<>("loaiMon"));
         colCourseStatus.setCellValueFactory(new PropertyValueFactory<>("trangThai"));
-        colPrerequisiteCode.setCellValueFactory(new PropertyValueFactory<>("maMon"));
-        colPrerequisiteName.setCellValueFactory(new PropertyValueFactory<>("tenMon"));
+        colPrerequisiteCode.setCellValueFactory(new PropertyValueFactory<>("maMonTienQuyet"));
+        colPrerequisiteName.setCellValueFactory(new PropertyValueFactory<>("tenMonTienQuyet"));
         tblPrerequisites.setItems(prerequisites);
     }
 
@@ -1002,7 +1004,7 @@ public class AdminController {
 
     private void updatePrerequisiteChoices() {
         String courseCode = selectedCourse == null ? null : selectedCourse.getMaMon();
-        List<String> assigned = prerequisites.stream().map(MonHoc::getMaMon).toList();
+        List<String> assigned = prerequisites.stream().map(MonTienQuyet::getMaMonTienQuyet).toList();
         cmbPrerequisite.setItems(FXCollections.observableArrayList(courses.stream()
                 .filter(course -> course.getTrangThai() == TrangThaiHoatDong.HOAT_DONG)
                 .filter(course -> !course.getMaMon().equals(courseCode))
